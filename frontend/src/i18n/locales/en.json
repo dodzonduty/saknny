@@ -1,0 +1,79 @@
+{
+  "nav": {
+    "brand": "Sakny",
+    "discover": "Discover",
+    "howItWorks": "How it Works",
+    "features": "Features",
+    "studentLogin": "Student Login"
+  },
+  "trustBanner": {
+    "text": "Official University Housing Platform - Secure & Verified"
+  },
+  "hero": {
+    "titleLine1": "Your Dream University Home,",
+    "titleLine2": "Verified and Ready.",
+    "subtitle": "Curated academic living spaces. Secure your focus, comfort, and prestige. Login with your university account to instantly book your verified room.",
+    "ctaPrimary": "Find Your Room",
+    "ctaSecondary": "Login with University Account"
+  },
+  "featuresGrid": {
+    "title": "Designed for Students",
+    "subtitle": "Everything you need to secure your ideal academic environment, seamlessly integrated.",
+    "cards": [
+      {
+        "title": "Browse Available Rooms",
+        "description": "Explore curated listings with detailed floor plans, amenities, and real-time availability tailored to your academic year.",
+        "link": "Explore"
+      },
+      {
+        "title": "Verified Listings",
+        "description": "Every property is officially vetted by university housing standards.",
+        "link": "Learn more"
+      },
+      {
+        "title": "Book with Ease",
+        "description": "Streamlined, one-click booking using your official credentials.",
+        "link": "See how"
+      },
+      {
+        "title": "Track Booking Status",
+        "description": "Monitor your application progress from submission to key collection in a dedicated student portal. Submit support tickets and track issues easily.",
+        "link": "Portal demo"
+      }
+    ]
+  },
+  "howItWorks": {
+    "title": "The Path to Your Room",
+    "subtitle": "A simplified, four-step process to secure your academic sanctuary.",
+    "steps": [
+      { "title": "Secure Login", "description": "Access the platform instantly with your university account." },
+      { "title": "Browse Rooms", "description": "Filter by hall, amenities, and availability." },
+      { "title": "Book a Room", "description": "Select your room and sign your digital agreement." },
+      { "title": "Get Confirmation", "description": "Receive your move-in details and digital key." }
+    ]
+  },
+  "aiFeatures": {
+    "title": "Intelligent Housing Experience",
+    "subtitle": "Our platform leverages advanced AI to create a seamless, personalized housing journey tailored to your unique academic lifestyle.",
+    "cards": [
+      { "title": "Smart Roommate Matching", "description": "Find the perfect peer based on shared habits, study schedules, and lifestyle preferences." },
+      { "title": "Personalized Recommendations", "description": "Discover rooms that fit your proximity to classes, budget, and desired amenities." },
+      { "title": "Proactive Booking Experience", "description": "A faster, predictive flow that anticipates your needs and simplifies the university verification process." }
+    ],
+    "cta": "Try Smart Features"
+  },
+  "finalCta": {
+    "titleLine1": "Secure your room now.",
+    "titleLine2": "Login to start booking.",
+    "subtitle": "Don't miss out on your preferred accommodation for the upcoming academic year.",
+    "cta": "Student Login"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "accessibility": "Accessibility",
+    "contact": "Contact Support",
+    "partners": "University Partners",
+    "copyright": "Sakny University Housing. Curating Academic Excellence."
+  }
+}
