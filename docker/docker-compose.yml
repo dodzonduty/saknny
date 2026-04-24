@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  saknny_db:
+    image: postgres:15-alpine
+    container_name: saknny_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: saknny_admin
+      POSTGRES_PASSWORD: saknny_secret_2026
+      POSTGRES_DB: saknny
+    ports:
+      - "5433:5432"
+    volumes:
+      - saknny_pgdata:/var/lib/postgresql/data
+
+volumes:
+  saknny_pgdata:

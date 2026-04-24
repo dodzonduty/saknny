@@ -1,0 +1,382 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+
+\geometry{margin=2.5cm}
+
+% ── Colors ────────────────────────────────────────────────────────────
+\definecolor{saknnyprimary}{HTML}{1E3A5F}
+\definecolor{saknnyaccent}{HTML}{2980B9}
+\definecolor{codebg}{HTML}{F5F5F5}
+\definecolor{codeframe}{HTML}{CCCCCC}
+
+% ── Listings Style ────────────────────────────────────────────────────
+\lstset{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b
+}
+
+% ── Header / Footer ──────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{saknnyprimary}{\textbf{Saknny}} -- Database Progress Report}
+\fancyhead[R]{\textcolor{saknnyprimary}{Role A: Data Layer}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Title Formatting ─────────────────────────────────────────────────
+\titleformat{\section}
+  {\Large\bfseries\color{saknnyprimary}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{saknnyaccent}}{\thesubsection}{1em}{}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=saknnyaccent,
+    urlcolor=saknnyaccent,
+}
+
+% ══════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title Page ────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+
+    {\Huge\bfseries\textcolor{saknnyprimary}{Saknny}}\\[0.5cm]
+    {\Large\textcolor{saknnyaccent}{Database Layer Progress Report}}\\[1.5cm]
+
+    {\large\textbf{Role A -- Data Layer Engineering}}\\[0.5cm]
+    {\large Mohamed Ibrahem Ahmed}\\[0.3cm]
+    {\large Student ID: 231903608}\\[2cm]
+
+    \begin{tabular}{ll}
+        \textbf{Course:}     & CCE580 -- Graduation Project \\
+        \textbf{Supervisor:} & Dr.\ Walaa Gouda \\
+        \textbf{University:} & Benha University, Shoubra Faculty of Engineering \\
+        \textbf{Program:}    & Communication and Computer Engineering \\
+        \textbf{Date:}       & April 24, 2026 \\
+    \end{tabular}
+
+    \vfill
+    {\small Version 1.0}
+\end{titlepage}
+
+% ── Table of Contents ─────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Introduction}
+% ══════════════════════════════════════════════════════════════════════
+
+This document reports the progress made on the \textbf{Data Layer} (Role~A) of the Saknny platform. The work covers the initial database infrastructure setup, the creation of the foundational SQLAlchemy ORM models, and the establishment of the schema contract that guides all downstream API development.
+
+The implementation follows the project's governance rules as defined in:
+\begin{itemize}[noitemsep]
+    \item \texttt{governance/ownership.md} -- role boundaries and file ownership
+    \item \texttt{governance/workflow.md} -- development workflow and safety rules
+    \item \texttt{governance/api\_patterns.md} -- API response and ID conventions
+    \item \texttt{governance/ai\_rules.md} -- AI agent behavioral constraints
+\end{itemize}
+
+All database design decisions are grounded in the \textbf{First Term Report V1.0}, Chapter~3 (System Analysis and Design), specifically Section~3.5 (Data Design) and the Data Dictionary (Section~3.5.4).
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Technology Stack}
+% ══════════════════════════════════════════════════════════════════════
+
+The backend data layer uses the following technologies, as mandated by the project's fixed stack:
+
+\begin{table}[h!]
+\centering
+\caption{Data Layer Technology Stack}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Component}   & \textbf{Technology}      & \textbf{Version} \\ \midrule
+Database Engine       & PostgreSQL               & 15 (Alpine)      \\
+ORM Framework         & SQLAlchemy               & 2.x              \\
+Database Driver       & psycopg2-binary          & Latest           \\
+Password Hashing      & bcrypt                   & Latest           \\
+Containerization      & Docker / Docker Compose  & Latest           \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Infrastructure Setup}
+% ══════════════════════════════════════════════════════════════════════
+
+\subsection{Docker Container}
+
+A dedicated PostgreSQL container was provisioned using Docker Compose. The container runs on \textbf{port~5433} (rather than the default 5432) to avoid conflicts with a pre-existing container from a previous project.
+
+\begin{table}[h!]
+\centering
+\caption{PostgreSQL Container Configuration}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter}    & \textbf{Value}           \\ \midrule
+Container Name        & \texttt{saknny\_postgres} \\
+Image                 & \texttt{postgres:15-alpine} \\
+Host Port             & 5433                     \\
+Database Name         & \texttt{saknny}          \\
+Username              & \texttt{saknny\_admin}   \\
+Volume                & \texttt{saknny\_pgdata}  \\
+Restart Policy        & \texttt{unless-stopped}  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Database Connection Layer}
+
+The file \texttt{backend/app/core/database.py} provides:
+
+\begin{itemize}[noitemsep]
+    \item A SQLAlchemy \texttt{Engine} connected to the PostgreSQL instance.
+    \item A \texttt{SessionLocal} factory for creating database sessions.
+    \item A \texttt{Base} declarative class from which all ORM models inherit.
+    \item A \texttt{get\_db()} dependency function for FastAPI injection.
+\end{itemize}
+
+\subsection{Initialization Script}
+
+The script \texttt{scripts/init\_db.py} creates all tables registered with the \texttt{Base} metadata. It is idempotent -- running it multiple times will not duplicate or alter existing tables.
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Database Schema}
+% ══════════════════════════════════════════════════════════════════════
+
+Three tables have been created to support the \textbf{Authentication and Verification} modules:
+
+\subsection{Table: \texttt{admins}}
+
+Represents university staff members who manage the housing platform.
+
+\begin{longtable}{@{}llll@{}}
+\caption{Schema: \texttt{admins}} \\
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Constraints} & \textbf{Notes} \\ \midrule
+\endfirsthead
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Constraints} & \textbf{Notes} \\ \midrule
+\endhead
+\texttt{admin\_id}      & INTEGER       & PK, AUTO INCREMENT  &                        \\
+\texttt{name}            & VARCHAR(100)  & NOT NULL             & Full name              \\
+\texttt{email}           & VARCHAR(100)  & UNIQUE, NOT NULL     & Login credential       \\
+\texttt{password\_hash}  & VARCHAR(255)  & NOT NULL             & bcrypt hash            \\
+\texttt{role}            & VARCHAR(50)   & NOT NULL             & e.g.\ ``Housing Manager'' \\
+\texttt{created\_at}     & TIMESTAMPTZ   & NOT NULL             & Audit timestamp        \\
+\texttt{updated\_at}     & TIMESTAMPTZ   & NOT NULL             & Auto-updated on change \\
+\bottomrule
+\end{longtable}
+
+\subsection{Table: \texttt{students}}
+
+Represents students who use the platform to search for and apply to university housing.
+
+\begin{longtable}{@{}llll@{}}
+\caption{Schema: \texttt{students}} \\
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Constraints} & \textbf{Notes} \\ \midrule
+\endfirsthead
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Constraints} & \textbf{Notes} \\ \midrule
+\endhead
+\texttt{student\_id}      & INTEGER       & PK, AUTO INCREMENT  &                           \\
+\texttt{faculty\_id}      & VARCHAR(20)   & UNIQUE, NOT NULL     & Official university ID    \\
+\texttt{name}              & VARCHAR(100)  & NOT NULL             &                           \\
+\texttt{email}             & VARCHAR(100)  & UNIQUE, NOT NULL     & Login + notifications     \\
+\texttt{gender}            & CHAR(1)       & NOT NULL             & `M' or `F'                \\
+\texttt{home\_city}        & VARCHAR(50)   & NOT NULL             & For distance scoring      \\
+\texttt{password\_hash}    & VARCHAR(255)  & NOT NULL             & bcrypt hash               \\
+\texttt{enroll\_status}    & BOOLEAN       & NOT NULL, DEFAULT FALSE & Set by Admin           \\
+\texttt{distance\_score}   & DECIMAL(5,2)  & NOT NULL, DEFAULT 0  & Priority score            \\
+\texttt{preferences}       & VARCHAR(200)  & NULLABLE             & For AI matching           \\
+\texttt{created\_at}       & TIMESTAMPTZ   & NOT NULL             & Audit timestamp           \\
+\texttt{updated\_at}       & TIMESTAMPTZ   & NOT NULL             & Auto-updated              \\
+\bottomrule
+\end{longtable}
+
+\textbf{Enhancements over the original report schema:}
+\begin{itemize}[noitemsep]
+    \item Added \texttt{email} column for authentication and notifications.
+    \item Added \texttt{password\_hash} column for bcrypt-based authentication.
+    \item Added \texttt{created\_at} and \texttt{updated\_at} for audit logging compliance.
+\end{itemize}
+
+\subsection{Table: \texttt{verification\_documents}}
+
+Tracks documents uploaded by students for identity and enrollment verification. This table was designed to support the verification workflow described in the report's Consolidated System Event Table (Section~3.2.3).
+
+\begin{longtable}{@{}llll@{}}
+\caption{Schema: \texttt{verification\_documents}} \\
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Constraints} & \textbf{Notes} \\ \midrule
+\endfirsthead
+\toprule
+\textbf{Column} & \textbf{Type} & \textbf{Constraints} & \textbf{Notes} \\ \midrule
+\endhead
+\texttt{doc\_id}             & INTEGER       & PK, AUTO INCREMENT         &                        \\
+\texttt{student\_id}         & INTEGER       & FK $\rightarrow$ students (CASCADE) & Uploader      \\
+\texttt{doc\_type}           & VARCHAR(30)   & NOT NULL                   & e.g.\ ``college\_id''  \\
+\texttt{file\_path}          & VARCHAR(500)  & NOT NULL                   & Relative filesystem path \\
+\texttt{original\_filename}  & VARCHAR(255)  & NOT NULL                   & Display name           \\
+\texttt{status}              & VARCHAR(20)   & NOT NULL, DEFAULT `pending' & Workflow state        \\
+\texttt{reviewed\_by}        & INTEGER       & FK $\rightarrow$ admins (SET NULL) & Reviewer       \\
+\texttt{review\_date}        & TIMESTAMPTZ   & NULLABLE                   & Decision timestamp     \\
+\texttt{rejection\_reason}   & TEXT          & NULLABLE                   & If rejected            \\
+\texttt{is\_flagged}         & BOOLEAN       & NOT NULL, DEFAULT FALSE    & Fraud flag             \\
+\texttt{flag\_reason}        & VARCHAR(200)  & NULLABLE                   & Why flagged            \\
+\texttt{created\_at}         & TIMESTAMPTZ   & NOT NULL                   & Upload timestamp       \\
+\texttt{updated\_at}         & TIMESTAMPTZ   & NOT NULL                   & Auto-updated           \\
+\bottomrule
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Verification Workflow}
+% ══════════════════════════════════════════════════════════════════════
+
+The verification process follows the workflow defined in the report's event tables:
+
+\begin{enumerate}
+    \item \textbf{Student Registration:} The student creates an account with email, password, faculty ID, and personal details. The password is hashed using bcrypt before storage.
+
+    \item \textbf{Document Upload:} The student uploads a college ID image. The file is saved to the filesystem at:
+    \begin{center}
+        \texttt{uploads/verification\_docs/<student\_id>/<uuid>\_<filename>}
+    \end{center}
+    A row is inserted into \texttt{verification\_documents} with \texttt{status = `pending'}.
+
+    \item \textbf{Fraud Detection (Optional):} The system's Policy Engine may automatically flag suspicious uploads by setting \texttt{is\_flagged = TRUE} and recording the \texttt{flag\_reason}.
+
+    \item \textbf{Admin Review:} An administrator reviews the document from the verification queue. They either:
+    \begin{itemize}[noitemsep]
+        \item \textbf{Approve:} Sets \texttt{status = `approved'}, records \texttt{reviewed\_by} and \texttt{review\_date}.
+        \item \textbf{Reject:} Sets \texttt{status = `rejected'}, records the \texttt{rejection\_reason}.
+    \end{itemize}
+
+    \item \textbf{Eligibility Approval:} Once all required documents are approved, the admin sets \texttt{students.enroll\_status = TRUE}, enabling the student to submit housing applications.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Entity Relationships}
+% ══════════════════════════════════════════════════════════════════════
+
+The current schema establishes the following relationships:
+
+\begin{table}[h!]
+\centering
+\caption{Entity Relationships (Implemented)}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Relationship}                          & \textbf{Cardinality} & \textbf{FK Action}  \\ \midrule
+\texttt{students} $\rightarrow$ \texttt{verification\_documents} & 1:N     & CASCADE  \\
+\texttt{admins} $\rightarrow$ \texttt{verification\_documents}   & 1:N     & SET NULL \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{CASCADE:} If a student record is deleted, all their verification documents are automatically removed.
+    \item \textbf{SET NULL:} If an admin record is deleted, the review history is preserved (the \texttt{reviewed\_by} field becomes NULL).
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{File Storage Convention}
+% ══════════════════════════════════════════════════════════════════════
+
+Uploaded verification documents are stored on the local filesystem rather than in the database (to avoid bloating the database with binary data).
+
+\begin{table}[h!]
+\centering
+\caption{File Storage Rules}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter}       & \textbf{Value}                                              \\ \midrule
+Storage Location         & \texttt{uploads/verification\_docs/<student\_id>/}           \\
+Naming Convention        & \texttt{<uuid>\_<original\_filename>}                        \\
+Accepted Formats         & JPEG, PNG, PDF (enforced by API layer)                      \\
+Maximum File Size        & 5 MB (enforced by API layer)                                \\
+Database Column          & \texttt{file\_path} stores the relative path                 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Business Rules and Constraints}
+% ══════════════════════════════════════════════════════════════════════
+
+The following business rules are enforced at the database level:
+
+\begin{enumerate}
+    \item \textbf{Unique Identifiers:} All entities use numeric auto-incrementing IDs, as specified in the API patterns governance document.
+    \item \textbf{Unique Emails:} Both \texttt{admins.email} and \texttt{students.email} have UNIQUE constraints to prevent duplicate accounts.
+    \item \textbf{Unique Faculty ID:} \texttt{students.faculty\_id} has a UNIQUE constraint ensuring each university ID maps to exactly one student account.
+    \item \textbf{Enrollment Gate:} \texttt{students.enroll\_status} defaults to \texttt{FALSE} and must be set to \texttt{TRUE} by an admin before a student can submit a housing application.
+    \item \textbf{Verification Gate:} A student cannot be marked as enrolled until at least one verification document has been approved.
+    \item \textbf{Password Security:} All passwords are stored as bcrypt hashes (VARCHAR(255) to accommodate the 60-character bcrypt output with headroom).
+    \item \textbf{Referential Integrity:} Foreign key constraints ensure no orphaned records can exist in \texttt{verification\_documents}.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Files Created}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{table}[h!]
+\centering
+\caption{Files Created in This Phase}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{File Path}                                     & \textbf{Purpose}                  & \textbf{Role} \\ \midrule
+\texttt{docker/docker-compose.yml}                     & PostgreSQL container              & A             \\
+\texttt{backend/app/core/database.py}                  & Engine, session, Base             & A             \\
+\texttt{backend/app/models/\_\_init\_\_.py}             & Model package                     & A             \\
+\texttt{backend/app/models/admin.py}                   & Admin model                       & A             \\
+\texttt{backend/app/models/student.py}                 & Student model                     & A             \\
+\texttt{backend/app/models/verification\_document.py}  & Verification model                & A             \\
+\texttt{scripts/init\_db.py}                           & Table creation script             & A             \\
+\texttt{contracts/database/schema.md}                  & Schema contract for Role B        & A             \\
+\texttt{uploads/verification\_docs/.gitkeep}           & Upload directory placeholder      & A             \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Next Steps}
+% ══════════════════════════════════════════════════════════════════════
+
+The following tables remain to be implemented to complete the full database schema as defined in the First Term Report:
+
+\begin{enumerate}
+    \item \texttt{applications} -- Housing application submissions (FK $\rightarrow$ students, buildings)
+    \item \texttt{application\_reviews} -- M:N link table between admins and applications
+    \item \texttt{buildings} -- Dormitory buildings with gender segregation
+    \item \texttt{rooms} -- Individual rooms within buildings with capacity tracking
+    \item \texttt{allocations} -- Final bed assignments (FK $\rightarrow$ students, rooms, admins)
+    \item \texttt{audit\_logs} -- Cross-cutting audit trail for sensitive changes
+\end{enumerate}
+
+Once the remaining tables are implemented, the schema contract will be updated and Role~B (API Layer) can proceed with the full REST API implementation.
+
+\end{document}
