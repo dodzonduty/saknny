@@ -117,3 +117,27 @@ Action: CREATED
 Owner: Data Layer Engineer (Mohamed)
 Notes: Tracks student document uploads for enrollment verification. Columns: doc_id, student_id (FK), doc_type, file_path, original_filename, status, reviewed_by (FK), review_date, rejection_reason, is_flagged, flag_reason, created_at, updated_at. Files stored on filesystem at uploads/verification_docs/<student_id>/. Schema contract updated.
 Date: 2026-04-24
+
+[API]
+
+Entity: API Contract
+Name: Auth and Verification API Contracts
+Role: B
+Path: contracts/api/contracts.md
+Status: REAL
+Action: CREATED
+Owner: API Engineer (Mohamed)
+Notes: Created the API contracts for Student Registration, Auth Login, Document Upload, Verification Queue, and Document Review following the API patterns.
+Date: 2026-04-24
+
+[API]
+
+Entity: Backend Service
+Name: Auth and Verification Endpoints
+Role: B
+Path: backend/app/api/
+Status: REAL
+Action: CREATED
+Owner: API Engineer (Mohamed)
+Notes: Bootstrapped FastAPI application (main.py) with standardized error handling. Created JWT security utilities, Pydantic schemas, and implemented endpoints for authentication (login, registration) and verification workflows according to the contract.
+Date: 2026-04-24
