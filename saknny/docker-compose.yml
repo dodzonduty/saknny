@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  saknny_db:
+    image: postgres:15-alpine
+    container_name: saknny_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: saknny_admin
+      POSTGRES_PASSWORD: saknny_secret_2026
+      POSTGRES_DB: saknny
+    ports:
+      - "5433:5432"
+    volumes:
+      - saknny_pgdata:/var/lib/postgresql/data
+
+  saknny_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: saknny_backend
+    restart: unless-stopped
+    depends_on:
+      - saknny_db
+    environment:
+      - DATABASE_URL=postgresql://saknny_admin:saknny_secret_2026@saknny_db:5432/saknny
+      - SECRET_KEY=saknny_super_secret_key_2026_change_in_production
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  saknny_pgdata:
