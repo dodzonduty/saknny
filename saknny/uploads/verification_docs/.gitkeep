@@ -1,3 +1,0 @@
-# This directory stores uploaded verification documents.
-# Organized as: verification_docs/<student_id>/<filename>
-# Files are referenced by relative path in the verification_documents table.
