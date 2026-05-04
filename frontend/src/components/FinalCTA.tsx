@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Button } from "./ui/Button";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useTranslation } from "@/i18n/useTranslation";
@@ -29,9 +30,11 @@ export const FinalCTA: React.FC = () => {
             {t("finalCta.subtitle")}
           </p>
 
-          <Button variant="primary" icon="login" iconPosition={locale === "ar" ? "right" : "left"} className={locale === "ar" ? "rtl:flex-row-reverse mt-4 shadow-accent-yellow/20" : "mt-4 shadow-accent-yellow/20"}>
-            {t("finalCta.cta")}
-          </Button>
+          <Link href="/auth" className="mt-4">
+            <Button variant="primary" icon="login" iconPosition={locale === "ar" ? "right" : "left"} className={locale === "ar" ? "rtl:flex-row-reverse shadow-accent-yellow/20" : "shadow-accent-yellow/20"}>
+              {t("finalCta.cta")}
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

@@ -8,10 +8,10 @@ All models and scripts import the engine, session, and Base from here.
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
-# ── Connection Settings ───────────────────────────────────────────────
-DATABASE_URL = "postgresql://saknny_admin:saknny_secret_2026@localhost:5433/saknny"
+from backend.app.core.config import settings
 
-engine = create_engine(DATABASE_URL, echo=True, pool_pre_ping=True)
+# ── Connection Settings ───────────────────────────────────────────────
+engine = create_engine(settings.DATABASE_URL, echo=True, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 

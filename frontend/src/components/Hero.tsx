@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { Button } from "./ui/Button";
 import { useTranslation } from "@/i18n/useTranslation";
 
@@ -28,9 +29,11 @@ export const Hero: React.FC = () => {
           <Button variant="primary" icon="arrow_forward" iconPosition={locale === "ar" ? "left" : "right"} className={locale === "ar" ? "rtl:flex-row-reverse" : ""}>
             {t("hero.ctaPrimary")}
           </Button>
-          <Button variant="secondary" icon="school" iconPosition={locale === "ar" ? "right" : "left"}>
-            {t("hero.ctaSecondary")}
-          </Button>
+          <Link href="/auth">
+            <Button variant="secondary" icon="school" iconPosition={locale === "ar" ? "right" : "left"}>
+              {t("hero.ctaSecondary")}
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

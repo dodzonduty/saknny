@@ -18,6 +18,39 @@
   --color-status-full: #991b1b;
   --color-status-full-container: #fee2e2;
 
+  /* Dashboard-specific tokens (from Stitch design system) */
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f3f7;
+  --color-surface-container: #efedf1;
+  --color-surface-container-high: #e9e7eb;
+  --color-surface-container-highest: #e3e2e6;
+  --color-surface-dim: #dad9dd;
+  --color-surface-bright: #faf9fd;
+  --color-surface-tint: #455f88;
+  --color-on-surface: #1a1c1e;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #86a0cd;
+  --color-outline: #74777f;
+  --color-outline-variant: #c4c6cf;
+  --color-primary-fixed: #d6e3ff;
+  --color-primary-fixed-dim: #adc7f7;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-secondary: #735c00;
+  --color-secondary-container: #fed65b;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #745c00;
+  --color-tertiary: #002626;
+  --color-tertiary-container: #003d3d;
+  --color-tertiary-fixed: #93f2f2;
+  --color-tertiary-fixed-dim: #76d6d5;
+  --color-on-tertiary-container: #4badad;
+  --color-inverse-surface: #2f3033;
+  --color-inverse-on-surface: #f1f0f4;
+  --color-inverse-primary: #adc7f7;
+
   --font-headline: "Manrope", sans-serif;
   --font-body: "Public Sans", sans-serif;
   --font-label: "Public Sans", sans-serif;

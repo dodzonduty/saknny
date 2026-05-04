@@ -12,13 +12,18 @@ from backend.app.api.router import api_router
 from backend.app.schemas.response import APIResponse, error_response
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from backend.app.core.database import engine
+from backend.app.models import Base
+
+# Create database tables automatically since we aren't using Alembic
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this
+    allow_origins=["http://localhost:3000"], # Restrict to frontend origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

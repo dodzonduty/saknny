@@ -141,3 +141,39 @@ Action: CREATED
 Owner: API Engineer (Mohamed)
 Notes: Bootstrapped FastAPI application (main.py) with standardized error handling. Created JWT security utilities, Pydantic schemas, and implemented endpoints for authentication (login, registration) and verification workflows according to the contract.
 Date: 2026-04-24
+
+[COMPONENT]
+
+Entity: Component
+Name: Frontend Auth Pages Implementation
+Role: C
+Path: frontend/src/components/auth/*, frontend/src/app/auth/page.tsx
+Status: REAL
+Action: IMPLEMENTED
+Owner: Frontend Engineer (Mohamed)
+Notes: Implemented the Login and Registration pages (`/auth`) and integrated with the backend API.
+Date: 2026-05-03
+
+[COMPONENT]
+
+Entity: Component
+Name: Student Dashboard Implementation
+Role: C
+Path: frontend/src/components/dashboard/*, frontend/src/app/dashboard/page.tsx
+Status: REAL
+Action: IMPLEMENTED
+Owner: Frontend Engineer (Mohamed)
+Notes: Implemented the Student Home Dashboard (`/dashboard`) including the document upload functionality (`POST /students/{id}/documents`). Built the UI stepper for document status but it currently relies on local state.
+Date: 2026-05-04
+
+[API REQUEST]
+
+Entity: API Contract
+Name: GET /api/v1/students/{id}/documents
+Role: C -> B
+Path: TBD
+Status: REQUIRED
+Action: REQUESTED
+Owner: API Engineer (Mohamed)
+Notes: We need a new endpoint `GET /api/v1/students/{id}/documents` to fetch the student's previously uploaded documents and their status (`pending`, `approved`, `rejected`). Without this, the dashboard stepper resets to "Upload Document" every time the page refreshes. Please implement this API so the frontend can properly reflect the persistent document status.
+Date: 2026-05-04

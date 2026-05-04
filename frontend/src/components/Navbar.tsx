@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "./ui/Button";
 import { useTranslation } from "@/i18n/useTranslation";
 import { LanguageToggle } from "./LanguageToggle";
@@ -82,7 +83,9 @@ export const Navbar: React.FC = () => {
         </nav>
         <div className="flex items-center gap-4">
           <LanguageToggle />
-          <Button variant="navy">{t("nav.studentLogin")}</Button>
+          <Link href="/auth">
+            <Button variant="navy">{t("nav.studentLogin")}</Button>
+          </Link>
         </div>
       </div>
     </header>

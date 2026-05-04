@@ -1,0 +1,102 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+
+% ── Colors ────────────────────────────────────────────────────────────
+\definecolor{saknnyprimary}{HTML}{1E3A5F}
+\definecolor{saknnyaccent}{HTML}{2980B9}
+
+% ── Header / Footer ──────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{saknnyprimary}{\textbf{Saknny}} -- Frontend Implementation Report}
+\fancyhead[R]{\textcolor{saknnyprimary}{Role C: Frontend Layer}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Title Formatting ─────────────────────────────────────────────────
+\titleformat{\section}
+  {\Large\bfseries\color{saknnyprimary}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{saknnyaccent}}{\thesubsection}{1em}{}
+
+% ══════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title Page ────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+
+    {\Huge\bfseries\textcolor{saknnyprimary}{Saknny}}\\[0.5cm]
+    {\Large\textcolor{saknnyaccent}{Login, Registration, and Student Dashboard Pages Report}}\\[1.5cm]
+
+    {\large\textbf{Role C -- Frontend Development}}\\[0.5cm]
+
+    \vfill
+    {\small Version 1.0}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+This document reports the progress and implementation details resulting from the development session for the \textbf{Frontend Layer} (Role C) of the Saknny platform. The work covers the implementation of the UI components and pages for the Authentication (Login and Registration) and the Student Homepage (Dashboard), strictly matching the requested design specifications and removing inconsistencies.
+
+\section{Authentication Interfaces}
+The authentication module consists of a unified page that allows students to toggle between login and registration forms.
+
+\subsection{Login Page}
+\begin{itemize}[noitemsep]
+    \item Implemented using a dual-column layout with a rich aesthetic, including a professional background pattern.
+    \item Connected to the \texttt{/api/v1/auth/login} backend endpoint.
+    \item Handles JWT access tokens, saving them securely and redirecting the user to the dashboard upon success.
+\end{itemize}
+
+\subsection{Registration Page}
+\begin{itemize}[noitemsep]
+    \item Includes form fields for Student ID, Faculty ID, Name, Email, and Password.
+    \item Features client-side validation to ensure all fields meet the necessary format requirements.
+    \item Calls the \texttt{/api/v1/students/register} backend endpoint to create a new user.
+\end{itemize}
+
+\section{Student Dashboard (Homepage)}
+The student dashboard serves as the central hub for the student once authenticated. Multiple iterations were performed to refine the layout based on design feedback.
+
+\subsection{Layout and Navigation}
+\begin{itemize}[noitemsep]
+    \item \textbf{Sidebar:} A responsive, fixed sidebar containing navigation links. The "Academic Curator" section was successfully removed, and spacing was adjusted (\texttt{mt-6}) to maintain a clean, balanced layout.
+    \item \textbf{Navbar:} A fixed glass-nav header that includes the university logo alongside the brand name. The thin border was replaced with a soft shadow.
+    \item \textbf{Footer:} The footer was modified to use a crisp white background with an upward shadow (\texttt{shadow-[0\_-4px\_20px\_-2px\_rgba(0,0,0,0.05)]}) to frame the page content elegantly. Horizontal scrolling issues caused by full-width margins were also resolved. Note: The footer was subsequently removed entirely from the dashboard layout at the end of the session per request.
+\end{itemize}
+
+\subsection{Document Verification Stepper}
+\begin{itemize}[noitemsep]
+    \item A dynamic stepper that reflects the status of the student's verification documents (Upload, Under Review, Approved/Rejected).
+    \item Customized with bold progress lines (\texttt{h-1}) and solid white icon backgrounds (\texttt{bg-white p-1}) to prevent the line from bleeding through the circles, precisely matching the requested design constraints.
+\end{itemize}
+
+\subsection{Action Cards}
+\begin{itemize}[noitemsep]
+    \item The layout was restructured to separate the \textbf{Upload Document Card} into its own full-width section just below the stepper for prominence.
+    \item The remaining action cards (My Application, Find Housing, Roommate Matching, Maintenance Request) were placed in an organized 2x2 grid.
+    \item All thin black borders (\texttt{border-outline-variant/20}) were removed across all cards in favor of soft elevation shadows (\texttt{shadow-soft}) for a premium, frameless aesthetic.
+\end{itemize}
+
+\section{Integration and Enhancements}
+\begin{itemize}[noitemsep]
+    \item Added missing Stitch design system color tokens to \texttt{globals.css} to ensure the light theme is accurate.
+    \item Refactored components to remove dark mode variants (\texttt{dark:}) and enforce the requested light theme consistently across all browsers.
+    \item Integrated API helpers with the \texttt{fetch} API and appropriate authorization headers to communicate seamlessly with the backend for document uploads.
+\end{itemize}
+
+\end{document}
