@@ -1,7 +1,7 @@
 """
 Saknny – Database Initialization Script (Role A: Data Layer)
 
-Creates all tables defined in the models package.
+Applies Alembic migrations to bring schema to the latest revision.
 Run this script after the PostgreSQL container is up.
 
 Usage:
@@ -14,26 +14,23 @@ import os
 # Ensure the project root is on the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from backend.app.core.database import engine
-from backend.app.models import Base  # noqa: F401 – triggers model registration
+# pylint: disable=import-error
+from alembic import command
+from alembic.config import Config
 
 
 def init_database():
-    """Create all tables that don't already exist."""
+    """Run Alembic upgrade head."""
     print("=" * 60)
-    print("  Saknny – Database Initialization")
+    print("  Saknny – Database Migration")
     print("=" * 60)
-    print(f"\n  Engine URL : {engine.url}")
-    print("  Creating tables ...\n")
+    print("\n  Applying migrations ...\n")
 
-    Base.metadata.create_all(bind=engine)
+    alembic_ini = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend", "alembic.ini"))
+    cfg = Config(alembic_ini)
+    command.upgrade(cfg, "head")
 
-    # List created tables
-    table_names = list(Base.metadata.tables.keys())
-    for name in table_names:
-        print(f"  [OK]  {name}")
-
-    print(f"\n  Done – {len(table_names)} table(s) ready.")
+    print("  [OK]  Alembic upgrade head completed")
     print("=" * 60)
 
 

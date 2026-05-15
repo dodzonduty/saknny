@@ -1,0 +1,117 @@
+\chapter{Implementation}
+\label{ch:implementation}
+
+\section{Introduction}
+This chapter presents the implementation of the Saknny backend for the full Chapter 3 scope using the university-dorm allocation model. The delivered backend translates the functional requirements and event tables into production-ready API modules, relational data models, and operational workflows. The implementation also preserves the project governance conventions, including standard API response envelopes, role-based access control, and auditability.
+
+\section{Implementation Architecture}
+\subsection{Backend stack}
+The backend is implemented using FastAPI, SQLAlchemy, and PostgreSQL. Authentication is handled through JWT bearer tokens. All APIs are exposed under \texttt{/api/v1} and follow a unified response format:
+\begin{verbatim}
+{
+  "success": true|false,
+  "data": {...} | null,
+  "error": null | "error message"
+}
+\end{verbatim}
+
+\subsection{Module organization}
+The implementation is divided into functional endpoint modules:
+\begin{itemize}
+  \item Identity and verification: \texttt{auth.py}, \texttt{students.py}, \texttt{admin.py}
+  \item Catalog: \texttt{catalog.py}
+  \item Applications and waitlist: \texttt{applications.py}
+  \item Allocation: \texttt{allocations.py}
+  \item Contracts and lease lifecycle: \texttt{leases.py}
+  \item Billing simulation: \texttt{billing.py}
+  \item Check-in and residency lifecycle: \texttt{residency.py}
+  \item Maintenance workflows: \texttt{maintenance.py}
+  \item Messaging and announcements: \texttt{communications.py}
+  \item Analytics and audit reporting: \texttt{insights.py}
+  \item Surveys: \texttt{surveys.py}
+\end{itemize}
+
+\section{Database Implementation}
+\subsection{Core schema}
+The schema was extended from authentication and verification tables to a full operational model including:
+\begin{itemize}
+  \item \texttt{buildings}, \texttt{rooms}
+  \item \texttt{applications}, \texttt{application\_reviews}
+  \item \texttt{allocations}, \texttt{leases}
+  \item \texttt{payment\_intents}
+  \item \texttt{checkins}, \texttt{room\_change\_requests}
+  \item \texttt{maintenance\_tickets}
+  \item \texttt{announcements}, \texttt{messages}
+  \item \texttt{audit\_logs}
+  \item \texttt{surveys}, \texttt{survey\_dispatches}
+\end{itemize}
+
+\subsection{Constraints and business rules}
+The implementation enforces key Chapter 3 rules at model and API layers:
+\begin{itemize}
+  \item Gender compatibility between student and building for allocations.
+  \item Room capacity constraints (\texttt{available\_beds} range and decrement on assignment).
+  \item Enrollment gate before application submission.
+  \item One active allocation per student.
+  \item Lease issued only from valid assigned allocation.
+  \item Controlled enum states for verification, applications, leases, payments, tickets, and lifecycle requests.
+\end{itemize}
+
+\subsection{Migration workflow}
+Alembic was added to version schema evolution:
+\begin{itemize}
+  \item Configuration: \texttt{backend/alembic.ini}
+  \item Environment: \texttt{backend/alembic/env.py}
+  \item Initial full migration: \texttt{backend/alembic/versions/20260515\_01\_full\_ch3\_schema.py}
+\end{itemize}
+This replaces the previous non-versioned schema approach as the primary path for database initialization.
+
+\section{API Implementation by Functional Area}
+\subsection{Identity and verification}
+Students can register, update profiles, upload verification documents, and view document status. Admins can review documents and update enrollment status with audit logging.
+
+\subsection{Catalog and applications}
+Catalog APIs provide filtered building/room browsing and admin inventory management. Application APIs implement submission, review, finalization, and waitlist workflows.
+
+\subsection{Allocation, contracts, billing}
+Approved applications can be allocated to available rooms with rule checks. Leases are issued and signed digitally. Payments are modeled through a simulated gateway lifecycle (\texttt{initiated} to \texttt{paid/failed/refunded}).
+
+\subsection{Residency lifecycle and maintenance}
+The residency module supports check-in, key issuance, room-change requests, and checkout. Maintenance workflows include ticket creation, assignment, escalation, and resolution tracking.
+
+\subsection{Communication, analytics, and surveys}
+In-app messaging and targeted announcements were implemented for stakeholder communication. Admin dashboards expose occupancy, payment, and ticket metrics. Survey creation, dispatch, and completion are supported for satisfaction indicators.
+
+\section{Auditability and security}
+All sensitive state transitions write audit records through a shared audit service. RBAC is enforced through dependency guards for student and admin actions. Ownership checks are implemented for student-scoped resources (documents, leases, payments, surveys).
+
+\section{Requirement Mapping}
+A complete requirement-to-implementation traceability matrix is provided in:
+\begin{itemize}
+  \item \texttt{docs/functional\_traceability\_matrix.md}
+\end{itemize}
+This matrix maps Chapter 3 event groups to endpoints, data models, and implemented validation logic.
+
+\section{Testing and verification}
+Automated coverage checks were added in:
+\begin{itemize}
+  \item \texttt{backend/tests/test\_traceability.py}
+\end{itemize}
+The tests verify:
+\begin{itemize}
+  \item Presence of all core Chapter 3 API paths in router registration.
+  \item Compliance of response envelope helpers.
+  \item Presence of required Chapter 3 tables in the database schema contract.
+\end{itemize}
+
+\section{ML readiness and extension points}
+By request, no ML model was implemented in this phase. However, the backend is prepared for future ML integration through:
+\begin{itemize}
+  \item Student preference and distance-related fields.
+  \item Structured historical data for applications, allocations, payments, and maintenance.
+  \item Auditable event logs suitable for feature engineering and model evaluation.
+\end{itemize}
+Future work can add recommendation, prioritization, or anomaly detection services without schema redesign.
+
+\section{Conclusion}
+The delivered implementation operationalizes the full Chapter 3 backend scope for the university-dorm model, with complete API modules, expanded relational schema, migration support, auditability, and documentation artifacts for report integration.

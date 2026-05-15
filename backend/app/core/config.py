@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = "postgresql://saknny_admin:saknny_secret_2026@localhost:5433/saknny"
+    AUTO_CREATE_TABLES: bool = True
     
     # Uploads
     UPLOAD_DIR: str = "uploads/verification_docs"

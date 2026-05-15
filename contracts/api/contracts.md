@@ -1,8 +1,8 @@
-# API Contracts (Authentication & Verification)
+# API Contracts (Chapter 3 Backend Scope)
 
-This file defines the API contracts for the Authentication and Verification modules.
+This file defines the API contracts for the full Chapter 3 university-dorm workflow.
 All backend APIs must implement these endpoints exactly as described.
-Frontend mocks must also follow this structure.
+All frontend integration and mocks must follow this structure.
 
 ## Base URL
 `/api/v1`
@@ -10,151 +10,315 @@ Frontend mocks must also follow this structure.
 ## Standard Response Format
 ```json
 {
-  "success": true|false,
-  "data": { ... },
-  "error": null | "error message"
+  "success": true,
+  "data": {},
+  "error": null
+}
+```
+
+```json
+{
+  "success": false,
+  "data": null,
+  "error": "error message"
+}
+```
+
+## Auth and roles
+- JWT bearer token for all protected endpoints.
+- Role claim values: `"student"`, `"admin"`.
+- Header: `Authorization: Bearer <access_token>`.
+
+## Status enums
+- Verification: `pending`, `approved`, `rejected`
+- Application: `submitted`, `under_review`, `approved`, `rejected`, `waitlisted`
+- Allocation: `assigned`, `cancelled`
+- Lease: `pending_signature`, `signed`, `expired`
+- Payment: `initiated`, `paid`, `failed`, `refunded`
+- Ticket: `open`, `assigned`, `in_progress`, `resolved`, `escalated`
+- Room change request: `pending_review`, `approved`, `rejected`
+- Check-in flow: `initiated`, `checked_in`, `checked_out`
+
+---
+
+## 1) Identity and Profile
+
+### `POST /students/register`
+Creates a student account.
+
+### `POST /auth/login`
+Authenticates student or admin and returns token + role.
+
+### `PUT /students/{student_id}/profile`
+Updates student profile fields (`name`, `home_city`, `preferences`).
+Requires student owns this profile.
+
+---
+
+## 2) Verification
+
+### `POST /students/{student_id}/documents`
+Upload verification document (JPEG/PNG/PDF, max 5 MB).
+Multipart fields:
+- `file`
+- `doc_type` (`college_id`, `enrollment_letter`, `national_id`)
+
+### `GET /students/{student_id}/documents`
+List student verification documents.
+Student sees own docs; admin can view any student docs.
+
+### `GET /admin/verifications?status=pending`
+Admin queue for verification review.
+
+### `PUT /admin/verifications/{doc_id}`
+Admin approves/rejects a verification document.
+Request:
+```json
+{
+  "status": "approved",
+  "rejection_reason": null
+}
+```
+
+### `PUT /admin/students/{student_id}/enrollment`
+Manually set enrollment status (admin action, audited).
+Request:
+```json
+{
+  "enroll_status": true
 }
 ```
 
 ---
 
-## 1. Student Registration
-`POST /students/register`
+## 3) Catalog (Buildings and Rooms)
 
-### Request (JSON)
-```json
-{
-  "faculty_id": "231903608",
-  "name": "Mohamed Ibrahem",
-  "email": "mohamed@example.com",
-  "gender": "M",
-  "home_city": "Cairo",
-  "password": "securepassword",
-  "preferences": "Quiet room"
-}
-```
+### `GET /catalog/buildings`
+Student/admin list of buildings with optional filters:
+- `gender_type`
+- `status`
 
-### Response (201 Created)
-```json
-{
-  "success": true,
-  "data": {
-    "student_id": 1,
-    "email": "mohamed@example.com",
-    "enroll_status": false
-  },
-  "error": null
-}
-```
+### `POST /admin/catalog/buildings`
+Admin creates building.
+
+### `PUT /admin/catalog/buildings/{dorm_id}`
+Admin updates building.
+
+### `GET /catalog/rooms`
+Student/admin list of rooms with optional filters:
+- `dorm_id`
+- `available_only` (boolean)
+
+### `POST /admin/catalog/rooms`
+Admin creates room.
+
+### `PUT /admin/catalog/rooms/{room_id}`
+Admin updates room metadata/beds.
 
 ---
 
-## 2. Authentication Login
-`POST /auth/login`
+## 4) Applications and Waitlist
 
-### Request (JSON)
+### `POST /applications`
+Student submits application.
+Request:
 ```json
 {
-  "email": "user@example.com",
-  "password": "securepassword"
+  "preferred_dorm_id": 1,
+  "notes": "Near faculty preferred"
 }
 ```
 
-### Response (200 OK)
+### `GET /applications/me`
+Student tracks own applications and next actions.
+
+### `GET /admin/applications?status=submitted`
+Admin lists applications.
+
+### `PUT /admin/applications/{app_id}/review`
+Admin reviews application.
+Request:
 ```json
 {
-  "success": true,
-  "data": {
-    "access_token": "eyJhb...",
-    "token_type": "bearer",
-    "role": "student",  // or "admin"
-    "user_id": 1
-  },
-  "error": null
+  "status": "under_review",
+  "review_action": "Eligibility checked",
+  "comments": "Enrollment verified"
 }
 ```
+
+### `PUT /admin/applications/{app_id}/finalize`
+Admin final decision.
+Request:
+```json
+{
+  "status": "approved",
+  "comments": "Priority accepted"
+}
+```
+
+### `POST /applications/{app_id}/waitlist`
+Student joins waitlist for application when no beds are available.
 
 ---
 
-## 3. Upload Verification Document
-`POST /students/{id}/documents`
+## 5) Allocation
 
-### Headers
-`Authorization: Bearer <access_token>`
-
-### Request (multipart/form-data)
-- `file`: (binary file data - JPEG, PNG, PDF max 5MB)
-- `doc_type`: "college_id"
-
-### Response (201 Created)
+### `POST /admin/allocations`
+Admin assigns bed to approved application.
+Request:
 ```json
 {
-  "success": true,
-  "data": {
-    "doc_id": 1,
-    "doc_type": "college_id",
-    "status": "pending",
-    "file_path": "uploads/verification_docs/1/uuid_filename.jpg"
-  },
-  "error": null
+  "app_id": 10,
+  "room_id": 5,
+  "plan": "full_board"
 }
 ```
+
+### `GET /admin/allocations`
+Admin list allocations.
+
+### `GET /allocations/me`
+Student current allocation.
 
 ---
 
-## 4. List Verification Queue (Admin)
-`GET /admin/verifications?status=pending`
+## 6) Contracts (Lease)
 
-### Headers
-`Authorization: Bearer <admin_access_token>`
-
-### Response (200 OK)
+### `POST /admin/contracts/leases`
+Admin issues lease for allocation.
+Request:
 ```json
 {
-  "success": true,
-  "data": {
-    "documents": [
-      {
-        "doc_id": 1,
-        "student_id": 1,
-        "student_name": "Mohamed Ibrahem",
-        "doc_type": "college_id",
-        "status": "pending",
-        "file_url": "/api/v1/uploads/verification_docs/1/uuid_filename.jpg",
-        "is_flagged": false,
-        "created_at": "2026-04-24T18:00:00Z"
-      }
-    ]
-  },
-  "error": null
+  "allocation_id": 12,
+  "expires_at": "2026-10-01T00:00:00Z"
 }
 ```
+
+### `GET /contracts/leases/me`
+Student list of leases.
+
+### `PUT /contracts/leases/{lease_id}/sign`
+Student signs lease.
+
+### `POST /admin/contracts/leases/{lease_id}/expire`
+Admin/scheduler marks lease expired.
 
 ---
 
-## 5. Review Verification Document (Admin)
-`PUT /admin/verifications/{doc_id}`
+## 7) Billing (Simulated Payment)
 
-### Headers
-`Authorization: Bearer <admin_access_token>`
-
-### Request (JSON)
+### `POST /billing/payments/initiate`
+Student initiates simulated payment.
+Request:
 ```json
 {
-  "status": "approved", // or "rejected"
-  "rejection_reason": null // or string if rejected
+  "lease_id": 3,
+  "amount": 2500,
+  "payment_type": "deposit"
 }
 ```
 
-### Response (200 OK)
+### `POST /billing/payments/{payment_id}/confirm`
+Marks payment successful/failed (simulated gateway callback).
+Request:
 ```json
 {
-  "success": true,
-  "data": {
-    "doc_id": 1,
-    "status": "approved",
-    "student_enroll_status": true // updated to true if this was the final approval
-  },
-  "error": null
+  "status": "paid"
 }
 ```
+
+### `GET /billing/payments/me`
+Student payment history.
+
+### `GET /admin/billing/payments`
+Admin payment dashboard list.
+
+### `POST /admin/billing/payments/{payment_id}/refund`
+Admin approves/rejects refund simulation.
+
+---
+
+## 8) Check-in and Residency Lifecycle
+
+### `POST /checkins/initiate`
+Student initiates check-in request.
+
+### `PUT /admin/checkins/{checkin_id}/issue-key`
+Admin issues key and marks checked in.
+
+### `POST /lifecycle/room-change`
+Student requests room change.
+
+### `GET /admin/lifecycle/room-change`
+Admin list room change requests.
+
+### `PUT /admin/lifecycle/room-change/{request_id}/review`
+Admin approves/rejects room change.
+
+### `POST /lifecycle/checkout`
+Student initiates checkout.
+
+---
+
+## 9) Maintenance
+
+### `POST /maintenance/tickets`
+Student creates maintenance ticket.
+
+### `GET /maintenance/tickets/me`
+Student tickets.
+
+### `GET /admin/maintenance/tickets?status=open`
+Admin ticket queue.
+
+### `PUT /admin/maintenance/tickets/{ticket_id}/assign`
+Admin assigns ticket / changes status.
+
+### `POST /admin/maintenance/tickets/{ticket_id}/escalate`
+Admin/scheduler escalates ticket.
+
+---
+
+## 10) Messaging and Announcements
+
+### `POST /messages`
+Student/admin sends in-app message.
+
+### `GET /messages`
+Get conversation list or thread via query params.
+
+### `POST /admin/announcements`
+Admin publishes announcement.
+
+### `GET /announcements`
+Students/admin retrieve active announcements.
+
+---
+
+## 11) Analytics, Audit, Surveys
+
+### `GET /admin/analytics/dashboard`
+Returns occupancy, inventory availability, payment status metrics, and ticket SLA indicators.
+
+### `GET /admin/audit/logs`
+Returns sensitive action logs with optional filters (`action`, `entity_type`, `actor_role`).
+
+### `POST /admin/surveys`
+Admin creates survey.
+
+### `POST /admin/surveys/{survey_id}/dispatch`
+Dispatches survey to target students.
+
+### `GET /surveys/me`
+Student assigned surveys.
+
+### `POST /surveys/{dispatch_id}/complete`
+Student submits survey response.
+
+---
+
+## Notes for Frontend integration
+- Keep request/response envelope exactly as defined.
+- IDs in route paths are numeric.
+- Date-time fields use ISO-8601 UTC format.
+- For all list endpoints, expect `data.items` and optional `data.count`.

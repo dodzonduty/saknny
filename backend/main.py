@@ -9,14 +9,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from backend.app.core.config import settings
 from backend.app.api.router import api_router
-from backend.app.schemas.response import APIResponse, error_response
+from backend.app.schemas.response import error_response
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from backend.app.core.database import engine
 from backend.app.models import Base
 
-# Create database tables automatically since we aren't using Alembic
-Base.metadata.create_all(bind=engine)
+# Keep optional auto-create for local development; production should use Alembic.
+if settings.AUTO_CREATE_TABLES:
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -31,7 +32,7 @@ app.add_middleware(
 
 # Exception handler to map standard FastAPI validation errors to our API pattern
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
+async def validation_exception_handler(_request, exc):
     return JSONResponse(
         status_code=422,
         content=error_response(f"Validation error: {exc}").model_dump()
@@ -39,7 +40,7 @@ async def validation_exception_handler(request, exc):
 
 # Exception handler for general exceptions to return standardized error format
 @app.exception_handler(Exception)
-async def general_exception_handler(request, exc):
+async def general_exception_handler(_request, exc):
     return JSONResponse(
         status_code=500,
         content=error_response(f"Internal server error: {str(exc)}").model_dump()
