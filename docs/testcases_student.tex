@@ -1,0 +1,576 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\geometry{margin=2cm, landscape}
+
+% ── Colors ────────────────────────────────────────────────────────────
+\definecolor{saknnyprimary}{HTML}{1E3A5F}
+\definecolor{saknnyaccent}{HTML}{2980B9}
+
+% ── Header / Footer ──────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{saknnyprimary}{\textbf{Saknny}} -- Student Test Cases}
+\fancyhead[R]{\textcolor{saknnyprimary}{CCE580}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Title Formatting ─────────────────────────────────────────────────
+\titleformat{\section}
+  {\Large\bfseries\color{saknnyprimary}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{saknnyaccent}}{\thesubsection}{1em}{}
+
+\hypersetup{colorlinks=true, linkcolor=saknnyaccent, urlcolor=saknnyaccent}
+
+% ── Custom column type for wrapping ──────────────────────────────────
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+% ══════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title Page ────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{4cm}
+    {\Huge\bfseries\textcolor{saknnyprimary}{Saknny}}\\[0.5cm]
+    {\Large\textcolor{saknnyaccent}{Student Module -- Functional Test Cases}}\\[1.5cm]
+    {\large\textbf{Role C -- Frontend Engineering}}\\[0.5cm]
+    {\large Mohamed Ibrahem Ahmed}\\[0.3cm]
+    {\large Student ID: 231903608}\\[2cm]
+    \begin{tabular}{ll}
+        \textbf{Course:}     & CCE580 -- Graduation Project \\
+        \textbf{Supervisor:} & Dr.\ Walaa Gouda \\
+        \textbf{University:} & Benha University, Shoubra Faculty of Engineering \\
+        \textbf{Date:}       & May 18, 2026 \\
+    \end{tabular}
+    \vfill
+    {\small 35 Test Cases $\cdot$ 13 Modules $\cdot$ Document Version 1.0}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Authentication \& Session Management}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-001
+& Successful Student Login
+& P1
+& Registered student account exists. Backend running.
+& 1. Navigate to \texttt{/auth}.\newline 2. Enter valid email.\newline 3. Enter correct password.\newline 4. Click \textbf{Login}.
+& Tokens stored in localStorage (\texttt{access\_token}, \texttt{user\_role=student}, \texttt{user\_id}). User redirected to \texttt{/dashboard}. Welcome Banner renders.
+& \texttt{POST /auth/login}
+\\
+\midrule
+
+TC-STU-002
+& Login -- Invalid Credentials
+& P1
+& Backend running.
+& 1. Navigate to \texttt{/auth}.\newline 2. Enter invalid email or wrong password.\newline 3. Click \textbf{Login}.
+& Red error banner shown (e.g. ``Invalid credentials''). User stays on \texttt{/auth}. No tokens stored.
+& \texttt{POST /auth/login}
+\\
+\midrule
+
+TC-STU-003
+& Unauthenticated Redirect
+& P1
+& No \texttt{access\_token} in localStorage.
+& 1. Clear localStorage.\newline 2. Navigate to \texttt{/dashboard}.
+& System detects missing token on mount. User redirected to \texttt{/auth}.
+& --- (client)
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Student Profile (Sprint 1)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-010
+& View Profile Page
+& P2
+& Student authenticated.
+& 1. Click ``My Profile'' in sidebar.\newline 2. Observe form fields.
+& Page renders with heading and \texttt{person} icon. Fields (Name, Home City, Preferences) pre-populated.
+& \texttt{GET /students/\{id\}}
+\\
+\midrule
+
+TC-STU-011
+& Update Profile
+& P2
+& Student on \texttt{/dashboard/profile}.
+& 1. Change Name to ``Ahmed Test''.\newline 2. Home City to ``Cairo''.\newline 3. Preferences: ``Quiet room''.\newline 4. Click \textbf{Save}.
+& Green success banner. API returns 200. Values persist on refresh.
+& \texttt{PUT /students/\{id\}/profile}
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Housing Catalog (Sprint 2)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-020
+& Browse Buildings
+& P1
+& Student authenticated. $\geq$1 building exists.
+& 1. Navigate to \texttt{/dashboard/catalog}.\newline 2. Observe buildings section.
+& Grid of building cards. Each shows: name, gender badge (M/F), status pill.
+& \texttt{GET /catalog/buildings}
+\\
+\midrule
+
+TC-STU-021
+& Filter by Gender
+& P2
+& Multiple buildings with different genders.
+& 1. Select gender filter ``M''.
+& Only Male buildings shown. ``F'' shows Female. ``All'' restores list.
+& \texttt{GET /catalog/buildings ?gender\_type=M}
+\\
+\midrule
+
+TC-STU-022
+& View Room Availability
+& P1
+& Buildings and rooms exist.
+& 1. Click a building card.\newline 2. Observe rooms section.
+& Room table: room number, total beds, available beds, status. Color-coded: green ($>$2), yellow (1--2), red (0).
+& \texttt{GET /catalog/rooms ?dorm\_id=X}
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Application Flow (Sprint 2)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-030
+& Submit Application
+& P1
+& \texttt{enroll\_status=true}. $\geq$1 active building.
+& 1. Navigate to \texttt{/dashboard/apply}.\newline 2. Select preferred building.\newline 3. Add notes (optional).\newline 4. Click \textbf{Submit}.
+& API called. Redirected to \texttt{/dashboard/applications}. New app shows ``submitted''.
+& \texttt{POST /applications}
+\\
+\midrule
+
+TC-STU-031
+& Blocked (Not Enrolled)
+& P1
+& \texttt{enroll\_status=false}.
+& 1. Navigate to \texttt{/dashboard/apply}.
+& Locked message: ``You must complete document verification.'' Form disabled.
+& --- (gate check)
+\\
+\midrule
+
+TC-STU-032
+& View My Applications
+& P2
+& $\geq$1 application submitted.
+& 1. Navigate to \texttt{/dashboard/applications}.
+& Cards with status pills (submitted=blue, approved=green, rejected=red, waitlisted=orange), dorm name, date.
+& \texttt{GET /applications/me}
+\\
+\midrule
+
+TC-STU-033
+& Empty State
+& P3
+& No applications.
+& 1. Navigate to \texttt{/dashboard/applications}.
+& Empty-state: \texttt{assignment} icon, ``No applications yet'', link to \texttt{/apply}.
+& \texttt{GET /applications/me}
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Room Allocation (Sprint 4)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-040
+& View Allocation (Assigned)
+& P1
+& Admin assigned bed to student.
+& 1. Navigate to \texttt{/dashboard/allocation}.
+& Card: Room ID, Meal Plan, Status ``assigned'', date. CTA ``View Lease $\rightarrow$''.
+& \texttt{GET /allocations/me}
+\\
+\midrule
+
+TC-STU-041
+& View Allocation (None)
+& P2
+& No allocation exists.
+& 1. Navigate to \texttt{/dashboard/allocation}.
+& Empty-state: ``No room assigned yet.''
+& \texttt{GET /allocations/me}
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Lease \& Contracts (Sprint 5)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-050
+& View Pending Lease
+& P1
+& Admin issued lease. Status \texttt{pending\_signature}.
+& 1. Navigate to \texttt{/dashboard/lease}.
+& Lease card with yellow ``Pending Signature'' pill. Dates visible. Blue ``Sign Contract'' button.
+& \texttt{GET /contracts/leases/me}
+\\
+\midrule
+
+TC-STU-051
+& Sign Lease Digitally
+& P1
+& Lease with \texttt{pending\_signature} visible.
+& 1. Click \textbf{Sign Contract}.\newline 2. Confirm dialog.
+& Status updates to ``Signed'' (green). Signed date appears. Sign button removed.
+& \texttt{PUT /contracts/leases/ \{id\}/sign}
+\\
+\midrule
+
+TC-STU-052
+& No Lease State
+& P2
+& No lease issued.
+& 1. Navigate to \texttt{/dashboard/lease}.
+& Empty-state: ``No lease issued yet.''
+& \texttt{GET /contracts/leases/me}
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Billing \& Payments (Sprint 5)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-060
+& Initiate Payment
+& P1
+& Student has signed lease.
+& 1. Go to \texttt{/dashboard/billing}.\newline 2. Click \textbf{Make a Payment}.\newline 3. Type: ``Deposit'', 500.\newline 4. Click \textbf{Pay Now}.
+& Processing animation. Payment confirmed. New row in history with ``PAID'' (green).
+& \texttt{POST .../initiate} \texttt{POST .../confirm}
+\\
+\midrule
+
+TC-STU-061
+& View Payment History
+& P2
+& $\geq$1 payment exists.
+& 1. Navigate to \texttt{/dashboard/billing}.
+& Table: Payment ID, Type, Amount, Status (paid=green, refunded=gray), Date.
+& \texttt{GET /billing/payments/me}
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Check-in \& Checkout (Sprint 6)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-070
+& Initiate Check-in
+& P1
+& Active allocation, status ``assigned''.
+& 1. Navigate to \texttt{/dashboard/checkin}.\newline 2. Click \textbf{Request Check-in}.
+& Success card: Check-in ID, status ``initiated''. Button replaced by confirmation view.
+& \texttt{POST /checkins/initiate}
+\\
+\midrule
+
+TC-STU-071
+& Check-in Error (No Alloc.)
+& P2
+& No active allocation.
+& 1. Navigate to \texttt{/dashboard/checkin}.\newline 2. Click \textbf{Request Check-in}.
+& Red error: ``No active allocation found''. No record created.
+& \texttt{POST /checkins/initiate}
+\\
+\midrule
+
+TC-STU-072
+& Duplicate Check-in
+& P2
+& Check-in already initiated.
+& 1. Click \textbf{Request Check-in} again.
+& Red error: ``Check-in already initiated''.
+& \texttt{POST /checkins/initiate}
+\\
+\midrule
+
+TC-STU-073
+& Initiate Checkout
+& P1
+& Active check-in, status ``checked\_in''.
+& 1. Go to \texttt{/dashboard/checkout}.\newline 2. Click \textbf{Initiate Checkout}.\newline 3. Confirm dialog.
+& Success card: check-in ID, status ``checked\_out'' (red).
+& \texttt{POST /lifecycle/checkout}
+\\
+\midrule
+
+TC-STU-074
+& Checkout Error
+& P2
+& No active check-in.
+& 1. Click \textbf{Initiate Checkout}.
+& Red error: ``No active check-in found''.
+& \texttt{POST /lifecycle/checkout}
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Room Change, Maintenance, Messages, Announcements, Surveys (Sprint 6)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-080
+& Submit Room Change
+& P2
+& Student with allocation.
+& 1. Go to \texttt{/dashboard/room-change}.\newline 2. Select building (opt).\newline 3. Reason: ``Roommate conflict''.\newline 4. Click \textbf{Submit}.
+& Confirmation: Request ID, status ``pending\_review''.
+& \texttt{POST /lifecycle/ room-change}
+\\
+\midrule
+
+TC-STU-090
+& Create Maint. Ticket
+& P1
+& Student authenticated.
+& 1. Go to \texttt{/dashboard/maintenance}.\newline 2. Click \textbf{New Request}.\newline 3. Title: ``Broken AC''.\newline 4. Priority: High.\newline 5. Description.\newline 6. Click \textbf{Submit}.
+& Form closes. Ticket in list with orange icon and ``Open'' status.
+& \texttt{POST /maintenance/ tickets}
+\\
+\midrule
+
+TC-STU-091
+& View Ticket List
+& P2
+& $\geq$1 ticket submitted.
+& 1. Navigate to \texttt{/dashboard/maintenance}.
+& Tickets listed chronologically. Each: title, ID, date, priority badge, status badge.
+& \texttt{GET /maintenance/ tickets/me}
+\\
+\midrule
+
+TC-STU-100
+& Send Message
+& P2
+& Student authenticated.
+& 1. Go to \texttt{/dashboard/messages}.\newline 2. Recipient: Admin, ID: 1.\newline 3. Body: ``When is my key ready?''\newline 4. Click \textbf{Send}.
+& Message appears as right-aligned blue bubble with text and timestamp.
+& \texttt{POST /messages}
+\\
+\midrule
+
+TC-STU-110
+& View Announcements
+& P2
+& Admin published $\geq$1 announcement for ``student'' or ``all''.
+& 1. Navigate to \texttt{/dashboard/announcements}.
+& Chronological cards: title, content, date, target role badge. Left accent border.
+& \texttt{GET /announcements}
+\\
+\midrule
+
+TC-STU-120
+& Complete Survey
+& P2
+& Admin dispatched survey. Status ``sent''.
+& 1. Go to \texttt{/dashboard/surveys}.\newline 2. Click \textbf{Complete Survey}.\newline 3. Enter JSON response.\newline 4. Click \textbf{Submit}.
+& Status updates to ``completed'' (green). Date shown. Button removed.
+& \texttt{POST /surveys/ \{id\}/complete}
+\\
+
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Traceability Matrix}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2.5cm} L{4cm} L{6cm} L{2cm}}
+\toprule
+\textbf{TC ID} & \textbf{Module} & \textbf{API Endpoint} & \textbf{Sprint} \\
+\midrule
+\endfirsthead
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+TC-STU-001 & Auth & \texttt{POST /auth/login} & 0 \\
+TC-STU-002 & Auth & \texttt{POST /auth/login} & 0 \\
+TC-STU-003 & Auth & --- (client-side redirect) & 0 \\
+TC-STU-010 & Profile & \texttt{GET /students/\{id\}} & 1 \\
+TC-STU-011 & Profile & \texttt{PUT /students/\{id\}/profile} & 1 \\
+TC-STU-020 & Catalog & \texttt{GET /catalog/buildings} & 2 \\
+TC-STU-021 & Catalog & \texttt{GET /catalog/buildings?gender\_type=} & 2 \\
+TC-STU-022 & Catalog & \texttt{GET /catalog/rooms?dorm\_id=} & 2 \\
+TC-STU-030 & Applications & \texttt{POST /applications} & 2 \\
+TC-STU-031 & Applications & --- (enrollment gate) & 2 \\
+TC-STU-032 & Applications & \texttt{GET /applications/me} & 2 \\
+TC-STU-033 & Applications & \texttt{GET /applications/me} & 2 \\
+TC-STU-040 & Allocation & \texttt{GET /allocations/me} & 4 \\
+TC-STU-041 & Allocation & \texttt{GET /allocations/me} & 4 \\
+TC-STU-050 & Lease & \texttt{GET /contracts/leases/me} & 5 \\
+TC-STU-051 & Lease & \texttt{PUT /contracts/leases/\{id\}/sign} & 5 \\
+TC-STU-052 & Lease & \texttt{GET /contracts/leases/me} & 5 \\
+TC-STU-060 & Billing & \texttt{POST /billing/payments/initiate} & 5 \\
+TC-STU-061 & Billing & \texttt{GET /billing/payments/me} & 5 \\
+TC-STU-070 & Residency & \texttt{POST /checkins/initiate} & 6 \\
+TC-STU-071 & Residency & \texttt{POST /checkins/initiate} & 6 \\
+TC-STU-072 & Residency & \texttt{POST /checkins/initiate} & 6 \\
+TC-STU-073 & Residency & \texttt{POST /lifecycle/checkout} & 6 \\
+TC-STU-074 & Residency & \texttt{POST /lifecycle/checkout} & 6 \\
+TC-STU-080 & Room Change & \texttt{POST /lifecycle/room-change} & 6 \\
+TC-STU-090 & Maintenance & \texttt{POST /maintenance/tickets} & 6 \\
+TC-STU-091 & Maintenance & \texttt{GET /maintenance/tickets/me} & 6 \\
+TC-STU-100 & Messages & \texttt{POST /messages} & 6 \\
+TC-STU-110 & Announcements & \texttt{GET /announcements} & 6 \\
+TC-STU-120 & Surveys & \texttt{POST /surveys/\{id\}/complete} & 6 \\
+
+\end{longtable}
+
+\end{document}

@@ -56,6 +56,33 @@ def register_student(student_in: StudentCreate, db: Session = Depends(get_db)):
     )
 
 
+@router.get("/{student_id}", response_model=APIResponse[dict])
+def get_student_profile(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    role = getattr(current_user, "role_type", None)
+    if role == "student" and current_user.student_id != student_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this profile")
+
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    if not student:
+        return error_response("Student not found")
+
+    return success_response(
+        {
+            "student_id": student.student_id,
+            "name": student.name,
+            "email": student.email,
+            "home_city": student.home_city,
+            "preferences": student.preferences,
+            "gender": student.gender,
+            "enroll_status": student.enroll_status,
+        }
+    )
+
+
 @router.put("/{student_id}/profile", response_model=APIResponse[dict])
 def update_profile(
     student_id: int,

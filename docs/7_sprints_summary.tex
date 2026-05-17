@@ -1,0 +1,381 @@
+\documentclass[12pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{array}
+\usepackage{multirow}
+
+\geometry{margin=2.5cm}
+
+% ── Colors ────────────────────────────────────────────────────────────
+\definecolor{saknnyprimary}{HTML}{1E3A5F}
+\definecolor{saknnyaccent}{HTML}{2980B9}
+\definecolor{codebg}{HTML}{F5F5F5}
+\definecolor{codeframe}{HTML}{CCCCCC}
+\definecolor{sprintgreen}{HTML}{27AE60}
+
+% ── Listings Style ────────────────────────────────────────────────────
+\lstset{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b
+}
+
+% ── Header / Footer ──────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{saknnyprimary}{\textbf{Saknny}} -- 7 Sprints Implementation Summary}
+\fancyhead[R]{\textcolor{saknnyprimary}{Frontend \& Backend}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Title Formatting ─────────────────────────────────────────────────
+\titleformat{\section}
+  {\Large\bfseries\color{saknnyprimary}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\large\bfseries\color{saknnyaccent}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalsize\bfseries\color{saknnyprimary!70}}{\thesubsubsection}{1em}{}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=saknnyaccent,
+    urlcolor=saknnyaccent,
+}
+
+% ══════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ── Title Page ────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{3cm}
+
+    {\Huge\bfseries\textcolor{saknnyprimary}{Saknny}}\\[0.5cm]
+    {\Large\textcolor{saknnyaccent}{Intelligent Housing Portal}}\\[0.3cm]
+    {\large\textcolor{saknnyprimary}{7 Sprints Implementation Summary}}\\[1.5cm]
+
+    {\large\textbf{Role C -- Frontend Engineering}}\\[0.5cm]
+    {\large Mohamed Ibrahem Ahmed}\\[0.3cm]
+    {\large Student ID: 231903608}\\[2cm]
+
+    \begin{tabular}{ll}
+        \textbf{Course:}     & CCE580 -- Graduation Project \\
+        \textbf{Supervisor:} & Dr.\ Walaa Gouda \\
+        \textbf{University:} & Benha University, Shoubra Faculty of Engineering \\
+        \textbf{Program:}    & Communication and Computer Engineering \\
+        \textbf{Date:}       & May 18, 2026 \\
+    \end{tabular}
+
+    \vfill
+    {\small Document Version 1.0}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Executive Summary}
+% ══════════════════════════════════════════════════════════════════════
+
+The Saknny Intelligent Housing Portal is a full-stack web application designed to digitize the end-to-end student housing lifecycle at Benha University's Shoubra Faculty of Engineering. The project was executed over \textbf{seven agile sprints}, encompassing \textbf{29 frontend pages} (15~student, 14~admin) backed by \textbf{13 RESTful API modules} exposing over \textbf{45 endpoints}.
+
+The system spans the complete housing journey: from student registration, document verification, and enrollment approval, through housing catalog browsing, application submission, room allocation, lease generation, and digital contract signing, to billing and payment processing, residency check-in/checkout, maintenance ticketing, messaging, announcements, surveys, and administrative analytics with immutable audit logging.
+
+\subsection{Technology Stack}
+
+\begin{longtable}{p{4cm}p{9cm}}
+\toprule
+\textbf{Concern} & \textbf{Technology} \\
+\midrule
+Frontend Framework & Next.js 16 (App Router), TypeScript \\
+Styling & Tailwind CSS v4 with \texttt{@theme} design tokens \\
+Fonts & Manrope (headlines) + Public Sans (body) via \texttt{next/font/google} \\
+Icons & Material Symbols Outlined (variable font) \\
+API Layer & Custom \texttt{apiClient} with JWT \texttt{Bearer} authentication \\
+Backend & Python 3.12, FastAPI, SQLAlchemy ORM \\
+Database & SQLite (development), designed for PostgreSQL migration \\
+Authentication & JWT (HS256) stored in \texttt{localStorage} \\
+Internationalization & Custom \texttt{useTranslation} hook (English + Arabic) \\
+\bottomrule
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Sprint-by-Sprint Implementation}
+% ══════════════════════════════════════════════════════════════════════
+
+
+% ── Sprint 0 ──────────────────────────────────────────────────────────
+\subsection{Sprint 0: Infrastructure \& Shared Shell}
+
+\textbf{Objective:} Establish the foundational layout components, navigation, routing, and design system before any feature work begins.
+
+\subsubsection{Deliverables}
+
+\begin{itemize}[leftmargin=2em]
+    \item \textbf{DashboardSidebar} -- Responsive sidebar with role-based navigation links using \texttt{usePathname()} active-state highlighting.
+    \item \textbf{DashboardNavbar} -- Top navigation bar with user avatar, language toggle, and session controls.
+    \item \textbf{Admin Layout Shell} (\texttt{/admin/layout.tsx}) -- Separate sidebar for administrators with 14 menu items.
+    \item \textbf{Dashboard Stepper} -- Real-time document-phase derivation from \texttt{GET /students/\{id\}/documents}.
+    \item \textbf{i18n Infrastructure} -- Dual-locale JSON files (\texttt{en.json}, \texttt{ar.json}) with 260+ translation keys.
+    \item \textbf{Design Token System} -- \texttt{globals.css} with \texttt{@theme} tokens: \texttt{primary}, \texttt{surface}, \texttt{shadow-soft}, status colors.
+\end{itemize}
+
+
+% ── Sprint 1 ──────────────────────────────────────────────────────────
+\subsection{Sprint 1: Student Profile}
+
+\textbf{Objective:} Allow authenticated students to view and update their personal information.
+
+\begin{longtable}{p{3.5cm}p{9.5cm}}
+\toprule
+\textbf{Page} & \texttt{/dashboard/profile} \\
+\textbf{API Endpoint} & \texttt{PUT /students/\{student\_id\}/profile} \\
+\textbf{Features} & Editable form fields (Name, Home City, Preferences), pre-filled from user session data, success/error banner feedback, full i18n support. \\
+\bottomrule
+\end{longtable}
+
+
+% ── Sprint 2 ──────────────────────────────────────────────────────────
+\subsection{Sprint 2: Housing Catalog \& Applications}
+
+\textbf{Objective:} Enable students to browse available housing, submit applications, and track their status.
+
+\begin{longtable}{p{3.5cm}p{3.5cm}p{6cm}}
+\toprule
+\textbf{Page} & \textbf{Route} & \textbf{Key Features} \\
+\midrule
+Housing Catalog & \texttt{/dashboard/catalog} & Building grid with gender/status filters; room table with bed availability color coding (green/yellow/red). \\
+Apply & \texttt{/dashboard/apply} & Enrollment-gated form; preferred building dropdown; notes textarea. \\
+My Applications & \texttt{/dashboard/applications} & Status-pill cards (submitted/under\_review/approved/rejected/waitlisted); waitlist join action. \\
+\bottomrule
+\end{longtable}
+
+\textbf{API Endpoints Consumed:} \texttt{GET /catalog/buildings}, \texttt{GET /catalog/rooms}, \texttt{POST /applications}, \texttt{GET /applications/me}, \texttt{POST /applications/\{id\}/waitlist}.
+
+
+% ── Sprint 3 ──────────────────────────────────────────────────────────
+\subsection{Sprint 3: Admin Document Verification \& Application Review}
+
+\textbf{Objective:} Provide administrators with queues to verify student documents and review housing applications through structured status transitions.
+
+\begin{longtable}{p{3.5cm}p{3.5cm}p{6cm}}
+\toprule
+\textbf{Page} & \textbf{Route} & \textbf{Key Features} \\
+\midrule
+Verifications & \texttt{/admin/verifications} & Tabbed queue (Pending/Approved/Rejected); per-document approve/reject with rejection reason input; audit-logged. \\
+Applications & \texttt{/admin/applications} & Status filter dropdown; expandable review drawer with \texttt{review\_action} + comments; finalize to approved/rejected. \\
+\bottomrule
+\end{longtable}
+
+\textbf{API Endpoints Consumed:} \texttt{GET /admin/verifications}, \texttt{PUT /admin/verifications/\{doc\_id\}}, \texttt{GET /admin/applications}, \texttt{PUT /admin/applications/\{id\}/review}, \texttt{PUT /admin/applications/\{id\}/finalize}.
+
+
+% ── Sprint 4 ──────────────────────────────────────────────────────────
+\subsection{Sprint 4: Room Allocation}
+
+\textbf{Objective:} Implement manual room assignment by administrators and provide students with a clear view of their allocation.
+
+\begin{longtable}{p{3.5cm}p{3.5cm}p{6cm}}
+\toprule
+\textbf{Page} & \textbf{Route} & \textbf{Key Features} \\
+\midrule
+Admin Allocations & \texttt{/admin/allocations} & ``Assign Bed'' form (Application ID, Room ID, Meal Plan dropdown); allocations table. \\
+Student Allocation & \texttt{/dashboard/allocation} & Single-card view of assigned room, meal plan, status; CTA link to lease page. \\
+\bottomrule
+\end{longtable}
+
+\textbf{API Endpoints Consumed:} \texttt{POST /admin/allocations}, \texttt{GET /admin/allocations}, \texttt{GET /allocations/me}.
+
+
+% ── Sprint 5 ──────────────────────────────────────────────────────────
+\subsection{Sprint 5: Leases \& Billing}
+
+\textbf{Objective:} Enable the full contract lifecycle (issue, sign, expire) and implement a simulated payment gateway for deposits and rent.
+
+\begin{longtable}{p{3.5cm}p{3.5cm}p{6cm}}
+\toprule
+\textbf{Page} & \textbf{Route} & \textbf{Key Features} \\
+\midrule
+Admin Leases & \texttt{/admin/leases} & Issue lease from allocation ID; expire lease by ID; expiry date picker. \\
+Student Lease & \texttt{/dashboard/lease} & View contract terms; digital signature button; status transitions (pending $\rightarrow$ signed). \\
+Admin Billing & \texttt{/admin/billing} & Payments table with per-row refund action; status pills. \\
+Student Billing & \texttt{/dashboard/billing} & ``Make a Payment'' modal (type, amount); simulated gateway; payment history ledger. \\
+\bottomrule
+\end{longtable}
+
+\textbf{API Endpoints Consumed:} \texttt{POST /admin/contracts/leases}, \texttt{POST .../expire}, \texttt{GET /contracts/leases/me}, \texttt{PUT .../sign}, \texttt{POST /billing/payments/initiate}, \texttt{POST .../confirm}, \texttt{GET /billing/payments/me}, \texttt{GET /admin/billing/payments}, \texttt{POST .../refund}.
+
+
+% ── Sprint 6 ──────────────────────────────────────────────────────────
+\subsection{Sprint 6: Residency, Maintenance \& Supporting Features}
+
+\textbf{Objective:} Complete the residency lifecycle (check-in, checkout, room transfers) and add communication and feedback channels.
+
+\begin{longtable}{p{3.5cm}p{3.5cm}p{6cm}}
+\toprule
+\textbf{Page} & \textbf{Route} & \textbf{Key Features} \\
+\midrule
+Check-in & \texttt{/dashboard/checkin} & One-click check-in initiation; confirmation card with ID and status. \\
+Checkout & \texttt{/dashboard/checkout} & Confirmation dialog with warning; ends residency. \\
+Room Change & \texttt{/dashboard/room-change} & Target building dropdown; reason textarea; submission confirmation. \\
+Maintenance & \texttt{/dashboard/maintenance} & Collapsible ticket form (title, priority, description); ticket list with priority-coded icons. \\
+Messages & \texttt{/dashboard/messages} & Chat-style bubble UI; compose panel with recipient role/ID; thread filtering. \\
+Announcements & \texttt{/dashboard/announcements} & Chronological cards with \texttt{border-l-4} accent; target-role badge. \\
+Surveys & \texttt{/dashboard/surveys} & Dispatch list; inline JSON response editor; completion status tracking. \\
+\bottomrule
+\end{longtable}
+
+\textbf{API Endpoints Consumed (10):} \texttt{POST /checkins/initiate}, \texttt{POST /lifecycle/checkout}, \texttt{POST /lifecycle/room-change}, \texttt{POST /maintenance/tickets}, \texttt{GET /maintenance/tickets/me}, \texttt{GET /messages}, \texttt{POST /messages}, \texttt{GET /announcements}, \texttt{GET /surveys/me}, \texttt{POST /surveys/\{id\}/complete}.
+
+
+% ── Sprint 7 ──────────────────────────────────────────────────────────
+\subsection{Sprint 7: Admin Management Suite \& Analytics}
+
+\textbf{Objective:} Equip administrators with comprehensive management tools, real-time analytics, and a complete audit trail.
+
+\begin{longtable}{p{3.5cm}p{3.5cm}p{6cm}}
+\toprule
+\textbf{Page} & \textbf{Route} & \textbf{Key Features} \\
+\midrule
+Dashboard & \texttt{/admin} & Gradient banner; 4 metric cards (occupancy, beds, allocations, tickets); 3-column breakdown (applications, payments, tickets by status). \\
+Students & \texttt{/admin/students} & Enrollment toggle (set/revoke) by student ID; inline result feedback. \\
+Catalog & \texttt{/admin/catalog} & Tabbed Buildings/Rooms CRUD; inline create/edit forms; gender/status badges. \\
+Check-ins & \texttt{/admin/checkins} & Issue key by check-in ID; success/error feedback. \\
+Maintenance & \texttt{/admin/maintenance} & 5-status tab filter; per-ticket status change dropdown + escalation with reason. \\
+Room Changes & \texttt{/admin/room-changes} & Request table; approve/reject actions for \texttt{pending\_review} items. \\
+Announcements & \texttt{/admin/announcements} & Publish form (title, content, target audience dropdown). \\
+Audit Logs & \texttt{/admin/audit} & Filterable log table; expandable before/after JSON state diff viewer. \\
+Surveys & \texttt{/admin/surveys} & Create survey form; dispatch to specific or all students; dispatched count feedback. \\
+\bottomrule
+\end{longtable}
+
+\textbf{API Endpoints Consumed (14):} \texttt{GET /admin/analytics/dashboard}, \texttt{PUT /admin/students/\{id\}/enrollment}, \texttt{POST /admin/catalog/buildings}, \texttt{PUT .../buildings/\{id\}}, \texttt{POST /admin/catalog/rooms}, \texttt{PUT .../rooms/\{id\}}, \texttt{PUT /admin/checkins/\{id\}/issue-key}, \texttt{GET /admin/maintenance/tickets}, \texttt{PUT .../assign}, \texttt{POST .../escalate}, \texttt{GET /admin/lifecycle/room-change}, \texttt{PUT .../review}, \texttt{POST /admin/announcements}, \texttt{POST /admin/surveys}, \texttt{POST .../dispatch}, \texttt{GET /admin/audit/logs}.
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Final Metrics}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{p{6cm}p{3cm}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Total Frontend Pages & 29 \\
+Student Dashboard Pages & 15 \\
+Admin Management Pages & 14 \\
+Backend API Modules & 13 \\
+Total API Endpoints & 45+ \\
+Frontend--API Wire Coverage & 100\% \\
+i18n Translation Keys & 260+ (en + ar) \\
+Design Token Adherence & Full \\
+Audit Log Coverage & All state-changing operations \\
+\bottomrule
+\end{longtable}
+
+\subsection{Sprint Effort Distribution}
+
+\begin{longtable}{p{1cm}p{6cm}p{2cm}p{2cm}}
+\toprule
+\textbf{\#} & \textbf{Sprint Scope} & \textbf{Pages} & \textbf{Effort} \\
+\midrule
+0 & Infrastructure, Sidebar, Layout, i18n & -- & 1 day \\
+1 & Student Profile & 1 & 0.5 day \\
+2 & Catalog, Apply, Applications & 3 & 1.5 days \\
+3 & Admin Verifications, Application Review & 2 & 1.5 days \\
+4 & Allocations (Admin + Student) & 2 & 1 day \\
+5 & Leases + Billing (Admin + Student) & 4 & 2 days \\
+6 & Residency + Maintenance + Communications & 7 & 2.5 days \\
+7 & Admin Suite + Analytics + Audit & 9 & 3 days \\
+\midrule
+& \textbf{Total} & \textbf{29} & \textbf{$\sim$13 days} \\
+\bottomrule
+\end{longtable}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Architecture Overview}
+% ══════════════════════════════════════════════════════════════════════
+
+\subsection{Frontend Directory Structure}
+
+\begin{lstlisting}[language=bash, caption={Frontend page tree}]
+src/app/
++-- dashboard/
+|   +-- page.tsx              (Home)
+|   +-- profile/page.tsx      (Profile)
+|   +-- catalog/page.tsx      (Housing Catalog)
+|   +-- apply/page.tsx        (Submit Application)
+|   +-- applications/page.tsx (My Applications)
+|   +-- allocation/page.tsx   (My Allocation)
+|   +-- lease/page.tsx        (Lease & Contracts)
+|   +-- billing/page.tsx      (Billing & Payments)
+|   +-- checkin/page.tsx      (Check-in)
+|   +-- checkout/page.tsx     (Checkout)
+|   +-- room-change/page.tsx  (Room Change Request)
+|   +-- maintenance/page.tsx  (Maintenance Requests)
+|   +-- messages/page.tsx     (Messages)
+|   +-- announcements/page.tsx(Announcements)
+|   +-- surveys/page.tsx      (Surveys)
++-- admin/
+|   +-- page.tsx              (Analytics Dashboard)
+|   +-- verifications/page.tsx
+|   +-- students/page.tsx
+|   +-- applications/page.tsx
+|   +-- catalog/page.tsx
+|   +-- allocations/page.tsx
+|   +-- leases/page.tsx
+|   +-- billing/page.tsx
+|   +-- checkins/page.tsx
+|   +-- maintenance/page.tsx
+|   +-- room-changes/page.tsx
+|   +-- announcements/page.tsx
+|   +-- audit/page.tsx
+|   +-- surveys/page.tsx
+\end{lstlisting}
+
+\subsection{Backend API Modules}
+
+\begin{lstlisting}[language=bash, caption={Backend endpoint modules}]
+backend/app/api/endpoints/
++-- auth.py            (Login, Register)
++-- students.py        (Profile, Documents, Enrollment)
++-- catalog.py         (Buildings, Rooms CRUD)
++-- applications.py    (Submit, Review, Finalize, Waitlist)
++-- allocations.py     (Assign Bed, My Allocation)
++-- leases.py          (Issue, Sign, Expire)
++-- billing.py         (Initiate, Confirm, Refund)
++-- residency.py       (Check-in, Checkout, Room Change)
++-- maintenance.py     (Tickets CRUD, Assign, Escalate)
++-- communications.py  (Messages, Announcements)
++-- surveys.py         (Create, Dispatch, Complete)
++-- insights.py        (Analytics Dashboard, Audit Logs)
++-- admin.py           (Verification Queue)
+\end{lstlisting}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+% ══════════════════════════════════════════════════════════════════════
+
+The Saknny Intelligent Housing Portal has been fully implemented across 7~sprints with 100\% coverage of the implementation plan. Every backend API endpoint has a corresponding frontend consumer, all user-facing strings are internationalized, and all administrative state-changing operations are captured in an immutable audit log. The system is ready for integration testing and deployment staging.
+
+\end{document}

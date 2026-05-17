@@ -5,7 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { useTranslation } from "@/i18n/useTranslation";
 
-export const DashboardNavbar: React.FC = () => {
+interface DashboardNavbarProps {
+  isAdmin?: boolean;
+}
+
+export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = false }) => {
   const { t } = useTranslation();
 
   return (
@@ -15,20 +19,22 @@ export const DashboardNavbar: React.FC = () => {
           <Image src="/images/logo.png" alt="University Logo" width={48} height={48} className="object-contain" />
           <span className="text-2xl font-black tracking-tighter text-primary font-headline">Sakny</span>
         </div>
-        <nav className="hidden md:flex gap-6">
-          <Link href="/dashboard" className="text-primary font-bold border-b-2 border-primary pb-1">
-            {t("dashboard.navDashboard")}
-          </Link>
-          <a href="#" className="text-on-surface-variant hover:text-primary transition-colors duration-200">
-            {t("dashboard.navFindHousing")}
-          </a>
-          <a href="#" className="text-on-surface-variant hover:text-primary transition-colors duration-200">
-            {t("dashboard.navRoommates")}
-          </a>
-          <a href="#" className="text-on-surface-variant hover:text-primary transition-colors duration-200">
-            {t("dashboard.navSupport")}
-          </a>
-        </nav>
+        {!isAdmin && (
+          <nav className="hidden md:flex gap-6">
+            <Link href="/dashboard" className="text-primary font-bold border-b-2 border-primary pb-1">
+              {t("dashboard.navDashboard")}
+            </Link>
+            <a href="#" className="text-on-surface-variant hover:text-primary transition-colors duration-200">
+              {t("dashboard.navFindHousing")}
+            </a>
+            <a href="#" className="text-on-surface-variant hover:text-primary transition-colors duration-200">
+              {t("dashboard.navRoommates")}
+            </a>
+            <a href="#" className="text-on-surface-variant hover:text-primary transition-colors duration-200">
+              {t("dashboard.navSupport")}
+            </a>
+          </nav>
+        )}
       </div>
       <div className="flex items-center gap-4">
         <button className="p-2 text-on-surface-variant hover:opacity-80 transition-opacity duration-200 active:scale-95">
@@ -37,8 +43,13 @@ export const DashboardNavbar: React.FC = () => {
         <button className="p-2 text-on-surface-variant hover:opacity-80 transition-opacity duration-200 active:scale-95">
           <span className="material-symbols-outlined">settings</span>
         </button>
-        <div className="w-10 h-10 rounded-full border-2 border-primary-container bg-primary flex items-center justify-center text-white font-bold text-sm">
-          S
+        <div className="w-10 h-10 rounded-full border-2 border-primary-container bg-primary flex items-center justify-center text-white font-bold text-sm relative">
+          {isAdmin ? "A" : "S"}
+          {isAdmin && (
+            <span className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[9px] font-bold px-1 rounded">
+              ADMIN
+            </span>
+          )}
         </div>
       </div>
     </header>

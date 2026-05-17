@@ -1,0 +1,261 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+
+\geometry{margin=2cm, landscape}
+
+\definecolor{saknnyprimary}{HTML}{1E3A5F}
+\definecolor{saknnyaccent}{HTML}{2980B9}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{saknnyprimary}{\textbf{Saknny}} -- Admin Test Cases}
+\fancyhead[R]{\textcolor{saknnyprimary}{CCE580}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\titleformat{\section}{\Large\bfseries\color{saknnyprimary}}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries\color{saknnyaccent}}{\thesubsection}{1em}{}
+
+\hypersetup{colorlinks=true, linkcolor=saknnyaccent, urlcolor=saknnyaccent}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{4cm}
+    {\Huge\bfseries\textcolor{saknnyprimary}{Saknny}}\\[0.5cm]
+    {\Large\textcolor{saknnyaccent}{Admin Module -- Functional Test Cases}}\\[1.5cm]
+    {\large\textbf{Role C -- Frontend Engineering}}\\[0.5cm]
+    {\large Mohamed Ibrahem Ahmed}\\[0.3cm]
+    {\large Student ID: 231903608}\\[2cm]
+    \begin{tabular}{ll}
+        \textbf{Course:}     & CCE580 -- Graduation Project \\
+        \textbf{Supervisor:} & Dr.\ Walaa Gouda \\
+        \textbf{University:} & Benha University, Shoubra Faculty of Engineering \\
+        \textbf{Date:}       & May 18, 2026 \\
+    \end{tabular}
+    \vfill
+    {\small 38 Test Cases $\cdot$ 14 Modules $\cdot$ Document Version 1.0}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Access Control}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-001 & Admin Login & P1 & Registered admin account. & 1. Navigate to \texttt{/auth}.\newline 2. Enter admin credentials.\newline 3. Click \textbf{Login}. & \texttt{user\_role=admin} stored. Redirected to \texttt{/admin}. Admin sidebar (14 items) renders. & \texttt{POST /auth/login} \\
+\midrule
+TC-ADM-002 & Non-Admin Denied & P1 & \texttt{user\_role=student}. & 1. Navigate to \texttt{/admin}. & Redirected to \texttt{/dashboard}. & --- (client) \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Analytics Dashboard (Sprint 7)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-010 & View Dashboard & P1 & Admin authenticated. DB populated. & 1. Navigate to \texttt{/admin}. & Gradient banner. 4 metric cards (Occupancy \%, Beds, Allocations, Tickets). 3 breakdown columns by status. & \texttt{GET /admin/ analytics/dashboard} \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Document Verification (Sprint 3)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-020 & View Pending Docs & P1 & $\geq$1 pending document. & 1. Navigate to \texttt{/admin/verifications}.\newline 2. ``Pending'' tab active. & Table: Doc ID, Student, Type, Flagged badge, Date, File URL. Approve/Reject buttons per row. & \texttt{GET /admin/ verifications} \\
+\midrule
+TC-ADM-021 & Approve Document & P1 & Pending doc visible. & 1. Click \textbf{Approve}. & API called with \texttt{approved}. Toast with enrollment status. Doc moves to Approved tab. & \texttt{PUT /admin/ verifications/\{id\}} \\
+\midrule
+TC-ADM-022 & Reject with Reason & P1 & Pending doc visible. & 1. Click \textbf{Reject}.\newline 2. Type reason.\newline 3. Confirm. & API called with \texttt{rejected} + reason. Doc moves to Rejected tab. & \texttt{PUT /admin/ verifications/\{id\}} \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Student Enrollment (Sprint 7)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-030 & Set Enrolled & P1 & Student with approved doc. & 1. Go to \texttt{/admin/students}.\newline 2. Enter student ID.\newline 3. Click \textbf{Set Enrolled}. & Green: ``Student \#X --- Enrollment: Verified''. & \texttt{PUT /admin/ students/\{id\}/ enrollment} \\
+\midrule
+TC-ADM-031 & Revoke Enrollment & P2 & Student enrolled. & 1. Enter student ID.\newline 2. Click \textbf{Revoke}. & Banner: ``Enrollment: Revoked''. & \texttt{PUT /admin/ students/\{id\}/ enrollment} \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Application Review (Sprint 3)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-040 & View by Status & P1 & Apps in various statuses. & 1. Go to \texttt{/admin/applications}.\newline 2. Filter: ``submitted''. & Only submitted apps. Table: ID, Student, Dorm, Status, Date, Actions. & \texttt{GET /admin/ applications} \\
+\midrule
+TC-ADM-041 & Start Review & P1 & Submitted app visible. & 1. Click ``Start Review''.\newline 2. Enter action + comments.\newline 3. Submit. & Status $\rightarrow$ \texttt{under\_review}. & \texttt{PUT .../review} \\
+\midrule
+TC-ADM-042 & Approve App & P1 & Under-review app. & 1. Click \textbf{Approve}.\newline 2. Enter comments.\newline 3. Submit. & Status $\rightarrow$ \texttt{approved}. & \texttt{PUT .../finalize} \\
+\midrule
+TC-ADM-043 & Reject App & P2 & Under-review app. & 1. Click \textbf{Reject}.\newline 2. Comments: ``Incomplete docs''.\newline 3. Submit. & Status $\rightarrow$ \texttt{rejected} (red pill). & \texttt{PUT .../finalize} \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Catalog Management (Sprint 7)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-050 & Create Building & P1 & Buildings tab active. & 1. Click \textbf{Add Building}.\newline 2. Name, Gender: M, Status: Active.\newline 3. Click \textbf{Create}. & New building in table with ``M'' blue badge. & \texttt{POST /admin/ catalog/buildings} \\
+\midrule
+TC-ADM-051 & Edit Building & P2 & $\geq$1 building exists. & 1. Click \textbf{Edit}.\newline 2. Status $\rightarrow$ Maintenance.\newline 3. Click \textbf{Update}. & Status badge $\rightarrow$ gray ``Maintenance''. & \texttt{PUT .../buildings/ \{id\}} \\
+\midrule
+TC-ADM-052 & Create Room & P1 & $\geq$1 building. Rooms tab. & 1. Click \textbf{Add Room}.\newline 2. Building, Room \#101, Beds: 4/4.\newline 3. Click \textbf{Create}. & Room in table. Beds ``4/4'' green. & \texttt{POST /admin/ catalog/rooms} \\
+\midrule
+TC-ADM-053 & Edit Room & P2 & $\geq$1 room exists. & 1. Click \textbf{Edit}.\newline 2. Avail beds $\rightarrow$ 2.\newline 3. \textbf{Update}. & Beds ``2/4'' yellow. & \texttt{PUT .../rooms/\{id\}} \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Allocations, Leases, Billing (Sprints 4--5)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-060 & Assign Bed & P1 & Approved app + available room. & 1. Go to \texttt{/admin/allocations}.\newline 2. App ID, Room ID, Plan: Full Board.\newline 3. Click \textbf{Assign}. & Success with allocation ID. Room beds $-1$. Row in table ``assigned''. & \texttt{POST /admin/ allocations} \\
+\midrule
+TC-ADM-070 & Issue Lease & P1 & Allocation ``assigned''. & 1. Go to \texttt{/admin/leases}.\newline 2. Enter Allocation ID.\newline 3. Click \textbf{Generate Lease}. & Green: ``Lease \#X issued!'' & \texttt{POST /admin/ contracts/leases} \\
+\midrule
+TC-ADM-071 & Expire Lease & P2 & Lease signed or pending. & 1. Enter Lease ID in expire section.\newline 2. Click \textbf{Expire Lease}. & Banner: ``status set to expired''. & \texttt{POST .../\{id\}/expire} \\
+\midrule
+TC-ADM-080 & View Payments & P2 & Students made payments. & 1. Go to \texttt{/admin/billing}. & Table: ID, Student, Type, Amount, Status, Date. Refund btn for ``paid''. & \texttt{GET /admin/ billing/payments} \\
+\midrule
+TC-ADM-081 & Process Refund & P1 & ``paid'' payment exists. & 1. Click \textbf{Refund}.\newline 2. Confirm. & Status $\rightarrow$ ``REFUNDED'' (gray). Button disappears. & \texttt{POST .../\{id\}/refund} \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Check-ins, Maintenance, Room Changes (Sprints 6--7)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-090 & Issue Room Key & P1 & Student initiated check-in. & 1. Go to \texttt{/admin/checkins}.\newline 2. Enter Check-in ID.\newline 3. Click \textbf{Issue Key}. & Green: ``Key issued! Status: CHECKED IN''. & \texttt{PUT /admin/ checkins/\{id\}/ issue-key} \\
+\midrule
+TC-ADM-100 & Filter Maint. Tickets & P2 & Tickets in various statuses. & 1. Go to \texttt{/admin/maintenance}.\newline 2. Click each tab. & Each tab re-fetches. Only matching tickets shown. & \texttt{GET /admin/ maintenance/tickets} \\
+\midrule
+TC-ADM-101 & Change Ticket Status & P1 & Open ticket exists. & 1. ``Change Status'' $\rightarrow$ ``Assigned''. & Ticket moves Open $\rightarrow$ Assigned tab. & \texttt{PUT .../\{id\}/assign} \\
+\midrule
+TC-ADM-102 & Escalate Ticket & P2 & Open/assigned ticket. & 1. Click \textbf{Escalate}.\newline 2. Reason: ``External plumber''.\newline 3. Confirm. & Ticket moves to Escalated tab. & \texttt{POST .../\{id\}/ escalate} \\
+\midrule
+TC-ADM-110 & Approve Room Change & P1 & Request \texttt{pending\_review}. & 1. Go to \texttt{/admin/room-changes}.\newline 2. Click \textbf{Approve}. & Badge $\rightarrow$ green ``approved''. & \texttt{PUT .../\{id\}/review} \\
+\midrule
+TC-ADM-111 & Reject Room Change & P2 & Request \texttt{pending\_review}. & 1. Click \textbf{Reject}. & Badge $\rightarrow$ red ``rejected''. Buttons removed. & \texttt{PUT .../\{id\}/review} \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Announcements, Audit, Surveys (Sprint 7)}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2cm} L{3cm} L{1cm} L{4cm} L{5.5cm} L{5.5cm} L{3cm}}
+\toprule
+\textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\
+\midrule
+\endfirsthead \toprule \textbf{TC ID} & \textbf{Test Case} & \textbf{Prio} & \textbf{Preconditions} & \textbf{Steps} & \textbf{Expected Result} & \textbf{API} \\ \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-120 & Publish Announcement & P2 & Admin authenticated. & 1. Go to \texttt{/admin/announcements}.\newline 2. Title, Content, Audience.\newline 3. Click \textbf{Publish}. & Green: ``Announcement \#X published''. Visible on student page. & \texttt{POST /admin/ announcements} \\
+\midrule
+TC-ADM-130 & View Audit Trail & P1 & Actions performed previously. & 1. Go to \texttt{/admin/audit}. & Table: ID, Actor, Action, Entity, Timestamp, Details btn. Reverse chronological. & \texttt{GET /admin/ audit/logs} \\
+\midrule
+TC-ADM-131 & Inspect State Diff & P2 & Audit entries exist. & 1. Click \textbf{View State}. & Row expands: Before/After JSON panels. Click again collapses. & \texttt{GET /admin/ audit/logs} \\
+\midrule
+TC-ADM-140 & Create Survey & P2 & Admin authenticated. & 1. Go to \texttt{/admin/surveys}.\newline 2. Title, Description, Active.\newline 3. Click \textbf{Create}. & Banner: ``Survey \#X created!'' & \texttt{POST /admin/surveys} \\
+\midrule
+TC-ADM-141 & Dispatch to All & P2 & Survey created. & 1. Enter Survey ID.\newline 2. Leave Student IDs empty.\newline 3. Click \textbf{Dispatch}. & Banner: ``Dispatched to X student(s)!'' Students see it. & \texttt{POST /admin/ surveys/\{id\}/ dispatch} \\
+\end{longtable}
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Traceability Matrix}
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{L{2.5cm} L{4cm} L{6cm} L{2cm}}
+\toprule
+\textbf{TC ID} & \textbf{Module} & \textbf{API Endpoint} & \textbf{Sprint} \\
+\midrule
+\endfirsthead \midrule \endhead \bottomrule \endfoot
+
+TC-ADM-001 & Auth & \texttt{POST /auth/login} & 0 \\
+TC-ADM-002 & Auth & --- (client-side) & 0 \\
+TC-ADM-010 & Dashboard & \texttt{GET /admin/analytics/dashboard} & 7 \\
+TC-ADM-020 & Verifications & \texttt{GET /admin/verifications} & 3 \\
+TC-ADM-021 & Verifications & \texttt{PUT /admin/verifications/\{id\}} & 3 \\
+TC-ADM-022 & Verifications & \texttt{PUT /admin/verifications/\{id\}} & 3 \\
+TC-ADM-030 & Students & \texttt{PUT /admin/students/\{id\}/enrollment} & 7 \\
+TC-ADM-031 & Students & \texttt{PUT /admin/students/\{id\}/enrollment} & 7 \\
+TC-ADM-040 & Applications & \texttt{GET /admin/applications} & 3 \\
+TC-ADM-041 & Applications & \texttt{PUT .../review} & 3 \\
+TC-ADM-042 & Applications & \texttt{PUT .../finalize} & 3 \\
+TC-ADM-043 & Applications & \texttt{PUT .../finalize} & 3 \\
+TC-ADM-050 & Catalog & \texttt{POST /admin/catalog/buildings} & 7 \\
+TC-ADM-051 & Catalog & \texttt{PUT .../buildings/\{id\}} & 7 \\
+TC-ADM-052 & Catalog & \texttt{POST /admin/catalog/rooms} & 7 \\
+TC-ADM-053 & Catalog & \texttt{PUT .../rooms/\{id\}} & 7 \\
+TC-ADM-060 & Allocations & \texttt{POST /admin/allocations} & 4 \\
+TC-ADM-070 & Leases & \texttt{POST /admin/contracts/leases} & 5 \\
+TC-ADM-071 & Leases & \texttt{POST .../\{id\}/expire} & 5 \\
+TC-ADM-080 & Billing & \texttt{GET /admin/billing/payments} & 5 \\
+TC-ADM-081 & Billing & \texttt{POST .../\{id\}/refund} & 5 \\
+TC-ADM-090 & Check-ins & \texttt{PUT /admin/checkins/\{id\}/issue-key} & 7 \\
+TC-ADM-100 & Maintenance & \texttt{GET /admin/maintenance/tickets} & 6 \\
+TC-ADM-101 & Maintenance & \texttt{PUT .../\{id\}/assign} & 6 \\
+TC-ADM-102 & Maintenance & \texttt{POST .../\{id\}/escalate} & 6 \\
+TC-ADM-110 & Room Changes & \texttt{PUT .../\{id\}/review} & 7 \\
+TC-ADM-111 & Room Changes & \texttt{PUT .../\{id\}/review} & 7 \\
+TC-ADM-120 & Announcements & \texttt{POST /admin/announcements} & 7 \\
+TC-ADM-130 & Audit & \texttt{GET /admin/audit/logs} & 7 \\
+TC-ADM-131 & Audit & \texttt{GET /admin/audit/logs} & 7 \\
+TC-ADM-140 & Surveys & \texttt{POST /admin/surveys} & 7 \\
+TC-ADM-141 & Surveys & \texttt{POST .../\{id\}/dispatch} & 7 \\
+\end{longtable}
+
+\end{document}
