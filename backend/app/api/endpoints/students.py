@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -226,7 +227,7 @@ def list_documents(
                     "doc_id": doc.doc_id,
                     "doc_type": doc.doc_type,
                     "status": doc.status,
-                    "file_url": f"/api/v1/{doc.file_path}",
+                    "file_url": f"http://localhost:8000/api/v1/{doc.file_path}",
                     "is_flagged": doc.is_flagged,
                     "rejection_reason": doc.rejection_reason,
                     "created_at": doc.created_at,
@@ -235,3 +236,5 @@ def list_documents(
             ]
         }
     )
+
+

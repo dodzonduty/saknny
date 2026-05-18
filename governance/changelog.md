@@ -177,3 +177,51 @@ Action: REQUESTED
 Owner: API Engineer (Mohamed)
 Notes: We need a new endpoint `GET /api/v1/students/{id}/documents` to fetch the student's previously uploaded documents and their status (`pending`, `approved`, `rejected`). Without this, the dashboard stepper resets to "Upload Document" every time the page refreshes. Please implement this API so the frontend can properly reflect the persistent document status.
 Date: 2026-05-04
+
+[API]
+
+Entity: API
+Name: GET /notifications/count
+Role: B
+Path: backend/app/api/endpoints/communications.py
+Status: REAL
+Action: CREATED
+Owner: Backend Engineer
+Notes: Returns unread message count and active announcement count for the authenticated user. Used by frontend navbar notification badge.
+Date: 2026-05-18
+
+[BUGFIX]
+
+Entity: API
+Name: PUT /admin/verifications/{doc_id} – enroll_status fix
+Role: B
+Path: backend/app/api/endpoints/admin.py
+Status: REAL
+Action: UPDATED
+Owner: Backend Engineer
+Notes: Added db.flush() before pending/approved count queries in review_verification. Without the flush, SQLAlchemy aggregate queries could not see the in-session status change, so enroll_status was never set to true after document approval. Also manually fixed student_id=1 enroll_status in the database.
+Date: 2026-05-18
+
+[BUGFIX]
+
+Entity: API
+Name: Document file_url resolution
+Role: B
+Path: backend/app/api/endpoints/students.py, backend/app/api/endpoints/admin.py
+Status: REAL
+Action: UPDATED
+Owner: Backend Engineer
+Notes: Replaced relative file_url paths with absolute URL paths pointing to the backend static file server (http://localhost:8000/api/v1/uploads/...) to fix frontend document viewing 404s.
+Date: 2026-05-18
+
+[BUGFIX]
+
+Entity: API
+Name: POST /admin/catalog/rooms & PUT /admin/catalog/rooms/{id}
+Role: B
+Path: backend/app/api/endpoints/catalog.py
+Status: REAL
+Action: UPDATED
+Owner: Backend Engineer
+Notes: Added explicit checks for duplicate room numbers within the same building before adding/updating rooms to avoid 500 internal server errors caused by database unique constraint violations. Now returns a clean error response.
+Date: 2026-05-18

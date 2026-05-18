@@ -67,6 +67,8 @@ Multipart fields:
 List student verification documents.
 Student sees own docs; admin can view any student docs.
 
+
+
 ### `GET /admin/verifications?status=pending`
 Admin queue for verification review.
 
@@ -292,6 +294,18 @@ Admin publishes announcement.
 
 ### `GET /announcements`
 Students/admin retrieve active announcements.
+
+### `GET /notifications/count`
+Returns notification counts for the authenticated user.
+Response:
+```json
+{
+  "unread_messages": 3,
+  "announcements": 2,
+  "total": 5
+}
+```
+Auth: Bearer token required.
 
 ---
 

@@ -128,6 +128,25 @@ def publish_announcement(
     return success_response({"announcement_id": ann.announcement_id, "published_at": ann.published_at})
 
 
+@router.get("/notifications/count", response_model=APIResponse[dict])
+def notification_count(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    role, actor_id = get_actor_identity(current_user)
+    unread_messages = db.query(Message).filter(
+        Message.recipient_role == role,
+        Message.recipient_id == actor_id,
+        Message.is_read.is_(False),
+    ).count()
+    announcements = db.query(Announcement).filter(
+        Announcement.is_active.is_(True),
+        Announcement.target_role.in_([role, "all"]),
+    ).count()
+    return success_response({
+        "unread_messages": unread_messages,
+        "announcements": announcements,
+        "total": unread_messages + announcements,
+    })
+
+
 @router.get("/announcements", response_model=APIResponse[dict])
 def list_announcements(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     role, _ = get_actor_identity(current_user)

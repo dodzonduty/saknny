@@ -39,7 +39,7 @@ def list_verifications(status: str = "pending", db: Session = Depends(get_db), c
             "student_name": student_name,
             "doc_type": doc.doc_type,
             "status": doc.status,
-            "file_url": f"/api/v1/{doc.file_path}",
+            "file_url": f"http://localhost:8000/api/v1/{doc.file_path}",
             "is_flagged": doc.is_flagged,
             "created_at": doc.created_at
         })
@@ -67,6 +67,8 @@ def review_verification(
     doc.rejection_reason = review_in.rejection_reason
     doc.reviewed_by = current_admin.admin_id
     doc.review_date = datetime.now(timezone.utc)
+
+    db.flush()
 
     student = db.query(Student).filter(Student.student_id == doc.student_id).first()
 

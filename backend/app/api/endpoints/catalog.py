@@ -196,6 +196,12 @@ def create_room(
     if not building:
         return error_response("Building not found")
 
+    existing_room = db.query(Room).filter(
+        Room.dorm_id == payload.dorm_id, Room.room_number == payload.room_number
+    ).first()
+    if existing_room:
+        return error_response(f"Room {payload.room_number} already exists in this building")
+
     room = Room(
         dorm_id=payload.dorm_id,
         room_number=payload.room_number,
@@ -242,6 +248,12 @@ def update_room(
         "status": room.status,
     }
     if payload.room_number is not None:
+        if payload.room_number != room.room_number:
+            existing = db.query(Room).filter(
+                Room.dorm_id == room.dorm_id, Room.room_number == payload.room_number
+            ).first()
+            if existing:
+                return error_response(f"Room {payload.room_number} already exists in this building")
         room.room_number = payload.room_number
     if payload.total_beds is not None:
         if payload.total_beds <= 0:
