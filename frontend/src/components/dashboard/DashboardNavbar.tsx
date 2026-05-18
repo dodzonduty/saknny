@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,12 +11,19 @@ interface DashboardNavbarProps {
   isAdmin?: boolean;
 }
 
+interface NotificationCount {
+  unread_messages: number;
+  announcements: number;
+  total: number;
+}
+
 export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = false }) => {
   const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const [userInitial, setUserInitial] = useState<string>("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [notifCount, setNotifCount] = useState<NotificationCount>({ unread_messages: 0, announcements: 0, total: 0 });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +45,21 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
       });
     }
   }, []);
+
+  // Fetch notification count on mount and poll every 30 seconds
+  const fetchNotificationCount = useCallback(() => {
+    apiClient<NotificationCount>("/notifications/count").then((res) => {
+      if (res.success && res.data) {
+        setNotifCount(res.data);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchNotificationCount();
+    const interval = setInterval(fetchNotificationCount, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotificationCount]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -82,6 +104,8 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
       : pathname === item.href
   ) || navItems[0];
 
+  const hasUnread = notifCount.total > 0;
+
   return (
     <header className="fixed top-0 w-full z-50 glass-nav flex justify-between items-center px-8 h-20 max-w-full mx-auto border-none shadow-sm">
       <div className="flex items-center gap-6">
@@ -98,9 +122,29 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
         )}
       </div>
       <div className="flex items-center gap-4">
-        <button className="p-2 text-on-surface-variant hover:opacity-80 transition-opacity duration-200 active:scale-95">
+        {/* Notification bell with unread indicator */}
+        <Link
+          href={isAdmin ? "/admin/messages" : "/dashboard/messages"}
+          className="relative p-2 text-on-surface-variant hover:opacity-80 transition-opacity duration-200 active:scale-95"
+          title={hasUnread ? `${notifCount.total} unread notification${notifCount.total > 1 ? "s" : ""}` : "Notifications"}
+        >
           <span className="material-symbols-outlined">notifications</span>
-        </button>
+          {hasUnread && (
+            <>
+              {/* Pulsing green ring (animated) */}
+              <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-emerald-400 opacity-75 animate-ping" />
+              {/* Solid green dot */}
+              <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
+              {/* Count badge */}
+              {notifCount.total > 0 && (
+                <span className="absolute -top-0.5 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold px-1 shadow-md">
+                  {notifCount.total > 99 ? "99+" : notifCount.total}
+                </span>
+              )}
+            </>
+          )}
+        </Link>
+
         <button className="p-2 text-on-surface-variant hover:opacity-80 transition-opacity duration-200 active:scale-95">
           <span className="material-symbols-outlined">settings</span>
         </button>

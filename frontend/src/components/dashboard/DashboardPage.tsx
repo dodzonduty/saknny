@@ -162,6 +162,7 @@ export const DashboardPage: React.FC = () => {
                 title={t("dashboard.myApplication")}
                 description={t("dashboard.myApplicationDesc")}
                 linkText="Review Details"
+                href="/dashboard/applications"
                 badge="Active"
                 badgeBgColor="bg-tertiary-fixed"
                 badgeTextColor="text-on-tertiary-container"
@@ -174,6 +175,7 @@ export const DashboardPage: React.FC = () => {
                 title={t("dashboard.findHousing")}
                 description={t("dashboard.findHousingDesc")}
                 linkText="Explore Map"
+                href="/dashboard/catalog"
               />
               
               <ActionCard 
@@ -195,6 +197,7 @@ export const DashboardPage: React.FC = () => {
                 title={t("dashboard.maintenanceRequest")}
                 description={t("dashboard.maintenanceDesc")}
                 linkText="New Ticket"
+                href="/dashboard/maintenance"
               />
             </section>
           </div>
