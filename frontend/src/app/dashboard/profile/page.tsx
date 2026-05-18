@@ -89,7 +89,7 @@ export default function ProfilePage() {
         <div className="max-w-3xl mx-auto space-y-8">
           
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-full bg-primary-container text-primary flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center">
               <span className="material-symbols-outlined text-2xl">person</span>
             </div>
             <div>

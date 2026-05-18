@@ -106,7 +106,7 @@ export default function StudentBillingPage() {
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary-container text-primary flex items-center justify-center shadow-soft">
+              <div className="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center shadow-soft">
                 <span className="material-symbols-outlined text-2xl">payments</span>
               </div>
               <div>

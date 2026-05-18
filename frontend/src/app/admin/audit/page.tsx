@@ -56,7 +56,7 @@ export default function AdminAuditPage() {
       
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary-container text-primary flex items-center justify-center shadow-soft">
+          <div className="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center shadow-soft">
             <span className="material-symbols-outlined text-2xl">manage_search</span>
           </div>
           <div>

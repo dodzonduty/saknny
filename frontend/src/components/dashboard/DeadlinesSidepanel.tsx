@@ -45,12 +45,17 @@ export const DeadlinesSidepanel: React.FC = () => {
           <div className="text-[10px] font-bold text-primary uppercase tracking-widest">Available next week</div>
         </div>
         
-        {/* Calendar Shortcut */}
         <div className="mt-8 pt-8 border-t border-outline-variant/30">
-          <div className="bg-primary p-6 rounded-xl text-center space-y-3 opacity-80 cursor-not-allowed">
+          <div className="bg-primary p-6 rounded-xl text-center space-y-3">
             <p className="text-white text-xs font-medium opacity-80">Sync your academic life</p>
-            <h5 className="text-white font-bold">Download Housing Handbook</h5>
-            <button className="w-full bg-white text-primary py-2 rounded font-bold text-xs cursor-not-allowed">Download PDF</button>
+            <h5 className="text-white font-bold">Download Housing Document</h5>
+            <a
+              href="/docs/enrollment-form.pdf"
+              download="طلب التحاق 2026.pdf"
+              className="block w-full bg-white text-primary py-2 rounded font-bold text-xs hover:bg-slate-50 transition-colors"
+            >
+              Download PDF
+            </a>
           </div>
         </div>
       </div>
