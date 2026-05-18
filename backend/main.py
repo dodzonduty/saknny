@@ -47,8 +47,10 @@ async def general_exception_handler(_request, exc):
     )
 
 # Static file serving for uploads
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-app.mount(f"/api/v1/{settings.UPLOAD_DIR}", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
+from backend.app.core.config import BACKEND_DIR
+UPLOAD_DIR_ABS = os.path.join(BACKEND_DIR, settings.UPLOAD_DIR)
+os.makedirs(UPLOAD_DIR_ABS, exist_ok=True)
+app.mount(f"/api/v1/{settings.UPLOAD_DIR}", StaticFiles(directory=UPLOAD_DIR_ABS), name="uploads")
 
 app.include_router(api_router, prefix="/api/v1")
 

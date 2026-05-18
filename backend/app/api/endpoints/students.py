@@ -159,8 +159,9 @@ def upload_document(
     if len(file_bytes) > max_size:
         return error_response("File too large. Maximum size is 5 MB.")
 
+    from backend.app.core.config import BACKEND_DIR
     filename = f"{uuid.uuid4()}_{file.filename}"
-    student_dir = os.path.join(settings.UPLOAD_DIR, str(student_id))
+    student_dir = os.path.join(BACKEND_DIR, settings.UPLOAD_DIR, str(student_id))
     os.makedirs(student_dir, exist_ok=True)
 
     file_path_relative = f"uploads/verification_docs/{student_id}/{filename}"

@@ -1,6 +1,8 @@
 import os
 from pydantic_settings import BaseSettings
 
+BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Saknny API"
     SECRET_KEY: str = "saknny_super_secret_key_2026_change_in_production"
