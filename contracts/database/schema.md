@@ -33,6 +33,8 @@ Role B (API Layer) must read this before writing any queries or repository code.
 | enroll_status | BOOLEAN | NOT NULL, DEFAULT FALSE | Set TRUE by Admin after verification |
 | distance_score | DECIMAL(5,2) | NOT NULL, DEFAULT 0 | Priority score from home city |
 | preferences | VARCHAR(200) | NULLABLE | For AI matching agent |
+| firebase_uid | VARCHAR(128) | UNIQUE, NULLABLE | Firebase Auth UID linked to student |
+| fcm_token | VARCHAR(512) | NULLABLE | Latest registered mobile FCM token |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Audit |
 | updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Audit, auto-updated |
 
@@ -90,6 +92,9 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 7. **Application Gate**: Students can only have one active application in (`submitted`, `under_review`, `approved`, `waitlisted`).
 8. **Lease Gate**: Lease creation requires an existing allocation.
 9. **Payment Gate**: Payment records are simulation-only in this phase (no external gateway dependency).
+10. **Mobile Auth Link Gate**: `students.firebase_uid` must be unique when present.
+11. **Attendance Eligibility Gate**: attendance check-in requires an active allocation.
+12. **Attendance Time Policy**: attendance eligibility and duplicate checks use university-local day and server receive time.
 
 ---
 
@@ -101,8 +106,49 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 | building_name | VARCHAR(100) | NOT NULL | |
 | gender_type | CHAR(1) | NOT NULL | `M` or `F` |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'active' | `active`, `maintenance`, `inactive` |
+| latitude | DECIMAL(9,6) | NULLABLE | Dorm latitude for geofence validation |
+| longitude | DECIMAL(9,6) | NULLABLE | Dorm longitude for geofence validation |
+| allowed_radius_meters | INTEGER | NOT NULL, DEFAULT 100 | Attendance radius in meters |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
 | updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+
+---
+
+## Table: attendance_records
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| attendance_id | INTEGER | PK, AUTO INCREMENT | |
+| student_id | INTEGER | FK → students (CASCADE), NOT NULL | |
+| allocation_id | INTEGER | FK → allocations (SET NULL), NULLABLE | Allocation snapshot at check-in |
+| dorm_id | INTEGER | FK → buildings (SET NULL), NULLABLE | Dorm snapshot at check-in |
+| attendance_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Server receive time (authoritative) |
+| attendance_date | DATE | NOT NULL | University-local date for dedup logic |
+| client_timestamp | TIMESTAMPTZ | NULLABLE | Raw client-sent timestamp for audit only |
+| latitude | DECIMAL(9,6) | NOT NULL | Student reported latitude |
+| longitude | DECIMAL(9,6) | NOT NULL | Student reported longitude |
+| distance_meters | DECIMAL(10,2) | NULLABLE | Distance from dorm center |
+| status | VARCHAR(20) | NOT NULL | `SUCCESS` or `REJECTED` |
+| rejection_reason | VARCHAR(200) | NULLABLE | Reason when rejected |
+| device_id | VARCHAR(120) | NULLABLE | Logged for suspicious attempts |
+| created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Audit |
+
+### Attendance Constraints
+- Unique daily success per student:
+  - unique partial index on (`student_id`, `attendance_date`) where `status = 'SUCCESS'`
+- Indexes:
+  - (`attendance_date`)
+  - (`status`)
+  - (`student_id`)
+  - (`rejection_reason`)
+
+### Attendance Rejection Reasons (initial set)
+- `No active allocation found for attendance`
+- `Firebase identity mismatch`
+- `Outside permitted attendance zone`
+- `Attendance already marked for today`
+- `Dorm geolocation is not configured`
+- `Invalid coordinates provided`
 
 ---
 
@@ -337,3 +383,4 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 | 2026-04-24 | Initial schema: admins, students tables | Role A (Data Layer) |
 | 2026-04-24 | Added verification_documents table + file storage convention | Role A (Data Layer) |
 | 2026-05-15 | Expanded schema contract to full Chapter 3 modules (applications, catalog, allocations, leases, payments, maintenance, lifecycle, communications, analytics/audit/surveys) | Backend implementation |
+| 2026-05-26 | Added mobile attendance + Firebase linkage fields and attendance_records contract | Role A/B implementation |

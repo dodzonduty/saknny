@@ -28,6 +28,9 @@ All frontend integration and mocks must follow this structure.
 - JWT bearer token for all protected endpoints.
 - Role claim values: `"student"`, `"admin"`.
 - Header: `Authorization: Bearer <access_token>`.
+- Mobile authentication uses a hybrid bridge:
+  - Firebase identity is verified server-side.
+  - Backend remains the authorization authority for business APIs.
 
 ## Status enums
 - Verification: `pending`, `approved`, `rejected`
@@ -38,6 +41,7 @@ All frontend integration and mocks must follow this structure.
 - Ticket: `open`, `assigned`, `in_progress`, `resolved`, `escalated`
 - Room change request: `pending_review`, `approved`, `rejected`
 - Check-in flow: `initiated`, `checked_in`, `checked_out`
+- Attendance: `SUCCESS`, `REJECTED`
 
 ---
 
@@ -328,6 +332,164 @@ Student assigned surveys.
 
 ### `POST /surveys/{dispatch_id}/complete`
 Student submits survey response.
+
+---
+
+## 12) Mobile Attendance and Firebase
+
+### Authorization matrix
+- Mobile login eligibility: any authenticated student account.
+- Attendance eligibility: only students with active allocations.
+- Unassigned student check-in response:
+  - `success=false`
+  - `error="No active allocation found for attendance"`
+- Attendance reminders target only students with active allocations.
+
+### Day and timestamp policy
+- Duplicate attendance checks are based on **university local day**.
+- Attendance decision timestamp uses **server receive time only**.
+- Client timestamp is accepted as metadata/audit input only.
+
+### `POST /mobile/firebase-token`
+Returns Firebase custom token for the authenticated student.
+Request:
+```json
+{
+  "firebase_uid": "firebase-uid-string"
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "firebase_custom_token": "<token>",
+    "firebase_uid": "firebase-uid-string"
+  },
+  "error": null
+}
+```
+
+### `POST /devices/register`
+Stores/updates student's mobile FCM token.
+Request:
+```json
+{
+  "fcm_token": "fcm-token-string",
+  "device_id": "android-uuid",
+  "platform": "android"
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "registered": true
+  },
+  "error": null
+}
+```
+
+### `POST /attendance/check-in`
+Performs server-side geofenced attendance check.
+Request:
+```json
+{
+  "student_id": 15,
+  "firebase_uid": "firebase-uid-string",
+  "latitude": 30.123456,
+  "longitude": 31.123456,
+  "timestamp": "2026-05-26T08:42:00Z",
+  "device_id": "android-uuid"
+}
+```
+Successful response:
+```json
+{
+  "success": true,
+  "data": {
+    "status": "SUCCESS",
+    "attendance_id": 123,
+    "distance_meters": 42.3,
+    "attendance_date": "2026-05-26"
+  },
+  "error": null
+}
+```
+Rejected response example:
+```json
+{
+  "success": false,
+  "data": {
+    "status": "REJECTED",
+    "distance_meters": 165.7,
+    "rejection_reason": "Outside permitted attendance zone"
+  },
+  "error": "Outside permitted attendance zone"
+}
+```
+
+### `GET /attendance/score`
+Returns attendance score and summary for current student.
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "student_id": 15,
+    "attendance_percentage": 86.67,
+    "successful_days": 13,
+    "eligible_days": 15,
+    "latest_check_in": "2026-05-26T08:42:03Z"
+  },
+  "error": null
+}
+```
+
+### `GET /admin/attendance/analytics`
+Returns attendance analytics for dashboard.
+Response shape:
+```json
+{
+  "success": true,
+  "data": {
+    "today_success_count": 120,
+    "today_rejected_count": 17,
+    "attendance_percentage_by_dorm": [
+      { "dorm_id": 1, "building_name": "Dorm A", "attendance_percentage": 88.5 }
+    ],
+    "absent_students_count": 32,
+    "suspicious_attempts": 9
+  },
+  "error": null
+}
+```
+
+### `POST /admin/notifications/send`
+Admin-triggered push notification dispatch via FCM.
+Request:
+```json
+{
+  "title": "Lunch Available",
+  "body": "Lunch is now available in Dorm A cafeteria.",
+  "target": "all_students",
+  "data": {
+    "type": "food_notice"
+  }
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "sent_count": 215,
+    "failed_count": 3
+  },
+  "error": null
+}
+```
 
 ---
 

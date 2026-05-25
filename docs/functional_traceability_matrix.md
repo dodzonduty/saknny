@@ -32,6 +32,12 @@ This matrix maps Chapter 3 functional requirements/events to implementation arti
 | Maintenance ops | Assign/escalate/resolve | `GET/PUT/POST /api/v1/admin/maintenance/tickets*` | `maintenance_tickets` | admin-only status transitions |
 | Messaging | In-app message channel | `POST/GET /api/v1/messages` | `messages` | student/admin actor role enforcement |
 | Announcements | Publish and read announcements | `POST /api/v1/admin/announcements`, `GET /api/v1/announcements` | `announcements` | targeted delivery by role |
+| Mobile token bridge | Issue Firebase custom token | `POST /api/v1/mobile/firebase-token` | `students` | requires JWT student auth + firebase_uid match |
+| Device registration | Register FCM token | `POST /api/v1/devices/register` | `students` | authenticated student updates own token |
+| Attendance check-in | Geofenced daily attendance | `POST /api/v1/attendance/check-in` | `attendance_records`, `allocations`, `rooms`, `buildings`, `students` | server-time policy, local-day dedup, geofence via Haversine, active allocation required |
+| Attendance score | Student attendance score | `GET /api/v1/attendance/score` | `attendance_records` | score derived from successful/total attempts |
+| Attendance analytics | Admin attendance metrics | `GET /api/v1/admin/attendance/analytics` | `attendance_records`, `allocations`, `buildings` | today success/rejection, dorm distribution, absent and suspicious counts |
+| Push dispatch | Admin send FCM notification | `POST /api/v1/admin/notifications/send` | `students`, `allocations`, `audit_logs` | admin-only dispatch and auditable send outcomes |
 | Analytics dashboard | Dashboard metrics | `GET /api/v1/admin/analytics/dashboard` | rooms/applications/payments/tickets/allocations | aggregated metrics from relational data |
 | Auditability | Sensitive changes log | `GET /api/v1/admin/audit/logs` + internal audit writes | `audit_logs` | who/what/when/before-after |
 | Surveys | Dispatch + complete | `POST /api/v1/admin/surveys`, `POST /api/v1/admin/surveys/{survey_id}/dispatch`, `GET /api/v1/surveys/me`, `POST /api/v1/surveys/{dispatch_id}/complete` | `surveys`, `survey_dispatches` | admin dispatch and student completion flow |

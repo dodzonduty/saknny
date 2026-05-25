@@ -24,3 +24,4 @@ from backend.app.models.room_change_request import RoomChangeRequest  # noqa: F4
 from backend.app.models.communication import Announcement, Message  # noqa: F401
 from backend.app.models.audit_log import AuditLog  # noqa: F401
 from backend.app.models.survey import Survey, SurveyDispatch  # noqa: F401
+from backend.app.models.attendance_record import AttendanceRecord  # noqa: F401

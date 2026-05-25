@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Integer, String, CheckConstraint
+from sqlalchemy import DateTime, Integer, String, CheckConstraint, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.app.core.database import Base
@@ -14,12 +14,19 @@ class Building(Base):
             "status IN ('active', 'maintenance', 'inactive')",
             name="ck_buildings_status",
         ),
+        CheckConstraint(
+            "allowed_radius_meters > 0",
+            name="ck_buildings_allowed_radius_positive",
+        ),
     )
 
     dorm_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     building_name: Mapped[str] = mapped_column(String(100), nullable=False)
     gender_type: Mapped[str] = mapped_column(String(1), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    latitude: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
+    allowed_radius_meters: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )

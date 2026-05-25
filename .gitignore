@@ -30,3 +30,20 @@ Thumbs.db
 # Uploads (keep directory, ignore contents)
 uploads/*
 !uploads/.gitkeep
+
+# Backend verification uploads
+backend/uploads/verification_docs/**
+!backend/uploads/verification_docs/.gitkeep
+
+# LaTeX generated artifacts in docs
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+docs/*.synctex*
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.nav
+docs/*.snm
+docs/*.vrb
+docs/testcases_*.pdf

@@ -5,9 +5,12 @@ from sqlalchemy.orm import Session
 
 from backend.app.api.deps import get_current_admin, get_current_user
 from backend.app.core.database import get_db
+from backend.app.models.allocation import Allocation
 from backend.app.models.communication import Announcement, Message
+from backend.app.models.student import Student
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import get_actor_identity, write_audit_log
+from backend.app.services.firebase import FirebaseServiceError, send_push_notification
 
 router = APIRouter()
 
@@ -22,6 +25,13 @@ class AnnouncementRequest(BaseModel):
     title: str
     content: str
     target_role: str = "student"
+
+
+class SendNotificationRequest(BaseModel):
+    title: str
+    body: str
+    target: str = "all_students"
+    data: dict | None = None
 
 
 @router.post("/messages", response_model=APIResponse[dict])
@@ -174,3 +184,51 @@ def list_announcements(db: Session = Depends(get_db), current_user=Depends(get_c
             "count": len(rows),
         }
     )
+
+
+@router.post("/admin/notifications/send", response_model=APIResponse[dict])
+def send_notification(
+    payload: SendNotificationRequest,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    if payload.target not in {"all_students", "active_allocations"}:
+        return error_response("target must be all_students or active_allocations")
+
+    query = db.query(Student).filter(Student.fcm_token.isnot(None))
+    if payload.target == "active_allocations":
+        query = (
+            query.join(Allocation, Allocation.student_id == Student.student_id)
+            .filter(Allocation.status == "assigned")
+            .distinct()
+        )
+    recipients = query.all()
+
+    sent_count = 0
+    failed_count = 0
+    for student in recipients:
+        try:
+            send_push_notification(
+                token=student.fcm_token,
+                title=payload.title,
+                body=payload.body,
+                data=payload.data,
+            )
+            sent_count += 1
+        except FirebaseServiceError:
+            failed_count += 1
+
+    write_audit_log(
+        db=db,
+        actor_role="admin",
+        actor_id=admin.admin_id,
+        action="push_notification_sent",
+        entity_type="notification_dispatch",
+        after_state={
+            "target": payload.target,
+            "sent_count": sent_count,
+            "failed_count": failed_count,
+        },
+    )
+    db.commit()
+    return success_response({"sent_count": sent_count, "failed_count": failed_count})

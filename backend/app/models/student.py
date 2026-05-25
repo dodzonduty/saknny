@@ -46,6 +46,10 @@ class Student(Base):
     # ── Preferences (for AI matching agent) ───────────────────────────
     preferences: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
+    # ── Mobile/Firebase Identity ───────────────────────────────────────
+    firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True)
+    fcm_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
     # ── Audit Timestamps ──────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

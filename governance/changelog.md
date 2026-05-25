@@ -225,3 +225,39 @@ Action: UPDATED
 Owner: Backend Engineer
 Notes: Added explicit checks for duplicate room numbers within the same building before adding/updating rooms to avoid 500 internal server errors caused by database unique constraint violations. Now returns a clean error response.
 Date: 2026-05-18
+
+[SCHEMA]
+
+Entity: Schema
+Name: Mobile Attendance + Firebase Linkage
+Role: A
+Path: contracts/database/schema.md, backend/app/models/student.py, backend/app/models/building.py, backend/app/models/attendance_record.py, backend/alembic/versions/20260526_01_mobile_attendance_firebase.py
+Status: REAL
+Action: UPDATED
+Owner: Role A/B Implementation
+Notes: Added students.firebase_uid and students.fcm_token, building geofence fields (latitude/longitude/allowed_radius_meters), and attendance_records table with local-day duplicate prevention and rejection tracking.
+Date: 2026-05-26
+
+[API]
+
+Entity: API Contract
+Name: Mobile Attendance + Firebase Endpoints
+Role: B
+Path: contracts/api/contracts.md
+Status: REAL
+Action: UPDATED
+Owner: Role A/B Implementation
+Notes: Added contract coverage for /auth/mobile/firebase-token, /devices/register, /attendance/check-in, /attendance/score, /admin/attendance/analytics, /admin/notifications/send and authorization matrix policies.
+Date: 2026-05-26
+
+[API]
+
+Entity: Backend Service
+Name: Firebase bridge + Attendance APIs
+Role: B
+Path: backend/app/services/firebase.py, backend/app/services/geofence.py, backend/app/api/endpoints/auth.py, backend/app/api/endpoints/students.py, backend/app/api/endpoints/attendance.py, backend/app/api/endpoints/communications.py
+Status: REAL
+Action: CREATED
+Owner: Role A/B Implementation
+Notes: Implemented Firebase user provisioning with compensation rollback on signup, custom token issuance endpoint, device token registration, server-side Haversine geofence attendance checks, and admin push notification dispatch.
+Date: 2026-05-26

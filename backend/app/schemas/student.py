@@ -14,3 +14,4 @@ class StudentResponse(BaseModel):
     student_id: int
     email: str
     enroll_status: bool
+    firebase_uid: str | None = None

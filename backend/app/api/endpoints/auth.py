@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
 from backend.app.core.security import verify_password, create_access_token
@@ -34,3 +34,5 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         })
         
     return error_response("Incorrect email or password")
+
+

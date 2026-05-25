@@ -9,3 +9,12 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     role: str
     user_id: int
+
+
+class FirebaseTokenRequest(BaseModel):
+    firebase_uid: str
+
+
+class FirebaseTokenResponse(BaseModel):
+    firebase_custom_token: str
+    firebase_uid: str

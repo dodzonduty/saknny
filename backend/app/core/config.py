@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     
     # Uploads
     UPLOAD_DIR: str = "uploads/verification_docs"
+
+    # Firebase
+    FIREBASE_ENABLED: bool = False
+    FIREBASE_PROJECT_ID: str | None = None
+    FIREBASE_CREDENTIALS_PATH: str | None = None
+
+    # Attendance policy
+    UNIVERSITY_TIMEZONE: str = "Africa/Cairo"
     
 settings = Settings()
 

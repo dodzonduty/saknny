@@ -17,6 +17,12 @@ from backend.app.schemas.response import APIResponse, success_response, error_re
 from backend.app.schemas.student import StudentCreate, StudentResponse
 from backend.app.schemas.verification import VerificationDocumentResponse
 from backend.app.services.audit import get_actor_identity, write_audit_log
+from backend.app.services.firebase import (
+    FirebaseServiceError,
+    FirebaseUserPayload,
+    create_firebase_user,
+    delete_firebase_user,
+)
 
 router = APIRouter()
 
@@ -35,6 +41,17 @@ def register_student(student_in: StudentCreate, db: Session = Depends(get_db)):
     if db.query(Student).filter(Student.faculty_id == student_in.faculty_id).first():
         return error_response("Faculty ID already registered")
         
+    try:
+        firebase_uid = create_firebase_user(
+            FirebaseUserPayload(
+                email=student_in.email,
+                password=student_in.password,
+                display_name=student_in.name,
+            )
+        )
+    except FirebaseServiceError as exc:
+        return error_response(str(exc))
+
     db_student = Student(
         faculty_id=student_in.faculty_id,
         name=student_in.name,
@@ -42,17 +59,32 @@ def register_student(student_in: StudentCreate, db: Session = Depends(get_db)):
         gender=student_in.gender,
         home_city=student_in.home_city,
         password_hash=get_password_hash(student_in.password),
-        preferences=student_in.preferences
+        preferences=student_in.preferences,
+        firebase_uid=firebase_uid,
     )
     db.add(db_student)
-    db.commit()
-    db.refresh(db_student)
+    try:
+        db.commit()
+        db.refresh(db_student)
+    except Exception as exc:
+        db.rollback()
+        rollback_error = None
+        try:
+            delete_firebase_user(firebase_uid)
+        except FirebaseServiceError as rollback_exc:
+            rollback_error = str(rollback_exc)
+        if rollback_error:
+            return error_response(
+                f"Failed to persist student record and failed Firebase rollback: {rollback_error}"
+            )
+        return error_response(f"Failed to persist student record: {exc}")
     
     return success_response(
         {
             "student_id": db_student.student_id,
             "email": db_student.email,
             "enroll_status": db_student.enroll_status,
+            "firebase_uid": db_student.firebase_uid,
         }
     )
 

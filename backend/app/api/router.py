@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from backend.app.api.endpoints import (
     admin,
+    attendance,
     applications,
     allocations,
     auth,
@@ -10,6 +11,7 @@ from backend.app.api.endpoints import (
     insights,
     leases,
     maintenance,
+    mobile_auth,
     residency,
     students,
     surveys,
@@ -20,6 +22,8 @@ api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(students.router, prefix="/students", tags=["students"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
+api_router.include_router(attendance.router, tags=["attendance"])
+api_router.include_router(mobile_auth.router, tags=["mobile-auth"])
 api_router.include_router(catalog.router, tags=["catalog"])
 api_router.include_router(applications.router, tags=["applications"])
 api_router.include_router(allocations.router, tags=["allocations"])
