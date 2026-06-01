@@ -39,6 +39,30 @@ Admin checks:
 
 ---
 
+## 2.1 Flutter app run
+
+The functional Flutter skeleton lives in `mobile/`.
+
+```bash
+cd mobile
+flutter pub get
+flutter run --dart-define=SAKNNY_API_BASE_URL=http://localhost:8000/api/v1
+```
+
+For Android emulator to local backend:
+
+```bash
+flutter run --dart-define=SAKNNY_API_BASE_URL=http://10.0.2.2:8000/api/v1
+```
+
+Firebase config placeholders:
+- Android: `mobile/android/app/google-services.json`
+- iOS: `mobile/ios/Runner/GoogleService-Info.plist`
+
+Those files must come from Firebase project `saknny-dev` and must not be committed.
+
+---
+
 ## 3) Minimum request payloads
 
 ## Firebase token bridge

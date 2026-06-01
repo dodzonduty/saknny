@@ -26,8 +26,11 @@ def init_database():
     print("=" * 60)
     print("\n  Applying migrations ...\n")
 
-    alembic_ini = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend", "alembic.ini"))
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    alembic_ini = os.path.join(repo_root, "backend", "alembic.ini")
+    alembic_scripts = os.path.join(repo_root, "backend", "alembic")
     cfg = Config(alembic_ini)
+    cfg.set_main_option("script_location", alembic_scripts)
     command.upgrade(cfg, "head")
 
     print("  [OK]  Alembic upgrade head completed")

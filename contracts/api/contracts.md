@@ -103,12 +103,39 @@ Request:
 Student/admin list of buildings with optional filters:
 - `gender_type`
 - `status`
+Response items include geofence fields used by mobile attendance:
+- `latitude`
+- `longitude`
+- `allowed_radius_meters`
 
 ### `POST /admin/catalog/buildings`
 Admin creates building.
+The admin frontend must expose latitude, longitude, and attendance radius fields when creating dorm buildings.
+Request:
+```json
+{
+  "building_name": "Dorm A",
+  "gender_type": "M",
+  "status": "active",
+  "latitude": 30.123456,
+  "longitude": 31.123456,
+  "allowed_radius_meters": 100
+}
+```
 
 ### `PUT /admin/catalog/buildings/{dorm_id}`
 Admin updates building.
+The admin frontend must allow editing these geofence fields because attendance depends on them.
+Request:
+```json
+{
+  "building_name": "Dorm A",
+  "status": "active",
+  "latitude": 30.123456,
+  "longitude": 31.123456,
+  "allowed_radius_meters": 100
+}
+```
 
 ### `GET /catalog/rooms`
 Student/admin list of rooms with optional filters:

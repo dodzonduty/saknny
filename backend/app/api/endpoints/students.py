@@ -41,16 +41,20 @@ def register_student(student_in: StudentCreate, db: Session = Depends(get_db)):
     if db.query(Student).filter(Student.faculty_id == student_in.faculty_id).first():
         return error_response("Faculty ID already registered")
         
-    try:
-        firebase_uid = create_firebase_user(
-            FirebaseUserPayload(
-                email=student_in.email,
-                password=student_in.password,
-                display_name=student_in.name,
+    firebase_uid = None
+    if settings.FIREBASE_ENABLED:
+        try:
+            firebase_uid = create_firebase_user(
+                FirebaseUserPayload(
+                    email=student_in.email,
+                    password=student_in.password,
+                    display_name=student_in.name,
+                )
             )
-        )
-    except FirebaseServiceError as exc:
-        return error_response(str(exc))
+        except FirebaseServiceError as exc:
+            return error_response(str(exc))
+        if not firebase_uid:
+            return error_response("Firebase user creation failed")
 
     db_student = Student(
         faculty_id=student_in.faculty_id,
@@ -69,10 +73,11 @@ def register_student(student_in: StudentCreate, db: Session = Depends(get_db)):
     except Exception as exc:
         db.rollback()
         rollback_error = None
-        try:
-            delete_firebase_user(firebase_uid)
-        except FirebaseServiceError as rollback_exc:
-            rollback_error = str(rollback_exc)
+        if firebase_uid:
+            try:
+                delete_firebase_user(firebase_uid)
+            except FirebaseServiceError as rollback_exc:
+                rollback_error = str(rollback_exc)
         if rollback_error:
             return error_response(
                 f"Failed to persist student record and failed Firebase rollback: {rollback_error}"

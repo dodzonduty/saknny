@@ -199,13 +199,25 @@ Request:
 
 ## 7) Suggested Mobile Integration Order
 
-1. Implement backend JWT login/session handling in app.
-2. Integrate `POST /mobile/firebase-token` and Firebase custom-token sign-in.
-3. Register FCM token with `POST /devices/register`.
-4. Integrate attendance check-in UI with location capture.
-5. Handle all rejection reasons with clear UX messages.
-6. Add score view from `GET /attendance/score`.
-7. Validate end-to-end push notifications.
+1. Start from the functional Flutter skeleton in `mobile/`.
+2. Implement or replace the placeholder UI while keeping the service layer contracts intact.
+3. Use backend JWT login/session handling in app.
+4. Integrate `POST /mobile/firebase-token` and Firebase custom-token sign-in.
+5. Register FCM token with `POST /devices/register`.
+6. Integrate attendance check-in UI with location capture.
+7. Handle all rejection reasons with clear UX messages.
+8. Add score view from `GET /attendance/score`.
+9. Validate end-to-end push notifications.
+
+Run the skeleton:
+
+```bash
+cd mobile
+flutter pub get
+flutter run --dart-define=SAKNNY_API_BASE_URL=http://10.0.2.2:8000/api/v1
+```
+
+Use `http://localhost:8000/api/v1` instead when running outside Android emulator.
 
 ---
 

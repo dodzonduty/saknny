@@ -15,6 +15,7 @@ class TestApiContractCoverage(unittest.TestCase):
             existing_paths.update(route_pattern.findall(content))
         expected_paths = {
             "/login",
+            "/mobile/firebase-token",
             "/register",
             "/{student_id}/documents",
             "/{student_id}/profile",
@@ -56,6 +57,11 @@ class TestApiContractCoverage(unittest.TestCase):
             "/messages",
             "/announcements",
             "/admin/announcements",
+            "/admin/notifications/send",
+            "/devices/register",
+            "/attendance/check-in",
+            "/attendance/score",
+            "/admin/attendance/analytics",
             "/admin/analytics/dashboard",
             "/admin/audit/logs",
             "/admin/surveys",
@@ -94,6 +100,7 @@ class TestSchemaContractCoverage(unittest.TestCase):
             "## Table: payment_intents",
             "## Table: maintenance_tickets",
             "## Table: room_change_requests",
+            "## Table: attendance_records",
             "## Table: announcements",
             "## Table: messages",
             "## Table: audit_logs",

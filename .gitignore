@@ -47,3 +47,21 @@ docs/*.nav
 docs/*.snm
 docs/*.vrb
 docs/testcases_*.pdf
+*.zip
+
+# Local secrets — never commit (safe for `git add .`)
+/secrets/*
+!/secrets/.gitkeep
+
+# Firebase credentials if misplaced outside secrets/
+*firebase-adminsdk*.json
+google-services.json
+GoogleService-Info.plist
+
+# Backend local env
+backend/.env
+
+# Mobile Firebase client configs (generated locally)
+mobile/android/app/google-services.json
+mobile/ios/Runner/GoogleService-Info.plist
+mobile/lib/firebase_options.dart
