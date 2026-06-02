@@ -8,6 +8,7 @@ from sqlalchemy import (
     CheckConstraint,
     UniqueConstraint,
     Index,
+    Numeric,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -26,6 +27,10 @@ class Room(Base):
         CheckConstraint(
             "status IN ('active', 'maintenance', 'inactive')", name="ck_rooms_status"
         ),
+        CheckConstraint(
+            "allowed_radius_meters > 0",
+            name="ck_rooms_allowed_radius_positive",
+        ),
         Index("ix_rooms_dorm_id", "dorm_id"),
     )
 
@@ -38,6 +43,9 @@ class Room(Base):
     available_beds: Mapped[int] = mapped_column(Integer, nullable=False)
     dominant_preferences: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+    latitude: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Numeric(9, 6), nullable=True)
+    allowed_radius_meters: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )

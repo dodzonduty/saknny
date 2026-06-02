@@ -149,7 +149,7 @@ Common rejection messages:
 - `Firebase identity mismatch`
 - `Outside permitted attendance zone`
 - `Attendance already marked for today`
-- `Dorm geolocation is not configured`
+- `Room geolocation is not configured`
 - `Invalid coordinates provided`
 
 ## 5.3 Student attendance score
@@ -241,6 +241,6 @@ Use `http://localhost:8000/api/v1` instead when running outside Android emulator
   - verify `FIREBASE_PROJECT_ID`
 - If attendance always rejects:
   - confirm student has active allocation
-  - confirm building geolocation fields are populated
+  - confirm room geolocation fields are populated on the allocated room
   - confirm timezone configuration and server clock
 

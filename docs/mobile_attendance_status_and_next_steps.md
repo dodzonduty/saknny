@@ -13,7 +13,7 @@ This document summarizes what has been completed for the Saknny mobile attendanc
 - Added Firebase linkage fields to students:
   - `firebase_uid`
   - `fcm_token`
-- Added geofence fields to dorm/building records:
+- Added geofence fields to **room** records (attendance validates against the allocated room):
   - `latitude`
   - `longitude`
   - `allowed_radius_meters`
@@ -21,7 +21,7 @@ This document summarizes what has been completed for the Saknny mobile attendanc
   - successful attendance
   - rejected attempts
   - rejection reasons
-  - distance from dorm
+  - distance from allocated room
   - device logging
   - local-day duplicate prevention
 - Added Alembic migration for the mobile attendance schema.
@@ -124,13 +124,13 @@ Run the new Alembic migration.
 
 Then seed or manually set:
 
-- building latitude
-- building longitude
-- allowed radius
+- room latitude
+- room longitude
+- allowed radius (per room)
 - student allocation
 - student Firebase UID linkage, if testing existing students
 
-Without building coordinates and active allocation, attendance will correctly reject.
+Without room coordinates on the allocated room and an active allocation, attendance will correctly reject.
 
 ### 3. End-to-End Demo Testing
 
@@ -177,7 +177,7 @@ Recommended before production:
 1. Clean git state and ensure large/generated files are not tracked.
 2. Run database migration.
 3. Configure backend Firebase environment.
-4. Populate dorm geolocation and test allocation data.
+4. Populate room geolocation and test allocation data.
 5. Run backend locally.
 6. Run Flutter app against local backend.
 7. Test attendance scenarios.

@@ -34,7 +34,7 @@ This matrix maps Chapter 3 functional requirements/events to implementation arti
 | Announcements | Publish and read announcements | `POST /api/v1/admin/announcements`, `GET /api/v1/announcements` | `announcements` | targeted delivery by role |
 | Mobile token bridge | Issue Firebase custom token | `POST /api/v1/mobile/firebase-token` | `students` | requires JWT student auth + firebase_uid match |
 | Device registration | Register FCM token | `POST /api/v1/devices/register` | `students` | authenticated student updates own token |
-| Attendance check-in | Geofenced daily attendance | `POST /api/v1/attendance/check-in` | `attendance_records`, `allocations`, `rooms`, `buildings`, `students` | server-time policy, local-day dedup, geofence via Haversine, active allocation required |
+| Attendance check-in | Geofenced daily attendance | `POST /api/v1/attendance/check-in` | `attendance_records`, `allocations`, `rooms`, `students` | server-time policy, local-day dedup, geofence via Haversine against allocated room, active allocation required |
 | Attendance score | Student attendance score | `GET /api/v1/attendance/score` | `attendance_records` | score derived from successful/total attempts |
 | Attendance analytics | Admin attendance metrics | `GET /api/v1/admin/attendance/analytics` | `attendance_records`, `allocations`, `buildings` | today success/rejection, dorm distribution, absent and suspicious counts |
 | Push dispatch | Admin send FCM notification | `POST /api/v1/admin/notifications/send` | `students`, `allocations`, `audit_logs` | admin-only dispatch and auditable send outcomes |

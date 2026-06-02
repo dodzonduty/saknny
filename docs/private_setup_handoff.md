@@ -111,11 +111,12 @@ This keeps PostgreSQL as the source of truth while linking existing rows to Fire
 
 Before testing attendance, admins must configure each dorm building with:
 
+Per **room** (not building):
 - `latitude`
 - `longitude`
 - `allowed_radius_meters`
 
 Students must also have active allocations.
 
-Without building geofence data or active allocation, attendance will correctly reject.
+Without room geofence data (latitude/longitude on the allocated room) or active allocation, attendance will correctly reject.
 

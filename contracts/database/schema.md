@@ -106,9 +106,6 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 | building_name | VARCHAR(100) | NOT NULL | |
 | gender_type | CHAR(1) | NOT NULL | `M` or `F` |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'active' | `active`, `maintenance`, `inactive` |
-| latitude | DECIMAL(9,6) | NULLABLE | Dorm latitude for geofence validation |
-| longitude | DECIMAL(9,6) | NULLABLE | Dorm longitude for geofence validation |
-| allowed_radius_meters | INTEGER | NOT NULL, DEFAULT 100 | Attendance radius in meters |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
 | updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
 
@@ -127,7 +124,7 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 | client_timestamp | TIMESTAMPTZ | NULLABLE | Raw client-sent timestamp for audit only |
 | latitude | DECIMAL(9,6) | NOT NULL | Student reported latitude |
 | longitude | DECIMAL(9,6) | NOT NULL | Student reported longitude |
-| distance_meters | DECIMAL(10,2) | NULLABLE | Distance from dorm center |
+| distance_meters | DECIMAL(10,2) | NULLABLE | Distance from allocated room center |
 | status | VARCHAR(20) | NOT NULL | `SUCCESS` or `REJECTED` |
 | rejection_reason | VARCHAR(200) | NULLABLE | Reason when rejected |
 | device_id | VARCHAR(120) | NULLABLE | Logged for suspicious attempts |
@@ -147,7 +144,7 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 - `Firebase identity mismatch`
 - `Outside permitted attendance zone`
 - `Attendance already marked for today`
-- `Dorm geolocation is not configured`
+- `Room geolocation is not configured`
 - `Invalid coordinates provided`
 
 ---
@@ -163,6 +160,9 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 | available_beds | INTEGER | NOT NULL | Must be between 0 and total_beds |
 | dominant_preferences | VARCHAR(100) | NULLABLE | Derived/supportive field |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'active' | `active`, `maintenance`, `inactive` |
+| latitude | DECIMAL(9,6) | NULLABLE | Room latitude for geofence validation |
+| longitude | DECIMAL(9,6) | NULLABLE | Room longitude for geofence validation |
+| allowed_radius_meters | INTEGER | NOT NULL, DEFAULT 100 | Attendance radius in meters |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
 | updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
 

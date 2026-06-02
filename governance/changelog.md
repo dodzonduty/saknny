@@ -238,6 +238,16 @@ Owner: Role A/B Implementation
 Notes: Added students.firebase_uid and students.fcm_token, building geofence fields (latitude/longitude/allowed_radius_meters), and attendance_records table with local-day duplicate prevention and rejection tracking.
 Date: 2026-05-26
 
+Entity: Schema
+Name: Room-Based Attendance Geofence
+Role: A
+Path: contracts/database/schema.md, backend/app/models/building.py, backend/app/models/room.py, backend/app/api/endpoints/catalog.py, backend/app/api/endpoints/attendance.py, backend/alembic/versions/20260601_01_room_geofence.py, frontend/src/app/admin/catalog/page.tsx
+Status: REAL
+Action: UPDATED
+Owner: Role A/B Implementation
+Notes: Moved latitude/longitude/allowed_radius_meters from buildings to rooms. Attendance check-in now validates against the student's allocated room. Migration copies existing building geofence values onto rooms in the same building.
+Date: 2026-06-01
+
 [API]
 
 Entity: API Contract

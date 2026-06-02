@@ -18,18 +18,12 @@ class BuildingCreateRequest(BaseModel):
     building_name: str
     gender_type: str
     status: str = "active"
-    latitude: float | None = None
-    longitude: float | None = None
-    allowed_radius_meters: int = 100
 
 
 class BuildingUpdateRequest(BaseModel):
     building_name: str | None = None
     gender_type: str | None = None
     status: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
-    allowed_radius_meters: int | None = None
 
 
 class RoomCreateRequest(BaseModel):
@@ -39,6 +33,9 @@ class RoomCreateRequest(BaseModel):
     available_beds: int
     dominant_preferences: str | None = None
     status: str = "active"
+    latitude: float | None = None
+    longitude: float | None = None
+    allowed_radius_meters: int = 100
 
 
 class RoomUpdateRequest(BaseModel):
@@ -47,6 +44,9 @@ class RoomUpdateRequest(BaseModel):
     available_beds: int | None = None
     dominant_preferences: str | None = None
     status: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    allowed_radius_meters: int | None = None
 
 
 def _validate_geofence_fields(
@@ -61,6 +61,14 @@ def _validate_geofence_fields(
     if allowed_radius_meters is not None and allowed_radius_meters <= 0:
         return "allowed_radius_meters must be greater than zero"
     return None
+
+
+def _room_geofence_payload(room: Room) -> dict:
+    return {
+        "latitude": float(room.latitude) if room.latitude is not None else None,
+        "longitude": float(room.longitude) if room.longitude is not None else None,
+        "allowed_radius_meters": room.allowed_radius_meters,
+    }
 
 
 @router.get("/catalog/buildings", response_model=APIResponse[dict])
@@ -84,9 +92,6 @@ def list_buildings(
                     "building_name": b.building_name,
                     "gender_type": b.gender_type,
                     "status": b.status,
-                    "latitude": float(b.latitude) if b.latitude is not None else None,
-                    "longitude": float(b.longitude) if b.longitude is not None else None,
-                    "allowed_radius_meters": b.allowed_radius_meters,
                 }
                 for b in items
             ],
@@ -105,21 +110,11 @@ def create_building(
         return error_response("gender_type must be M or F")
     if payload.status not in {"active", "maintenance", "inactive"}:
         return error_response("Invalid building status")
-    geofence_error = _validate_geofence_fields(
-        payload.latitude,
-        payload.longitude,
-        payload.allowed_radius_meters,
-    )
-    if geofence_error:
-        return error_response(geofence_error)
 
     building = Building(
         building_name=payload.building_name,
         gender_type=payload.gender_type,
         status=payload.status,
-        latitude=payload.latitude,
-        longitude=payload.longitude,
-        allowed_radius_meters=payload.allowed_radius_meters,
     )
     db.add(building)
     db.flush()
@@ -130,24 +125,11 @@ def create_building(
         action="building_created",
         entity_type="building",
         entity_id=building.dorm_id,
-        after_state={
-            "status": building.status,
-            "gender_type": building.gender_type,
-            "latitude": float(building.latitude) if building.latitude is not None else None,
-            "longitude": float(building.longitude) if building.longitude is not None else None,
-            "allowed_radius_meters": building.allowed_radius_meters,
-        },
+        after_state={"status": building.status, "gender_type": building.gender_type},
     )
     db.commit()
     db.refresh(building)
-    return success_response(
-        {
-            "dorm_id": building.dorm_id,
-            "latitude": float(building.latitude) if building.latitude is not None else None,
-            "longitude": float(building.longitude) if building.longitude is not None else None,
-            "allowed_radius_meters": building.allowed_radius_meters,
-        }
-    )
+    return success_response({"dorm_id": building.dorm_id})
 
 
 @router.put("/admin/catalog/buildings/{dorm_id}", response_model=APIResponse[dict])
@@ -165,9 +147,6 @@ def update_building(
         "building_name": building.building_name,
         "gender_type": building.gender_type,
         "status": building.status,
-        "latitude": float(building.latitude) if building.latitude is not None else None,
-        "longitude": float(building.longitude) if building.longitude is not None else None,
-        "allowed_radius_meters": building.allowed_radius_meters,
     }
     if payload.building_name is not None:
         building.building_name = payload.building_name
@@ -179,19 +158,6 @@ def update_building(
         if payload.status not in {"active", "maintenance", "inactive"}:
             return error_response("Invalid building status")
         building.status = payload.status
-    geofence_error = _validate_geofence_fields(
-        payload.latitude,
-        payload.longitude,
-        payload.allowed_radius_meters,
-    )
-    if geofence_error:
-        return error_response(geofence_error)
-    if payload.latitude is not None:
-        building.latitude = payload.latitude
-    if payload.longitude is not None:
-        building.longitude = payload.longitude
-    if payload.allowed_radius_meters is not None:
-        building.allowed_radius_meters = payload.allowed_radius_meters
     building.updated_at = datetime.now(timezone.utc)
 
     write_audit_log(
@@ -206,21 +172,10 @@ def update_building(
             "building_name": building.building_name,
             "gender_type": building.gender_type,
             "status": building.status,
-            "latitude": float(building.latitude) if building.latitude is not None else None,
-            "longitude": float(building.longitude) if building.longitude is not None else None,
-            "allowed_radius_meters": building.allowed_radius_meters,
         },
     )
     db.commit()
-    return success_response(
-        {
-            "dorm_id": building.dorm_id,
-            "status": building.status,
-            "latitude": float(building.latitude) if building.latitude is not None else None,
-            "longitude": float(building.longitude) if building.longitude is not None else None,
-            "allowed_radius_meters": building.allowed_radius_meters,
-        }
-    )
+    return success_response({"dorm_id": building.dorm_id, "status": building.status})
 
 
 @router.get("/catalog/rooms", response_model=APIResponse[dict])
@@ -246,6 +201,7 @@ def list_rooms(
                     "total_beds": room.total_beds,
                     "available_beds": room.available_beds,
                     "status": room.status,
+                    **_room_geofence_payload(room),
                 }
                 for room in items
             ],
@@ -269,6 +225,14 @@ def create_room(
     if not building:
         return error_response("Building not found")
 
+    geofence_error = _validate_geofence_fields(
+        payload.latitude,
+        payload.longitude,
+        payload.allowed_radius_meters,
+    )
+    if geofence_error:
+        return error_response(geofence_error)
+
     existing_room = db.query(Room).filter(
         Room.dorm_id == payload.dorm_id, Room.room_number == payload.room_number
     ).first()
@@ -282,6 +246,9 @@ def create_room(
         available_beds=payload.available_beds,
         dominant_preferences=payload.dominant_preferences,
         status=payload.status,
+        latitude=payload.latitude,
+        longitude=payload.longitude,
+        allowed_radius_meters=payload.allowed_radius_meters,
     )
     db.add(room)
     db.flush()
@@ -296,11 +263,12 @@ def create_room(
             "dorm_id": room.dorm_id,
             "total_beds": room.total_beds,
             "available_beds": room.available_beds,
+            **_room_geofence_payload(room),
         },
     )
     db.commit()
     db.refresh(room)
-    return success_response({"room_id": room.room_id})
+    return success_response({"room_id": room.room_id, **_room_geofence_payload(room)})
 
 
 @router.put("/admin/catalog/rooms/{room_id}", response_model=APIResponse[dict])
@@ -319,6 +287,7 @@ def update_room(
         "total_beds": room.total_beds,
         "available_beds": room.available_beds,
         "status": room.status,
+        **_room_geofence_payload(room),
     }
     if payload.room_number is not None:
         if payload.room_number != room.room_number:
@@ -342,6 +311,19 @@ def update_room(
         room.dominant_preferences = payload.dominant_preferences
     if payload.status is not None:
         room.status = payload.status
+    geofence_error = _validate_geofence_fields(
+        payload.latitude,
+        payload.longitude,
+        payload.allowed_radius_meters,
+    )
+    if geofence_error:
+        return error_response(geofence_error)
+    if payload.latitude is not None:
+        room.latitude = payload.latitude
+    if payload.longitude is not None:
+        room.longitude = payload.longitude
+    if payload.allowed_radius_meters is not None:
+        room.allowed_radius_meters = payload.allowed_radius_meters
     room.updated_at = datetime.now(timezone.utc)
 
     write_audit_log(
@@ -357,7 +339,8 @@ def update_room(
             "total_beds": room.total_beds,
             "available_beds": room.available_beds,
             "status": room.status,
+            **_room_geofence_payload(room),
         },
     )
     db.commit()
-    return success_response({"room_id": room.room_id})
+    return success_response({"room_id": room.room_id, **_room_geofence_payload(room)})

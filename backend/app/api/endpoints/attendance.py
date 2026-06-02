@@ -156,33 +156,32 @@ def attendance_check_in(
         return error_response("Attendance already marked for today")
 
     room = db.query(Room).filter(Room.room_id == allocation.room_id).first()
-    building = db.query(Building).filter(Building.dorm_id == room.dorm_id).first() if room else None
-    if not building or building.latitude is None or building.longitude is None:
+    if not room or room.latitude is None or room.longitude is None:
         _record_rejection(
             db,
             student,
             payload,
-            "Dorm geolocation is not configured",
+            "Room geolocation is not configured",
             allocation_id=allocation.allocation_id,
-            dorm_id=building.dorm_id if building else None,
+            dorm_id=room.dorm_id if room else None,
         )
         db.commit()
-        return error_response("Dorm geolocation is not configured")
+        return error_response("Room geolocation is not configured")
 
     distance = haversine_distance_meters(
         float(payload.latitude),
         float(payload.longitude),
-        float(building.latitude),
-        float(building.longitude),
+        float(room.latitude),
+        float(room.longitude),
     )
-    if distance > building.allowed_radius_meters:
+    if distance > room.allowed_radius_meters:
         _record_rejection(
             db,
             student,
             payload,
             "Outside permitted attendance zone",
             allocation_id=allocation.allocation_id,
-            dorm_id=building.dorm_id,
+            dorm_id=room.dorm_id,
             distance_meters=distance,
         )
         db.commit()
@@ -191,7 +190,7 @@ def attendance_check_in(
     record = AttendanceRecord(
         student_id=student.student_id,
         allocation_id=allocation.allocation_id,
-        dorm_id=building.dorm_id,
+        dorm_id=room.dorm_id,
         attendance_at=now_utc,
         attendance_date=attendance_date,
         client_timestamp=payload.timestamp,
