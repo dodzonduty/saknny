@@ -9,6 +9,8 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     role: str
     user_id: int
+    name: str | None = None
+    firebase_uid: str | None = None
 
 
 class FirebaseTokenRequest(BaseModel):

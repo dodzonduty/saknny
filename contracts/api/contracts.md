@@ -53,6 +53,42 @@ Creates a student account.
 ### `POST /auth/login`
 Authenticates student or admin and returns token + role.
 
+Request:
+```json
+{
+  "email": "student@university.edu",
+  "password": "secret"
+}
+```
+
+Student response:
+```json
+{
+  "access_token": "eyJhb...",
+  "token_type": "bearer",
+  "role": "student",
+  "user_id": 15,
+  "name": "Ahmed Mohamed",
+  "firebase_uid": "firebase-uid-string-or-null"
+}
+```
+
+Admin response:
+```json
+{
+  "access_token": "eyJhb...",
+  "token_type": "bearer",
+  "role": "admin",
+  "user_id": 3,
+  "name": "Housing Manager",
+  "firebase_uid": null
+}
+```
+
+Notes:
+- `name` is returned for both roles so clients can greet the user without an extra profile fetch.
+- `firebase_uid` is set for students linked at registration (`FIREBASE_ENABLED=true`); mobile uses it for `/mobile/firebase-token` and FCM setup. It is always `null` for admins.
+
 ### `PUT /students/{student_id}/profile`
 Updates student profile fields (`name`, `home_city`, `preferences`).
 Requires student owns this profile.

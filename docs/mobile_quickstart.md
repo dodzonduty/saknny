@@ -22,7 +22,7 @@ Backend config required:
 ## 2) Core API sequence
 
 1. Login student (backend JWT)
-   - `POST /api/v1/auth/login`
+   - `POST /api/v1/auth/login` (returns `name` and `firebase_uid` for students)
 2. Get Firebase custom token
    - `POST /api/v1/mobile/firebase-token`
 3. Sign into Firebase SDK with custom token

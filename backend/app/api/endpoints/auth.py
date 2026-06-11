@@ -19,7 +19,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "access_token": token,
             "token_type": "bearer",
             "role": "student",
-            "user_id": student.student_id
+            "user_id": student.student_id,
+            "name": student.name,
+            "firebase_uid": student.firebase_uid,
         })
     
     # Check admin
@@ -30,7 +32,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "access_token": token,
             "token_type": "bearer",
             "role": "admin",
-            "user_id": admin.admin_id
+            "user_id": admin.admin_id,
+            "name": admin.name,
+            "firebase_uid": None,
         })
         
     return error_response("Incorrect email or password")

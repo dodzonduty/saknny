@@ -1,6 +1,6 @@
 # Saknny Mobile — UI Handoff & Transition to Production
 
-This document summarizes the frontend UI demo developed for the Saknny Mobile Attendance app, details the missing backend login API payload requirements for your teammate, and outlines the step-by-step path to shift the client app from Demo Mode to Production Mode.
+This document summarizes the frontend UI demo developed for the Saknny Mobile Attendance app, documents the login API contract for production, and outlines the step-by-step path to shift the client app from Demo Mode to Production Mode.
 
 ---
 
@@ -23,40 +23,88 @@ We built a self-contained, fully interactive UI playground that bypasses Firebas
 
 ---
 
-## 2) Missing Backend API Features
+## 2) Login API (Backend — Done)
 
-To move to a functional production app, the backend developer needs to add the following fields to the login response:
+**Endpoint:** `POST /api/v1/auth/login`
 
-### JWT Login Endpoint (`POST /api/v1/auth/login`)
-Currently, the backend login response returns only:
+The backend now returns `name` and `firebase_uid` for students (and `name` for admins). Contract source: `contracts/api/contracts.md`.
+
+### Student login response
 ```json
 {
-  "access_token": "eyJhb...",
-  "token_type": "bearer",
-  "role": "student",
-  "user_id": 15
+  "success": true,
+  "data": {
+    "access_token": "eyJhb...",
+    "token_type": "bearer",
+    "role": "student",
+    "user_id": 15,
+    "name": "Ahmed Mohamed",
+    "firebase_uid": "firebase-uid-string-or-null"
+  },
+  "error": null
 }
 ```
 
-**Required Addition:**
-The mobile app needs **`name`** (to greet the student) and **`firebase_uid`** (to bridge Firebase custom authentication) in the payload:
+### Admin login response
 ```json
 {
-  "access_token": "eyJhb...",
-  "token_type": "bearer",
-  "role": "student",
-  "user_id": 15,
-  "name": "Ahmed Mohamed",
-  "firebase_uid": "firebase-uid-string"
+  "success": true,
+  "data": {
+    "access_token": "eyJhb...",
+    "token_type": "bearer",
+    "role": "admin",
+    "user_id": 3,
+    "name": "Housing Manager",
+    "firebase_uid": null
+  },
+  "error": null
 }
 ```
-*Why this is needed:* Without `firebase_uid` returned directly on login, the student would have to manually type their Firebase UID inside the mobile client to link FCM push tokens and Firebase services. Returning the name allows the app's dashboard to say "Welcome, Ahmed".
+
+**Backend implementation:**
+- `backend/app/schemas/auth.py` — `LoginResponse` includes `name`, `firebase_uid`
+- `backend/app/api/endpoints/auth.py` — student login returns `student.name` and `student.firebase_uid`; admin login returns `admin.name` and `firebase_uid: null`
+
+**Notes:**
+- `firebase_uid` is populated when the student was registered with `FIREBASE_ENABLED=true`. If `null`, mobile must block Firebase/FCM steps and show a clear error (account not linked).
+- No login request body change — still `email` + `password` only.
 
 ---
 
-## 3) Path from Demo to Production (For the Agent/Teammates)
+## 3) Frontend Updates Required
+
+### Mobile app (required for production)
+
+| File | Change |
+|------|--------|
+| `mobile/lib/services/auth_service.dart` | Read `name` and `firebase_uid` from login `data`. Stop requiring a manual `firebaseUid` parameter — use `data['firebase_uid']`. Persist both in session store. |
+| `mobile/lib/services/session_store.dart` | Add optional `user_name` key; save/load on login. |
+| `mobile/lib/screens/login_screen.dart` | Remove the temporary **Firebase UID** text field. Login = email + password only. |
+| Attendance / home UI | Use stored `name` for welcome copy (e.g. "Welcome, Ahmed"). |
+| Post-login flow | If `firebase_uid` is non-null → `POST /mobile/firebase-token` → FCM `POST /devices/register`. If null → show error that the account is not linked to Firebase. |
+
+### Web app (optional — no breaking change)
+
+The Next.js app **does not need changes** to keep working. `LoginForm` only uses `access_token`, `role`, and `user_id`; extra fields are ignored.
+
+**Optional improvements** (web frontend teammate):
+
+| File | Suggested change |
+|------|------------------|
+| `frontend/src/components/auth/LoginForm.tsx` | After successful login, if `response.data.name` is present, `localStorage.setItem("user_name", response.data.name)` to avoid an extra profile round-trip. |
+| `frontend/src/components/dashboard/DashboardNavbar.tsx` | Can rely on cached `user_name` from login first; keep `GET /students/{user_id}` as refresh fallback. |
+| `frontend/src/components/dashboard/WelcomeBanner.tsx` | Optional: personalize title using `user_name` from localStorage (currently generic i18n only). |
+
+Admin web login also receives `name` in the same payload; no Firebase fields apply.
+
+---
+
+## 4) Path from Demo to Production (For the Agent/Teammates)
 
 When you are ready to connect the frontend to the backend and restore real functionality, follow these steps:
+
+### Step 0: Backend login contract (done)
+Login returns `name` and `firebase_uid` as documented in section 2. Deploy/restart backend after pulling latest `main`.
 
 ### Step 1: Revert Main Route & Firebase Configuration
 Restore the original `main.dart` entry point (currently set to load the demo directly):
@@ -71,6 +119,8 @@ Ensure the application starts with the `LoginScreen` instead of `AttendanceDemoS
 ### Step 3: Connect the Real Service Layer
 In `lib/saknny_mobile_app.dart`, wire up the services using the actual endpoints defined in `lib/services/api_client.dart` rather than mock values.
 
+Update `auth_service.dart` to consume login `name` and `firebase_uid` (see section 3).
+
 ### Step 4: Bind Geolocation to Check-in
 Inside `lib/services/attendance_service.dart`, replace the mock coordinates with real-time hardware location fetching using the `geolocator` package:
 ```dart
@@ -82,3 +132,4 @@ Position position = await Geolocator.getCurrentPosition(
 ### Step 5: Enable Biometrics & FCM Registration
 * Uncomment the FCM token registration inside `lib/services/device_service.dart`.
 * Enable the biometric prompt (`local_auth` check) on first successful login and save credentials securely in `flutter_secure_storage` for future automatic login.
+* Use `firebase_uid` from login response (not manual input) before calling `/mobile/firebase-token`.
