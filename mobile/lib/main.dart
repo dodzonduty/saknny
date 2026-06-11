@@ -1,46 +1,28 @@
-import 'package:firebase_core/firebase_core.dart';
+// ══════════════════════════════════════════════════════
+//  DEMO MODE — UI preview without backend / Firebase
+//  To restore original: git checkout lib/main.dart
+// ══════════════════════════════════════════════════════
+
 import 'package:flutter/material.dart';
 
-import 'saknny_mobile_app.dart';
-import 'screens/login_screen.dart';
+import 'screens/attendance_demo_screen.dart';
+import 'theme/app_theme.dart';
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final firebaseStatus = await _initializeFirebaseSafely();
-  final services = SaknnyMobileServices.create();
-  await services.authService.loadPersistedToken();
-
-  runApp(SaknnyMobileApp(services: services, firebaseStatus: firebaseStatus));
+  runApp(const SaknnyDemoApp());
 }
 
-Future<String> _initializeFirebaseSafely() async {
-  try {
-    await Firebase.initializeApp();
-    return 'initialized';
-  } catch (error) {
-    return 'not initialized ($error)';
-  }
-}
-
-class SaknnyMobileApp extends StatelessWidget {
-  const SaknnyMobileApp({
-    super.key,
-    required this.services,
-    required this.firebaseStatus,
-  });
-
-  final SaknnyMobileServices services;
-  final String firebaseStatus;
+class SaknnyDemoApp extends StatelessWidget {
+  const SaknnyDemoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Saknny Mobile',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-        useMaterial3: true,
-      ),
-      home: LoginScreen(services: services, firebaseStatus: firebaseStatus),
+      title: 'Saknny',
+      theme: AppTheme.light(),
+      home: const AttendanceDemoScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
