@@ -1,3 +1,4 @@
+import 'services/announcements_service.dart';
 import 'services/api_client.dart';
 import 'services/attendance_service.dart';
 import 'services/auth_service.dart';
@@ -13,6 +14,7 @@ class SaknnyMobileServices {
     required this.deviceService,
     required this.attendanceService,
     required this.biometricService,
+    required this.announcementsService,
   });
 
   factory SaknnyMobileServices.create() {
@@ -31,6 +33,7 @@ class SaknnyMobileServices {
         sessionStore: sessionStore,
       ),
       biometricService: BiometricService(),
+      announcementsService: AnnouncementsService(apiClient: apiClient),
     );
   }
 
@@ -40,4 +43,5 @@ class SaknnyMobileServices {
   final DeviceService deviceService;
   final AttendanceService attendanceService;
   final BiometricService biometricService;
+  final AnnouncementsService announcementsService;
 }

@@ -4,6 +4,8 @@ import '../saknny_mobile_app.dart';
 import '../l10n/strings.dart';
 import '../theme/app_colors.dart';
 import 'attendance_screen.dart';
+import 'attendance_log_screen.dart';
+import 'announcements_screen.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,6 +18,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -56,17 +60,52 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(s.attendance),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: s.logout,
-            onPressed: _logout,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _currentIndex,
+            children: [
+              AttendanceScreen(services: widget.services),
+              AttendanceLogScreen(services: widget.services),
+              AnnouncementsScreen(services: widget.services),
+            ],
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: isArabic ? null : 16,
+            left: isArabic ? 16 : null,
+            child: IconButton(
+              icon: const Icon(Icons.logout_rounded, color: AppColors.onPrimary),
+              tooltip: s.logout,
+              onPressed: _logout,
+            ),
           ),
         ],
       ),
-      body: AttendanceScreen(services: widget.services),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.accentYellow.withValues(alpha: 0.3),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.fingerprint_rounded),
+            label: s.tabAttendance,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.calendar_month_rounded),
+            label: s.tabMyRecord,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.campaign_rounded),
+            label: s.tabAnnouncements,
+          ),
+        ],
+      ),
     );
   }
 }

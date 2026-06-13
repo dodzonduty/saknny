@@ -100,4 +100,34 @@ class S {
   String get debugCheckedIn => isArabic ? 'تم الحضور' : 'Checked in';
   String get language => isArabic ? 'العربية' : 'English';
   String get distanceLabel => isArabic ? 'المسافة (م)' : 'Distance (m)';
+
+  // ── Bottom Navigation ────────────────────────────────
+  String get tabAttendance => isArabic ? 'الحضور' : 'Attendance';
+  String get tabMyRecord => isArabic ? 'سجلي' : 'My Record';
+  String get tabAnnouncements => isArabic ? 'الإعلانات' : 'Announcements';
+
+  // ── Attendance Log / Calendar ────────────────────────
+  String get myRecord => isArabic ? 'سجل الحضور' : 'Attendance Record';
+  String get daysAttended => isArabic ? 'أيام الحضور' : 'Days Attended';
+  String get daysMissed => isArabic ? 'أيام الغياب' : 'Days Missed';
+  String get attendanceRate => isArabic ? 'نسبة الحضور' : 'Attendance Rate';
+  String get sun => isArabic ? 'أحد' : 'Sun';
+  String get mon => isArabic ? 'إثن' : 'Mon';
+  String get tue => isArabic ? 'ثلا' : 'Tue';
+  String get wed => isArabic ? 'أرب' : 'Wed';
+  String get thu => isArabic ? 'خمي' : 'Thu';
+  String get fri => isArabic ? 'جمع' : 'Fri';
+  String get sat => isArabic ? 'سبت' : 'Sat';
+
+  List<String> get monthNames => isArabic
+      ? ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+      : ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // ── Announcements ────────────────────────────────────
+  String get noAnnouncements => isArabic ? 'لا توجد إعلانات' : 'No announcements';
+  String get noAnnouncementsDesc => isArabic
+      ? 'لا توجد إعلانات حالياً، تحقق لاحقاً'
+      : 'No announcements right now, check back later';
+  String get publishedOn => isArabic ? 'نُشر في' : 'Published on';
+  String get refreshing => isArabic ? 'جارٍ التحديث...' : 'Refreshing...';
 }
