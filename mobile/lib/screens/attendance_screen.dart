@@ -124,9 +124,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     if (_state != AttendanceState.windowOpenNearby) return;
 
     // 1. Biometric Gate
-    final bioSuccess = await widget.services.biometricService.authenticate(
-      s.attendBiometric,
-    );
+    final bioSuccess = await widget.services.biometricService.authenticateForAttendance();
     if (!bioSuccess) {
       _showError(s.biometricFailed);
       return;

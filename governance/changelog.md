@@ -271,3 +271,15 @@ Action: CREATED
 Owner: Role A/B Implementation
 Notes: Implemented Firebase user provisioning with compensation rollback on signup, custom token issuance endpoint, device token registration, server-side Haversine geofence attendance checks, and admin push notification dispatch.
 Date: 2026-05-26
+
+[ARCHITECTURE]
+
+Entity: System
+Name: Biometric Attendance Architecture
+Role: A/B/Mobile
+Path: backend/app/models, backend/app/api/endpoints/attendance.py, mobile/lib/services
+Status: REAL
+Action: IMPLEMENTED
+Owner: AI
+Notes: Implemented OS biometric gates for app unlock and check-in. Migrated mobile sessions to encrypted storage. Refactored attendance endpoint to use Firebase event log for check-in sync, supporting offline-first design and maintaining PG as source of truth.
+Date: 2026-06-13

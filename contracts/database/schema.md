@@ -35,6 +35,8 @@ Role B (API Layer) must read this before writing any queries or repository code.
 | preferences | VARCHAR(200) | NULLABLE | For AI matching agent |
 | firebase_uid | VARCHAR(128) | UNIQUE, NULLABLE | Firebase Auth UID linked to student |
 | fcm_token | VARCHAR(512) | NULLABLE | Latest registered mobile FCM token |
+| trusted_device_id | VARCHAR(120) | NULLABLE | Enforces single active device |
+| trusted_device_registered_at | TIMESTAMPTZ | NULLABLE | |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Audit |
 | updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Audit, auto-updated |
 
@@ -128,6 +130,7 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 | status | VARCHAR(20) | NOT NULL | `SUCCESS` or `REJECTED` |
 | rejection_reason | VARCHAR(200) | NULLABLE | Reason when rejected |
 | device_id | VARCHAR(120) | NULLABLE | Logged for suspicious attempts |
+| biometric_verified | BOOLEAN | NULLABLE | True if OS biometric passed |
 | created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | Audit |
 
 ### Attendance Constraints

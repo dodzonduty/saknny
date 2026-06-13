@@ -7,6 +7,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Boolean,
     CheckConstraint,
     Index,
 )
@@ -57,6 +58,8 @@ class AttendanceRecord(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False)
     rejection_reason: Mapped[str | None] = mapped_column(String(200), nullable=True)
     device_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    firebase_event_id: Mapped[str | None] = mapped_column(String(36), unique=True, nullable=True)
+    biometric_verified: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     FIREBASE_ENABLED: bool = False
     FIREBASE_PROJECT_ID: str | None = None
     FIREBASE_CREDENTIALS_PATH: str | None = None
+    FIRESTORE_EVENTS_COLLECTION: str = "mobile_event_log"
+    ATTENDANCE_SYNC_VIA_FIREBASE: bool = True
 
     # Attendance policy
     UNIVERSITY_TIMEZONE: str = "Africa/Cairo"

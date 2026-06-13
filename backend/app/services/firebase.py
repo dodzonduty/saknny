@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-
+from datetime import datetime, timezone
+import uuid
 from backend.app.core.config import settings
 
 
@@ -98,3 +99,49 @@ def send_push_notification(token: str, title: str, body: str, data: dict | None 
         return messaging.send(message)
     except Exception as exc:
         raise FirebaseServiceError(f"Failed to send FCM notification: {exc}") from exc
+
+
+def _get_firestore_client():
+    _ensure_firebase_initialized()
+    from firebase_admin import firestore
+
+    try:
+        return firestore.client()
+    except Exception as exc:
+        raise FirebaseServiceError(f"Failed to get Firestore client: {exc}") from exc
+
+
+def append_mobile_event(
+    event_type: str,
+    student_id: int,
+    firebase_uid: str | None,
+    device_id: str | None,
+    payload: dict,
+) -> str | None:
+    if not settings.FIREBASE_ENABLED:
+        return None
+
+    db = _get_firestore_client()
+    event_id = str(uuid.uuid4())
+    collection_name = getattr(settings, "FIRESTORE_EVENTS_COLLECTION", "mobile_event_log")
+    
+    doc_ref = db.collection(collection_name).document(event_id)
+    doc_data = {
+        "event_id": event_id,
+        "event_type": event_type,
+        "student_id": student_id,
+        "firebase_uid": firebase_uid,
+        "device_id": device_id,
+        "occurred_at": datetime.now(timezone.utc),
+        "payload": payload,
+        "sync_status": "pending",
+        "synced_at": None,
+        "pg_entity_type": None,
+        "pg_entity_id": None,
+    }
+    
+    try:
+        doc_ref.set(doc_data)
+        return event_id
+    except Exception as exc:
+        raise FirebaseServiceError(f"Failed to append mobile event to Firestore: {exc}") from exc

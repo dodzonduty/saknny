@@ -16,17 +16,19 @@ from backend.app.models.room import Room
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 from backend.app.services.geofence import haversine_distance_meters
+from backend.app.services.firebase import append_mobile_event
 
 router = APIRouter()
 
 
 class AttendanceCheckInRequest(BaseModel):
-    student_id: int
     firebase_uid: str
     latitude: float
+    student_id: int | None = None
     longitude: float
     timestamp: datetime | None = None
     device_id: str | None = None
+    biometric_verified: bool | None = None
 
 
 class DeviceRegisterRequest(BaseModel):
@@ -51,6 +53,25 @@ def _record_rejection(
     distance_meters: float | None = None,
 ) -> None:
     now_utc = datetime.now(timezone.utc)
+    
+    if getattr(settings, "ATTENDANCE_SYNC_VIA_FIREBASE", True) and settings.FIREBASE_ENABLED:
+        event_payload = payload.model_dump()
+        event_payload["status"] = "REJECTED"
+        event_payload["rejection_reason"] = reason
+        event_payload["allocation_id"] = allocation_id
+        event_payload["dorm_id"] = dorm_id
+        event_payload["distance_meters"] = distance_meters
+        if isinstance(event_payload.get("timestamp"), datetime):
+            event_payload["timestamp"] = event_payload["timestamp"].isoformat()
+        append_mobile_event(
+            event_type="attendance_check_in",
+            student_id=current_student.student_id,
+            firebase_uid=current_student.firebase_uid,
+            device_id=payload.device_id,
+            payload=event_payload
+        )
+        return
+
     record = AttendanceRecord(
         student_id=current_student.student_id,
         allocation_id=allocation_id,
@@ -64,6 +85,7 @@ def _record_rejection(
         status="REJECTED",
         rejection_reason=reason,
         device_id=payload.device_id,
+        biometric_verified=payload.biometric_verified,
     )
     db.add(record)
     db.flush()
@@ -85,6 +107,9 @@ def register_device(
     student=Depends(get_current_student),
 ):
     student.fcm_token = payload.fcm_token
+    student.trusted_device_id = payload.device_id
+    student.trusted_device_registered_at = datetime.now(timezone.utc)
+
     write_audit_log(
         db=db,
         actor_role="student",
@@ -94,6 +119,16 @@ def register_device(
         entity_id=student.student_id,
         after_state={"has_fcm_token": True, "device_id": payload.device_id, "platform": payload.platform},
     )
+
+    if settings.FIREBASE_ENABLED:
+        append_mobile_event(
+            event_type="device_registered",
+            student_id=student.student_id,
+            firebase_uid=student.firebase_uid,
+            device_id=payload.device_id,
+            payload=payload.model_dump()
+        )
+
     db.commit()
     return success_response({"registered": True})
 
@@ -107,7 +142,12 @@ def attendance_check_in(
     now_utc = datetime.now(timezone.utc)
     attendance_date = _local_attendance_date(now_utc)
 
-    if payload.student_id != student.student_id:
+    if student.trusted_device_id and payload.device_id != student.trusted_device_id:
+        _record_rejection(db, student, payload, "Trusted device mismatch")
+        db.commit()
+        return error_response("Trusted device mismatch")
+
+    if payload.student_id is not None and payload.student_id != student.student_id:
         _record_rejection(db, student, payload, "Student identity mismatch")
         db.commit()
         return error_response("Student identity mismatch")
@@ -187,6 +227,34 @@ def attendance_check_in(
         db.commit()
         return error_response("Outside permitted attendance zone")
 
+    if getattr(settings, "ATTENDANCE_SYNC_VIA_FIREBASE", True) and settings.FIREBASE_ENABLED:
+        event_payload = payload.model_dump()
+        event_payload["status"] = "SUCCESS"
+        event_payload["allocation_id"] = allocation.allocation_id
+        event_payload["dorm_id"] = room.dorm_id
+        event_payload["distance_meters"] = distance
+        event_payload["attendance_date"] = str(attendance_date)
+        if isinstance(event_payload.get("timestamp"), datetime):
+            event_payload["timestamp"] = event_payload["timestamp"].isoformat()
+            
+        event_id = append_mobile_event(
+            event_type="attendance_check_in",
+            student_id=student.student_id,
+            firebase_uid=student.firebase_uid,
+            device_id=payload.device_id,
+            payload=event_payload
+        )
+        db.commit()
+        return success_response(
+            {
+                "status": "SUCCESS",
+                "event_id": event_id,
+                "distance_meters": round(distance, 2),
+                "attendance_date": str(attendance_date),
+            }
+        )
+
+    # Fallback to direct PG write
     record = AttendanceRecord(
         student_id=student.student_id,
         allocation_id=allocation.allocation_id,
@@ -200,6 +268,7 @@ def attendance_check_in(
         status="SUCCESS",
         rejection_reason=None,
         device_id=payload.device_id,
+        biometric_verified=payload.biometric_verified,
     )
     db.add(record)
     db.flush()

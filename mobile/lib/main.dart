@@ -26,29 +26,28 @@ void main() async {
   // 1. Check for biometric auto-login
   final bioEnrolled = await services.biometricService.isEnrolled();
   if (bioEnrolled) {
-    final success = await services.biometricService.authenticate(
-      'Verify your identity to log in',
-    );
+    final success = await services.biometricService.authenticateForAppUnlock();
     if (success) {
-      final creds = await services.biometricService.getStoredCredentials();
-      if (creds != null) {
-        try {
-          await services.authService.loginWithStoredCredentials(
-            creds['email']!,
-            creds['password']!,
-          );
-          initialScreen = HomeScreen(services: services);
-        } catch (_) {
-          // If auto-login fails, stay on LoginScreen
+      if (await services.authService.tryRestoreSession()) {
+        initialScreen = HomeScreen(services: services);
+      } else {
+        final creds = await services.biometricService.getStoredCredentials();
+        if (creds != null) {
+          try {
+            await services.authService.loginWithStoredCredentials(
+              creds['email']!,
+              creds['password']!,
+            );
+            initialScreen = HomeScreen(services: services);
+          } catch (_) {
+            // If auto-login fails, stay on LoginScreen
+          }
         }
       }
     }
   } else {
     // 2. Check for saved JWT token
-    final token = await services.sessionStore.getAccessToken();
-    if (token != null) {
-      await services.authService.loadPersistedToken();
-      // Assume valid for now, API errors will log them out if expired
+    if (await services.authService.tryRestoreSession()) {
       initialScreen = HomeScreen(services: services);
     }
   }

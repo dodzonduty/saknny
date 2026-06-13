@@ -15,5 +15,11 @@ service cloud.firestore {
                      || (request.time.hours() == 19 && request.time.minutes() <= 15)
                    );
     }
+
+    match /mobile_event_log/{eventId} {
+      // Backend service account uses Admin SDK (bypasses rules)
+      // Deny all client-side access
+      allow read, write: if false;
+    }
   }
 }

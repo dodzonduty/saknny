@@ -38,6 +38,14 @@ class BiometricService {
     }
   }
 
+  Future<bool> authenticateForAttendance() async {
+    return await authenticate('Please authenticate to confirm your attendance');
+  }
+
+  Future<bool> authenticateForAppUnlock() async {
+    return await authenticate('Please authenticate to unlock Saknny');
+  }
+
   Future<bool> isEnrolled() async {
     final email = await _secureStorage.read(key: _emailKey);
     final password = await _secureStorage.read(key: _passwordKey);

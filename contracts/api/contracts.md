@@ -466,7 +466,8 @@ Request:
   "latitude": 30.123456,
   "longitude": 31.123456,
   "timestamp": "2026-05-26T08:42:00Z",
-  "device_id": "android-uuid"
+  "device_id": "android-uuid",
+  "biometric_verified": true
 }
 ```
 Successful response:

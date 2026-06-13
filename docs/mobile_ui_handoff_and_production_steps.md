@@ -133,3 +133,7 @@ Position position = await Geolocator.getCurrentPosition(
 * Uncomment the FCM token registration inside `lib/services/device_service.dart`.
 * Enable the biometric prompt (`local_auth` check) on first successful login and save credentials securely in `flutter_secure_storage` for future automatic login.
 * Use `firebase_uid` from login response (not manual input) before calling `/mobile/firebase-token`.
+
+### Step 6: Backend Background Workers
+* The background worker `scripts/sync_firebase_events.py` must be running to synchronize mobile attendance events from Firestore into PostgreSQL.
+* Keep `scripts/sync_attendance_listener.py` running if legacy behavior is still required.

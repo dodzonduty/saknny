@@ -41,4 +41,16 @@ class AuthService {
     await (_firebaseAuth ?? FirebaseAuth.instance).signOut();
     await _sessionStore.clear();
   }
+
+  Future<bool> tryRestoreSession() async {
+    final auth = _firebaseAuth ?? FirebaseAuth.instance;
+    final currentUser = auth.currentUser;
+    if (currentUser != null) {
+      final token = await _sessionStore.getAccessToken();
+      if (token != null) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

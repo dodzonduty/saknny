@@ -49,6 +49,11 @@ class Student(Base):
     # ── Mobile/Firebase Identity ───────────────────────────────────────
     firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True)
     fcm_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    
+    # ── Biometrics & Devices ──────────────────────────────────────────
+    biometric_unlock_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    trusted_device_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    trusted_device_registered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # ── Audit Timestamps ──────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(

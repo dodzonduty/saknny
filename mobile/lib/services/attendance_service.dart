@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'api_client.dart';
@@ -23,16 +22,16 @@ class AttendanceService {
       throw const ApiException('Missing saved student session');
     }
 
-    final db = FirebaseFirestore.instance;
-    await db.collection('attendance_logs').doc(firebaseUid).set({
+    final payload = {
       'firebase_uid': firebaseUid,
       'latitude': position.latitude,
       'longitude': position.longitude,
-      'timestamp': FieldValue.serverTimestamp(),
+      'timestamp': DateTime.now().toUtc().toIso8601String(),
       'device_id': deviceId,
-    });
+      'biometric_verified': true,
+    };
 
-    return {'status': 'success'};
+    return _apiClient.post('/attendance/check-in', payload);
   }
 
   Future<Map<String, dynamic>> fetchScore() {
