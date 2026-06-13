@@ -86,6 +86,16 @@ def create_custom_token(uid: str) -> str:
         raise FirebaseServiceError(f"Failed to create Firebase custom token: {exc}") from exc
 
 
+def verify_firebase_token(token: str) -> dict:
+    _ensure_firebase_initialized()
+    from firebase_admin import auth
+
+    try:
+        return auth.verify_id_token(token)
+    except Exception as exc:
+        raise FirebaseServiceError(f"Invalid Firebase token: {exc}") from exc
+
+
 def send_push_notification(token: str, title: str, body: str, data: dict | None = None) -> str:
     _ensure_firebase_initialized()
     from firebase_admin import messaging

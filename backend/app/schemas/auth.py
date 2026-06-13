@@ -20,3 +20,6 @@ class FirebaseTokenRequest(BaseModel):
 class FirebaseTokenResponse(BaseModel):
     firebase_custom_token: str
     firebase_uid: str
+
+class FirebaseLoginRequest(BaseModel):
+    token: str

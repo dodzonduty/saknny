@@ -23,7 +23,10 @@ class SaknnyMobileServices {
     return SaknnyMobileServices(
       apiClient: apiClient,
       sessionStore: sessionStore,
-      authService: AuthService(sessionStore: sessionStore),
+      authService: AuthService(
+        apiClient: apiClient,
+        sessionStore: sessionStore,
+      ),
       deviceService: DeviceService(
         apiClient: apiClient,
         sessionStore: sessionStore,

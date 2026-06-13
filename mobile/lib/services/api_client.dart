@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -52,12 +53,22 @@ class ApiClient {
   }
 
   Map<String, dynamic> _decodeEnvelope(http.Response response) {
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    Map<String, dynamic> decoded;
+    try {
+      decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('API JSON Decode Error: ${response.statusCode} on ${response.request?.url}');
+      debugPrint('API Raw Body: ${response.body}');
+      throw ApiException('Invalid JSON response: ${response.statusCode}');
+    }
+
     final success = decoded['success'] == true;
     final data = decoded['data'];
     final error = decoded['error'];
 
-    if (!success) {
+    if (!success || response.statusCode >= 400) {
+      debugPrint('API HTTP Error: ${response.statusCode} on ${response.request?.url}');
+      debugPrint('API Response: ${response.body}');
       throw ApiException(error?.toString() ?? 'Request failed', data: data);
     }
 
