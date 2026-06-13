@@ -1,11 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../l10n/strings.dart';
+import '../saknny_mobile_app.dart';
 import '../theme/app_colors.dart';
-
-// ──────────────────────────────────────────────────────
-//  Attendance states the screen can be in
-// ──────────────────────────────────────────────────────
 
 enum AttendanceState {
   beforeWindow,
@@ -17,30 +16,31 @@ enum AttendanceState {
   authenticating,
 }
 
-// ──────────────────────────────────────────────────────
-//  Main screen
-// ──────────────────────────────────────────────────────
+class AttendanceScreen extends StatefulWidget {
+  const AttendanceScreen({super.key, required this.services});
 
-class AttendanceDemoScreen extends StatefulWidget {
-  const AttendanceDemoScreen({super.key});
+  final SaknnyMobileServices services;
 
   @override
-  State<AttendanceDemoScreen> createState() => _AttendanceDemoScreenState();
+  State<AttendanceScreen> createState() => _AttendanceScreenState();
 }
 
-class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
+class _AttendanceScreenState extends State<AttendanceScreen>
     with TickerProviderStateMixin {
   AttendanceState _state = AttendanceState.beforeWindow;
   bool _isArabic = false;
-  double _mockDistance = 347;
+  String _userName = '';
+
+  // Real data
+  int _scoreDays = 0;
+  bool _checkedInToday = false;
+  String? _errorMessage;
 
   late final AnimationController _pulseCtrl;
   late final AnimationController _scanCtrl;
   late final Animation<double> _pulseAnim;
 
   S get s => S(_isArabic);
-
-  // ── Lifecycle ────────────────────────────────────────
 
   @override
   void initState() {
@@ -62,6 +62,8 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat();
+
+    _loadData();
   }
 
   @override
@@ -71,16 +73,111 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
     super.dispose();
   }
 
-  // ── Actions ──────────────────────────────────────────
+  Future<void> _loadData() async {
+    final name = await widget.services.sessionStore.getUserName();
+    if (mounted) {
+      setState(() {
+        _userName = name ?? '';
+      });
+    }
 
-  void _onAttendPressed() async {
-    if (_state != AttendanceState.windowOpenNearby) return;
-    setState(() => _state = AttendanceState.authenticating);
-    await Future.delayed(const Duration(milliseconds: 1600));
-    if (mounted) setState(() => _state = AttendanceState.checkedIn);
+    try {
+      final scoreData = await widget.services.attendanceService.fetchScore();
+      final stats = scoreData['stats'] as Map<String, dynamic>?;
+      if (mounted) {
+        setState(() {
+          _scoreDays = stats?['successful_checkins'] as int? ?? 0;
+          // check if today is in history or if already checked in
+          // the easiest way is if check_in today is true
+          _checkedInToday = scoreData['checked_in_today'] == true;
+        });
+      }
+    } catch (_) {
+      // Ignore score fetch error
+    }
+
+    _determineState();
   }
 
-  // ── Build ────────────────────────────────────────────
+  void _determineState() {
+    if (_checkedInToday) {
+      setState(() => _state = AttendanceState.checkedIn);
+      return;
+    }
+
+    final now = DateTime.now();
+    // 21:45 to 22:15
+    final start = DateTime(now.year, now.month, now.day, 21, 45);
+    final end = DateTime(now.year, now.month, now.day, 22, 15);
+
+    if (now.isBefore(start)) {
+      setState(() => _state = AttendanceState.beforeWindow);
+    } else if (now.isAfter(end)) {
+      setState(() => _state = AttendanceState.windowClosed);
+    } else {
+      // It's open. Let's assume nearby until they click, backend handles the rest.
+      setState(() => _state = AttendanceState.windowOpenNearby);
+    }
+  }
+
+  Future<void> _onAttendPressed() async {
+    if (_state != AttendanceState.windowOpenNearby) return;
+
+    // 1. Biometric Gate
+    final bioSuccess = await widget.services.biometricService.authenticate(
+      s.attendBiometric,
+    );
+    if (!bioSuccess) {
+      _showError(s.biometricFailed);
+      return;
+    }
+
+    setState(() {
+      _state = AttendanceState.authenticating;
+      _errorMessage = null;
+    });
+
+    try {
+      // 2. Check mock location
+      final position = await Geolocator.getCurrentPosition();
+      if (position.isMocked) {
+        setState(() => _state = AttendanceState.mockLocationDetected);
+        return;
+      }
+
+      // 3. API Call
+      await widget.services.attendanceService.checkInWithCurrentLocation();
+
+      // Success
+      setState(() {
+        _state = AttendanceState.checkedIn;
+        _checkedInToday = true;
+        _scoreDays++;
+      });
+    } on FirebaseException catch (e) {
+      setState(() => _state = AttendanceState.windowOpenNearby);
+      if (e.code == 'permission-denied') {
+        _showError(
+          s.loginError,
+        ); // Generic error or custom "Outside time window"
+      } else {
+        _showError(e.message ?? 'Error connecting to database');
+      }
+    } catch (e) {
+      setState(() => _state = AttendanceState.windowOpenNearby);
+      _showError(e.toString());
+    }
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,14 +187,40 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
         backgroundColor: AppColors.background,
         body: Column(
           children: [
-            _Header(s: s),
+            _Header(s: s, userName: _userName),
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
                 child: Column(
                   children: [
-                    // Status card with animated crossfade
+                    if (_errorMessage != null)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.only(bottom: 24),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorContainer,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.error.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: AppColors.error,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: AppColors.error),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 500),
                       switchInCurve: Curves.easeOutCubic,
@@ -117,10 +240,8 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
                       child: _buildStatusCard(),
                     ),
                     const SizedBox(height: 32),
-                    // Attend button
                     _buildAttendButton(),
                     const SizedBox(height: 28),
-                    // Score card (visible in most states)
                     _buildScoreCard(),
                   ],
                 ),
@@ -128,14 +249,9 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
             ),
           ],
         ),
-        floatingActionButton: _buildDebugFab(),
       ),
     );
   }
-
-  // ══════════════════════════════════════════════════════
-  //  STATUS CARD (changes per state)
-  // ══════════════════════════════════════════════════════
 
   Widget _buildStatusCard() {
     return switch (_state) {
@@ -146,7 +262,7 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
         iconBg: AppColors.accentYellow.withValues(alpha: 0.15),
         title: s.beforeWindowTitle,
         subtitle: s.opensAt,
-        detail: _CountdownChip(label: s.countdown(1, 23), s: s),
+        detail: _CountdownChip(s: s),
       ),
       AttendanceState.windowOpenNearby => _StatusCard(
         key: const ValueKey('nearby'),
@@ -155,7 +271,6 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
         iconBg: AppColors.successContainer,
         title: s.windowOpenTitle,
         subtitle: s.nearbySubtitle,
-        detail: _TimeRemainingChip(label: s.windowCloses(12)),
         titleColor: AppColors.success,
       ),
       AttendanceState.windowOpenFarAway => _StatusCard(
@@ -164,8 +279,7 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
         iconColor: AppColors.warning,
         iconBg: AppColors.warningContainer,
         title: s.farAwayTitle,
-        subtitle: s.farAwayDistance(_mockDistance.round()),
-        detail: _TimeRemainingChip(label: s.windowCloses(12)),
+        subtitle: s.tooFar,
         titleColor: AppColors.warning,
       ),
       AttendanceState.mockLocationDetected => _StatusCard(
@@ -204,10 +318,6 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
     }
     return _CheckedInCard(key: const ValueKey('done'), s: s);
   }
-
-  // ══════════════════════════════════════════════════════
-  //  ATTEND BUTTON
-  // ══════════════════════════════════════════════════════
 
   Widget _buildAttendButton() {
     final isActive = _state == AttendanceState.windowOpenNearby;
@@ -281,10 +391,6 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
     );
   }
 
-  // ══════════════════════════════════════════════════════
-  //  SCORE CARD
-  // ══════════════════════════════════════════════════════
-
   Widget _buildScoreCard() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -295,33 +401,16 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
       ),
       child: Row(
         children: [
-          // Circular progress
-          SizedBox(
-            width: 64,
-            height: 64,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CircularProgressIndicator(
-                  value: 0.87,
-                  strokeWidth: 6,
-                  strokeCap: StrokeCap.round,
-                  backgroundColor: AppColors.surfaceVariant,
-                  valueColor: const AlwaysStoppedAnimation(
-                    AppColors.accentYellow,
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    '87%',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.star_rounded,
+              color: AppColors.primary,
+              size: 32,
             ),
           ),
           const SizedBox(width: 20),
@@ -331,7 +420,7 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
               children: [
                 Text(
                   s.score,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.onSurfaceVariant,
@@ -339,8 +428,8 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '13 / 15 ${s.days}',
-                  style: TextStyle(
+                  '$_scoreDays ${s.days}',
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primary,
@@ -356,8 +445,8 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
-              _state == AttendanceState.checkedIn ? '✓' : '—',
-              style: TextStyle(
+              _checkedInToday ? '✓' : '—',
+              style: const TextStyle(
                 color: AppColors.success,
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
@@ -368,57 +457,16 @@ class _AttendanceDemoScreenState extends State<AttendanceDemoScreen>
       ),
     );
   }
-
-  // ══════════════════════════════════════════════════════
-  //  DEBUG FAB & PANEL
-  // ══════════════════════════════════════════════════════
-
-  Widget _buildDebugFab() {
-    return FloatingActionButton.small(
-      onPressed: _showDebugSheet,
-      backgroundColor: AppColors.primary,
-      child: const Icon(
-        Icons.build_rounded,
-        size: 20,
-        color: AppColors.accentYellow,
-      ),
-    );
-  }
-
-  void _showDebugSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => _DebugSheet(
-        currentState: _state,
-        isArabic: _isArabic,
-        distance: _mockDistance,
-        onStateChanged: (st) {
-          setState(() => _state = st);
-          Navigator.pop(context);
-        },
-        onLanguageChanged: (val) {
-          setState(() => _isArabic = val);
-          Navigator.pop(context);
-        },
-        onDistanceChanged: (val) {
-          setState(() => _mockDistance = val);
-        },
-      ),
-    );
-  }
 }
 
 // ══════════════════════════════════════════════════════════
-//  PRIVATE WIDGETS
+//  PRIVATE WIDGETS (copied from demo)
 // ══════════════════════════════════════════════════════════
 
-// ── Header ─────────────────────────────────────────────
-
 class _Header extends StatelessWidget {
-  const _Header({required this.s});
+  const _Header({required this.s, required this.userName});
   final S s;
+  final String userName;
 
   @override
   Widget build(BuildContext context) {
@@ -438,7 +486,18 @@ class _Header extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // App name
+          if (userName.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                s.welcome(userName),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onPrimary.withValues(alpha: 0.9),
+                ),
+              ),
+            ),
           Text(
             s.appName,
             style: const TextStyle(
@@ -458,7 +517,6 @@ class _Header extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          // Time window pill
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
@@ -488,26 +546,11 @@ class _Header extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 4),
-          // Decorative element
-          Align(
-            alignment: Alignment.centerRight,
-            child: Transform.rotate(
-              angle: -0.15,
-              child: Icon(
-                Icons.apartment_rounded,
-                size: 40,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
 }
-
-// ── Status card ────────────────────────────────────────
 
 class _StatusCard extends StatelessWidget {
   const _StatusCard({
@@ -550,7 +593,6 @@ class _StatusCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Icon circle
           customIcon ??
               Container(
                 width: 72,
@@ -562,7 +604,6 @@ class _StatusCard extends StatelessWidget {
                 child: Icon(icon, color: iconColor, size: 36),
               ),
           const SizedBox(height: 20),
-          // Title
           Text(
             title,
             textAlign: TextAlign.center,
@@ -591,8 +632,6 @@ class _StatusCard extends StatelessWidget {
     );
   }
 }
-
-// ── Checked-in card (special design) ──────────────────
 
 class _CheckedInCard extends StatefulWidget {
   const _CheckedInCard({super.key, required this.s});
@@ -694,7 +733,7 @@ class _CheckedInCardState extends State<_CheckedInCard>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${widget.s.checkedInToday}, ${_todayFormatted()}',
+                  widget.s.checkedInToday,
                   style: const TextStyle(
                     fontSize: 15,
                     color: AppColors.onSurfaceVariant,
@@ -707,51 +746,23 @@ class _CheckedInCardState extends State<_CheckedInCard>
       },
     );
   }
-
-  String _todayFormatted() {
-    final now = DateTime.now();
-    final months = widget.s.isArabic
-        ? [
-            'يناير',
-            'فبراير',
-            'مارس',
-            'أبريل',
-            'مايو',
-            'يونيو',
-            'يوليو',
-            'أغسطس',
-            'سبتمبر',
-            'أكتوبر',
-            'نوفمبر',
-            'ديسمبر',
-          ]
-        : [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December',
-          ];
-    return '${now.day} ${months[now.month - 1]} ${now.year}';
-  }
 }
 
-// ── Countdown chip ────────────────────────────────────
-
 class _CountdownChip extends StatelessWidget {
-  const _CountdownChip({required this.label, required this.s});
-  final String label;
+  const _CountdownChip({required this.s});
   final S s;
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day, 21, 45);
+    final diff = start.difference(now);
+
+    // Display countdown if less than 24 hours
+    final label = diff.isNegative
+        ? s.countdown(0, 0)
+        : s.countdown(diff.inHours, diff.inMinutes.remainder(60));
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
@@ -789,45 +800,6 @@ class _CountdownChip extends StatelessWidget {
   }
 }
 
-// ── Time remaining chip ───────────────────────────────
-
-class _TimeRemainingChip extends StatelessWidget {
-  const _TimeRemainingChip({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.accentYellow.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.timer_outlined,
-            size: 16,
-            color: AppColors.accentYellowHover,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.accentYellowHover,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Scanning fingerprint animation ────────────────────
-
 class _ScanningFingerprint extends StatelessWidget {
   const _ScanningFingerprint({
     required this.controller,
@@ -851,7 +823,6 @@ class _ScanningFingerprint extends StatelessWidget {
             size: size,
             color: color ?? AppColors.accentYellow,
           ),
-          // Scanning line
           AnimatedBuilder(
             animation: controller,
             builder: (context, _) {
@@ -877,275 +848,6 @@ class _ScanningFingerprint extends StatelessWidget {
                 ),
               );
             },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ══════════════════════════════════════════════════════════
-//  DEBUG BOTTOM SHEET
-// ══════════════════════════════════════════════════════════
-
-class _DebugSheet extends StatefulWidget {
-  const _DebugSheet({
-    required this.currentState,
-    required this.isArabic,
-    required this.distance,
-    required this.onStateChanged,
-    required this.onLanguageChanged,
-    required this.onDistanceChanged,
-  });
-
-  final AttendanceState currentState;
-  final bool isArabic;
-  final double distance;
-  final ValueChanged<AttendanceState> onStateChanged;
-  final ValueChanged<bool> onLanguageChanged;
-  final ValueChanged<double> onDistanceChanged;
-
-  @override
-  State<_DebugSheet> createState() => _DebugSheetState();
-}
-
-class _DebugSheetState extends State<_DebugSheet> {
-  late double _dist;
-
-  @override
-  void initState() {
-    super.initState();
-    _dist = widget.distance;
-  }
-
-  S get s => S(widget.isArabic);
-
-  @override
-  Widget build(BuildContext context) {
-    final states = [
-      (
-        AttendanceState.beforeWindow,
-        s.debugBeforeWindow,
-        Icons.schedule_rounded,
-        AppColors.accentYellow,
-      ),
-      (
-        AttendanceState.windowOpenNearby,
-        s.debugNearby,
-        Icons.location_on_rounded,
-        AppColors.successLight,
-      ),
-      (
-        AttendanceState.windowOpenFarAway,
-        s.debugFarAway,
-        Icons.location_off_rounded,
-        AppColors.warning,
-      ),
-      (
-        AttendanceState.mockLocationDetected,
-        s.debugMock,
-        Icons.gpp_bad_rounded,
-        AppColors.error,
-      ),
-      (
-        AttendanceState.windowClosed,
-        s.debugClosed,
-        Icons.nightlight_round,
-        AppColors.disabled,
-      ),
-      (
-        AttendanceState.checkedIn,
-        s.debugCheckedIn,
-        Icons.check_circle_rounded,
-        AppColors.success,
-      ),
-    ];
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.outlineVariant,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Title
-          Row(
-            children: [
-              const Icon(
-                Icons.build_rounded,
-                size: 20,
-                color: AppColors.accentYellow,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                s.debugTitle,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          // State grid
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: states.map((entry) {
-              final (state, label, icon, color) = entry;
-              final isSelected = widget.currentState == state;
-              return GestureDetector(
-                onTap: () => widget.onStateChanged(state),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? color.withValues(alpha: 0.15)
-                        : AppColors.surfaceVariant,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isSelected ? color : Colors.transparent,
-                      width: 2,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(icon, size: 18, color: color),
-                      const SizedBox(width: 6),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: isSelected
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          color: isSelected
-                              ? color
-                              : AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 20),
-          // Distance slider (for far away state)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      s.distanceLabel,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                    ),
-                    Text(
-                      '${_dist.round()}m',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-                Slider(
-                  value: _dist,
-                  min: 50,
-                  max: 2000,
-                  activeColor: AppColors.accentYellow,
-                  inactiveColor: AppColors.outlineVariant,
-                  onChanged: (val) {
-                    setState(() => _dist = val);
-                    widget.onDistanceChanged(val);
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Language toggle
-          GestureDetector(
-            onTap: () => widget.onLanguageChanged(!widget.isArabic),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.language_rounded,
-                        size: 20,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        s.language,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      widget.isArabic ? 'عربي' : 'EN',
-                      style: const TextStyle(
-                        color: AppColors.onPrimary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),

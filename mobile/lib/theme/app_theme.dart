@@ -31,7 +31,9 @@ class AppTheme {
         outline: AppColors.outline,
         outlineVariant: AppColors.outlineVariant,
       ),
-      textTheme: headlineStyle.merge(bodyStyle).apply(
+      textTheme: headlineStyle
+          .merge(bodyStyle)
+          .apply(
             bodyColor: AppColors.onSurface,
             displayColor: AppColors.onBackground,
           ),

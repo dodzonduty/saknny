@@ -9,7 +9,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: LoginScreen(services: services, firebaseStatus: 'test'),
+        home: LoginScreen(services: services),
       ),
     );
 

@@ -57,14 +57,7 @@ class _DebugHomeScreenState extends State<DebugHomeScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _ActionButton(
-            label: 'Get Firebase custom token',
-            busy: _busy,
-            onPressed: () => _run(
-              'firebase_custom_token',
-              widget.services.authService.requestFirebaseCustomToken,
-            ),
-          ),
+
           _ActionButton(
             label: 'Register FCM token',
             busy: _busy,

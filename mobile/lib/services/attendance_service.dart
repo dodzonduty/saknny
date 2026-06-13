@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'api_client.dart';
@@ -15,22 +16,23 @@ class AttendanceService {
 
   Future<Map<String, dynamic>> checkInWithCurrentLocation() async {
     final position = await _getCurrentPosition();
-    final studentId = await _sessionStore.getStudentId();
     final firebaseUid = await _sessionStore.getFirebaseUid();
     final deviceId = await _sessionStore.getOrCreateDeviceId();
 
-    if (studentId == null || firebaseUid == null) {
+    if (firebaseUid == null || firebaseUid.isEmpty) {
       throw const ApiException('Missing saved student session');
     }
 
-    return _apiClient.post('/attendance/check-in', {
-      'student_id': studentId,
+    final db = FirebaseFirestore.instance;
+    await db.collection('attendance_logs').doc(firebaseUid).set({
       'firebase_uid': firebaseUid,
       'latitude': position.latitude,
       'longitude': position.longitude,
-      'timestamp': DateTime.now().toUtc().toIso8601String(),
+      'timestamp': FieldValue.serverTimestamp(),
       'device_id': deviceId,
     });
+
+    return {'status': 'success'};
   }
 
   Future<Map<String, dynamic>> fetchScore() {

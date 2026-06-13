@@ -19,6 +19,21 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Force all subprojects to use the installed NDK version
+subprojects {
+    pluginManager.withPlugin("com.android.library") {
+        extensions.configure<com.android.build.gradle.LibraryExtension> {
+            ndkVersion = "30.0.14904198"
+        }
+    }
+    pluginManager.withPlugin("com.android.application") {
+        extensions.configure<com.android.build.gradle.AppExtension> {
+            ndkVersion = "30.0.14904198"
+        }
+    }
+}
+
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
