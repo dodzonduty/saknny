@@ -8,7 +8,9 @@ import { apiClient } from "@/services/api";
 interface Ticket {
   ticket_id: number;
   student_id: number;
+  student_name?: string;
   room_id: number | null;
+  room_number?: string;
   status: string;
   priority: string;
 }
@@ -145,8 +147,8 @@ export default function AdminMaintenancePage() {
                 <tr>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Ticket ID</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Priority</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Room ID</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student ID</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Room</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">Actions</th>
                 </tr>
               </thead>
@@ -164,10 +166,28 @@ export default function AdminMaintenancePage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 font-semibold text-on-surface-variant">
-                      {ticket.room_id || "Unassigned"}
+                      {ticket.room_id ? (
+                        ticket.room_number ? (
+                          <div>
+                            <div className="font-bold text-on-surface">Room {ticket.room_number}</div>
+                            <div className="text-xs text-on-surface-variant font-medium">ID: {ticket.room_id}</div>
+                          </div>
+                        ) : (
+                          ticket.room_id
+                        )
+                      ) : (
+                        "Unassigned"
+                      )}
                     </td>
                     <td className="px-6 py-4 font-semibold text-on-surface-variant">
-                      {ticket.student_id}
+                      {ticket.student_name ? (
+                        <div>
+                          <div className="font-bold text-on-surface">{ticket.student_name}</div>
+                          <div className="text-xs text-on-surface-variant font-medium">ID: {ticket.student_id}</div>
+                        </div>
+                      ) : (
+                        ticket.student_id
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">

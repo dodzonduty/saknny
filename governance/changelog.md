@@ -283,3 +283,20 @@ Action: IMPLEMENTED
 Owner: AI
 Notes: Implemented OS biometric gates for app unlock and check-in. Migrated mobile sessions to encrypted storage. Refactored attendance endpoint to use Firebase event log for check-in sync, supporting offline-first design and maintaining PG as source of truth.
 Date: 2026-06-13
+
+[API REQUEST]
+
+Entity: API Contract
+Name: Missing Entity Names in Tables
+Role: C -> B
+Path: TBD
+Status: REQUIRED
+Action: REQUESTED
+Owner: API Engineer
+Notes: Frontend tables currently only receive IDs (student_id, room_id, building_id) from several endpoints, which hurts usability. Please add optional name fields (`student_name`, `room_number`, `building_name`) to the following endpoints so they can be displayed alongside the IDs:
+- `GET /admin/allocations`
+- `GET /admin/billing/payments`
+- `GET /admin/maintenance/tickets`
+- `GET /admin/lifecycle/room-change`
+The frontend has been preemptively updated to render these names gracefully if they exist.
+Date: 2026-06-13

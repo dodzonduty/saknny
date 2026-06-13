@@ -7,8 +7,11 @@ import { apiClient } from "@/services/api";
 interface RoomChangeReq {
   request_id: number;
   student_id: number;
+  student_name?: string;
   current_room_id: number | null;
+  current_room_number?: string;
   target_building_id: number | null;
+  target_building_name?: string;
   status: string;
   reason: string;
 }
@@ -92,9 +95,44 @@ export default function AdminRoomChangesPage() {
                 {requests.map((req) => (
                   <tr key={req.request_id} className="hover:bg-surface-container-lowest/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-primary">#{req.request_id}</td>
-                    <td className="px-6 py-4 font-semibold text-on-surface">{req.student_id}</td>
-                    <td className="px-6 py-4 text-on-surface-variant">{req.current_room_id || "N/A"}</td>
-                    <td className="px-6 py-4 text-on-surface-variant">{req.target_building_id || "Any"}</td>
+                    <td className="px-6 py-4 font-semibold text-on-surface">
+                      {req.student_name ? (
+                        <div>
+                          <div className="font-bold text-on-surface">{req.student_name}</div>
+                          <div className="text-xs text-on-surface-variant font-medium">ID: {req.student_id}</div>
+                        </div>
+                      ) : (
+                        req.student_id
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-on-surface-variant">
+                      {req.current_room_id ? (
+                        req.current_room_number ? (
+                          <div>
+                            <div className="font-bold text-on-surface">Room {req.current_room_number}</div>
+                            <div className="text-xs text-on-surface-variant font-medium">ID: {req.current_room_id}</div>
+                          </div>
+                        ) : (
+                          req.current_room_id
+                        )
+                      ) : (
+                        "N/A"
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-on-surface-variant">
+                      {req.target_building_id ? (
+                        req.target_building_name ? (
+                          <div>
+                            <div className="font-bold text-on-surface">{req.target_building_name}</div>
+                            <div className="text-xs text-on-surface-variant font-medium">ID: {req.target_building_id}</div>
+                          </div>
+                        ) : (
+                          req.target_building_id
+                        )
+                      ) : (
+                        "Any"
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm text-on-surface-variant max-w-[200px] truncate">{req.reason}</td>
                     <td className="px-6 py-4">
                       <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded ${

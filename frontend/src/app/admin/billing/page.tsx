@@ -8,6 +8,7 @@ import { apiClient } from "@/services/api";
 interface Payment {
   payment_id: number;
   student_id: number;
+  student_name?: string;
   status: string;
   payment_type: string;
   amount: number;
@@ -101,7 +102,7 @@ export default function AdminBillingPage() {
               <thead className="bg-surface-container-lowest border-b-2 border-outline-variant/30">
                 <tr>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">ID</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student ID</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Type</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Amount</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Status</th>
@@ -113,7 +114,16 @@ export default function AdminBillingPage() {
                 {payments.map(payment => (
                   <tr key={payment.payment_id} className="hover:bg-surface-container-lowest/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-primary">#{payment.payment_id}</td>
-                    <td className="px-6 py-4 font-semibold text-on-surface">{payment.student_id}</td>
+                    <td className="px-6 py-4 font-semibold text-on-surface">
+                      {payment.student_name ? (
+                        <div>
+                          <div className="font-bold text-on-surface">{payment.student_name}</div>
+                          <div className="text-xs text-on-surface-variant font-medium">ID: {payment.student_id}</div>
+                        </div>
+                      ) : (
+                        payment.student_id
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm text-on-surface-variant capitalize">{payment.payment_type}</td>
                     <td className="px-6 py-4 font-bold text-on-surface">${payment.amount.toFixed(2)}</td>
                     <td className="px-6 py-4">

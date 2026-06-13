@@ -8,7 +8,9 @@ import { apiClient } from "@/services/api";
 interface Allocation {
   allocation_id: number;
   student_id: number;
+  student_name?: string;
   room_id: number;
+  room_number?: string;
   plan: string;
   status: string;
   assigned_at: string;
@@ -173,8 +175,8 @@ export default function AdminAllocationsPage() {
               <thead className="bg-surface-container-lowest border-b-2 border-outline-variant/30">
                 <tr>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">ID</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student ID</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Room ID</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Room</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Plan</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Status</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Assigned At</th>
@@ -184,8 +186,26 @@ export default function AdminAllocationsPage() {
                 {allocations.map(alloc => (
                   <tr key={alloc.allocation_id} className="hover:bg-surface-container-lowest/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-primary">#{alloc.allocation_id}</td>
-                    <td className="px-6 py-4 font-semibold text-on-surface">{alloc.student_id}</td>
-                    <td className="px-6 py-4 font-semibold text-on-surface">{alloc.room_id}</td>
+                    <td className="px-6 py-4 font-semibold text-on-surface">
+                      {alloc.student_name ? (
+                        <div>
+                          <div className="font-bold text-on-surface">{alloc.student_name}</div>
+                          <div className="text-xs text-on-surface-variant font-medium">ID: {alloc.student_id}</div>
+                        </div>
+                      ) : (
+                        alloc.student_id
+                      )}
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-on-surface">
+                      {alloc.room_number ? (
+                        <div>
+                          <div className="font-bold text-on-surface">Room {alloc.room_number}</div>
+                          <div className="text-xs text-on-surface-variant font-medium">ID: {alloc.room_id}</div>
+                        </div>
+                      ) : (
+                        alloc.room_id
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm text-on-surface-variant capitalize">{alloc.plan.replace('_', ' ')}</td>
                     <td className="px-6 py-4">
                       <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded ${
