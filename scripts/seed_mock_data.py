@@ -68,7 +68,10 @@ def run_seed():
     db.commit()
 
     print("Creating Students and Firebase Accounts...")
+    global_faculty_id_counter = 1000
+    
     def create_students(names, gender, rooms):
+        nonlocal global_faculty_id_counter
         students = []
         room_idx = 0
         bed_count = 0
@@ -82,8 +85,9 @@ def run_seed():
                 print(f"Failed to create {email} in Firebase: {e}")
                 continue
             
+            global_faculty_id_counter += 1
             student = Student(
-                faculty_id=random.randint(1000, 9999),
+                faculty_id=str(global_faculty_id_counter),
                 name=name,
                 email=email,
                 gender=gender,
