@@ -24,6 +24,7 @@ export default function AdminDashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<AnalyticsData | null>(null);
+  const [missedAttendance, setMissedAttendance] = useState<number | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -41,9 +42,16 @@ export default function AdminDashboardPage() {
 
   const fetchAnalytics = async () => {
     setLoading(true);
-    const res = await apiClient<AnalyticsData>("/admin/analytics/dashboard");
-    if (res.success && res.data) {
-      setData(res.data);
+    const [analyticsRes, reportRes] = await Promise.all([
+      apiClient<AnalyticsData>("/admin/analytics/dashboard"),
+      apiClient<{ summary: { missed: number } }>("/admin/reports/daily")
+    ]);
+
+    if (analyticsRes.success && analyticsRes.data) {
+      setData(analyticsRes.data);
+    }
+    if (reportRes.success && reportRes.data) {
+      setMissedAttendance(reportRes.data.summary.missed);
     }
     setLoading(false);
   };
@@ -78,7 +86,7 @@ export default function AdminDashboardPage() {
       ) : (
         <>
           {/* Top Level Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
             <div className="bg-white rounded-2xl p-6 shadow-soft border border-transparent">
               <div className="flex items-center gap-3 mb-2 text-on-surface-variant">
                 <span className="material-symbols-outlined text-emerald-500">pie_chart</span>
@@ -118,6 +126,19 @@ export default function AdminDashboardPage() {
               </div>
               <div className="mt-2 text-xs font-medium text-outline-variant">Requires attention</div>
             </div>
+
+            <Link href="/admin/reports" className="block">
+              <div className="bg-white rounded-2xl p-6 shadow-soft border border-transparent border-t-4 border-t-error hover:shadow-md transition-all cursor-pointer h-full">
+                <div className="flex items-center gap-3 mb-2 text-on-surface-variant">
+                  <span className="material-symbols-outlined text-error">event_busy</span>
+                  <span className="text-sm font-bold uppercase tracking-widest truncate">Missed Attendance</span>
+                </div>
+                <div className="text-4xl font-black text-on-surface">
+                  {missedAttendance !== null ? missedAttendance : '-'}
+                </div>
+                <div className="mt-2 text-xs font-medium text-outline-variant">Today's absent students</div>
+              </div>
+            </Link>
           </div>
 
           {/* Breakdown Sections */}

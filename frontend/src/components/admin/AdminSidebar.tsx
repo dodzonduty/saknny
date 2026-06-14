@@ -24,6 +24,7 @@ export const AdminSidebar: React.FC = () => {
     { href: "/admin/announcements", icon: "campaign", label: t("dashboard.adminSidebarAnnouncements") },
     { href: "/admin/audit", icon: "history", label: t("dashboard.adminSidebarAudit") },
     { href: "/admin/surveys", icon: "poll", label: t("dashboard.adminSidebarSurveys") },
+    { href: "/admin/reports", icon: "bar_chart", label: "Reports" },
   ];
 
   return (

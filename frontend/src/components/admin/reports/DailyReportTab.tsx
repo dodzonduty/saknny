@@ -1,0 +1,218 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { apiClient } from "@/services/api";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+
+interface DailyReportResponse {
+  summary: {
+    total_allocated: number;
+    attended: number;
+    missed: number;
+  };
+  building_rates: {
+    dorm_id: number;
+    building_name: string;
+    total: number;
+    attended: number;
+    rate: number;
+  }[];
+  room_rates: {
+    room_id: number;
+    room_number: string;
+    dorm_id: number;
+    total: number;
+    attended: number;
+    rate: number;
+  }[];
+  students: {
+    student_id: number;
+    student_name: string;
+    room_id: number;
+    room_number: string;
+    dorm_id: number;
+    building_name: string;
+    status: "attended" | "missed";
+  }[];
+}
+
+export const DailyReportTab: React.FC = () => {
+  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [data, setData] = useState<DailyReportResponse | null>(null);
+
+  useEffect(() => {
+    fetchReport();
+  }, [date]);
+
+  const fetchReport = async () => {
+    setLoading(true);
+    const res = await apiClient<DailyReportResponse>(`/admin/reports/daily?target_date=${date}`);
+    if (res.success && res.data) {
+      setData(res.data);
+    } else {
+      setData(null);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Filters */}
+      <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant flex items-end gap-4">
+        <div>
+          <label className="block text-sm font-semibold text-on-surface mb-1">Target Date</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+          />
+        </div>
+      </div>
+
+      {loading && (
+        <div className="py-12 flex justify-center">
+          <span className="material-symbols-outlined text-primary text-4xl animate-spin">refresh</span>
+        </div>
+      )}
+
+      {!loading && data && (
+        <>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
+              <div className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-2">
+                Total Allocated
+              </div>
+              <div className="text-4xl font-black text-on-surface">
+                {data.summary.total_allocated}
+              </div>
+            </div>
+            <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-success">
+              <div className="text-sm font-bold uppercase tracking-widest text-success mb-2">
+                Attended
+              </div>
+              <div className="text-4xl font-black text-on-surface">
+                {data.summary.attended}
+              </div>
+            </div>
+            <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-error">
+              <div className="text-sm font-bold uppercase tracking-widest text-error mb-2">
+                Missed
+              </div>
+              <div className="text-4xl font-black text-on-surface">
+                {data.summary.missed}
+              </div>
+            </div>
+          </div>
+
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant h-[400px] flex flex-col">
+              <h3 className="text-lg font-bold text-on-surface mb-6">Building Attendance Rates (%)</h3>
+              {data.building_rates.length === 0 ? (
+                <div className="flex-grow flex items-center justify-center text-outline-variant">No building data</div>
+              ) : (
+                <div className="flex-grow min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data.building_rates} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="building_name" tick={{ fontSize: 12 }} interval={0} angle={-45} textAnchor="end" />
+                      <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
+                      <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                      <Bar dataKey="rate" name="Attendance Rate %" radius={[4, 4, 0, 0]}>
+                        {data.building_rates.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.rate >= 80 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant h-[400px] flex flex-col">
+              <h3 className="text-lg font-bold text-on-surface mb-6">Room Attendance Rates (%)</h3>
+              {data.room_rates.length === 0 ? (
+                <div className="flex-grow flex items-center justify-center text-outline-variant">No room data</div>
+              ) : (
+                <div className="flex-grow min-h-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data.room_rates.slice(0, 20)} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="room_number" tick={{ fontSize: 12 }} interval={0} angle={-45} textAnchor="end" />
+                      <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
+                      <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
+                      <Bar dataKey="rate" name="Attendance Rate %" radius={[4, 4, 0, 0]}>
+                        {data.room_rates.slice(0, 20).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.rate >= 80 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Data Table */}
+          <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+            <div className="p-6 border-b border-outline-variant">
+              <h3 className="text-lg font-bold text-on-surface">Student Attendance Log</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Student</th>
+                    <th className="px-6 py-4 font-semibold">ID</th>
+                    <th className="px-6 py-4 font-semibold">Building</th>
+                    <th className="px-6 py-4 font-semibold">Room</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant text-sm">
+                  {data.students.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-outline-variant">
+                        No students found.
+                      </td>
+                    </tr>
+                  ) : (
+                    data.students.map((student, i) => (
+                      <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
+                        <td className="px-6 py-4 font-medium text-on-surface">{student.student_name}</td>
+                        <td className="px-6 py-4 text-on-surface-variant">{student.student_id}</td>
+                        <td className="px-6 py-4 text-on-surface-variant">{student.building_name}</td>
+                        <td className="px-6 py-4 text-on-surface-variant">{student.room_number}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 text-xs font-bold rounded-full uppercase tracking-widest ${
+                            student.status === "attended" 
+                              ? "bg-success-container text-success" 
+                              : "bg-error-container text-error"
+                          }`}>
+                            {student.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
