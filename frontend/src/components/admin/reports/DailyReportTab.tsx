@@ -15,6 +15,7 @@ import {
 
 interface DailyReportResponse {
   summary: {
+    target_date: string;
     total_allocated: number;
     attended: number;
     missed: number;
@@ -42,21 +43,21 @@ interface DailyReportResponse {
     dorm_id: number;
     building_name: string;
     status: "attended" | "missed";
+    attendance_time?: string | null;
   }[];
 }
 
 export const DailyReportTab: React.FC = () => {
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState<boolean>(false);
   const [data, setData] = useState<DailyReportResponse | null>(null);
 
   useEffect(() => {
     fetchReport();
-  }, [date]);
+  }, []);
 
   const fetchReport = async () => {
     setLoading(true);
-    const res = await apiClient<DailyReportResponse>(`/admin/reports/daily?target_date=${date}`);
+    const res = await apiClient<DailyReportResponse>(`/admin/reports/daily`);
     if (res.success && res.data) {
       setData(res.data);
     } else {
@@ -67,19 +68,6 @@ export const DailyReportTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant flex items-end gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-on-surface mb-1">Target Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-          />
-        </div>
-      </div>
-
       {loading && (
         <div className="py-12 flex justify-center">
           <span className="material-symbols-outlined text-primary text-4xl animate-spin">refresh</span>
@@ -88,11 +76,20 @@ export const DailyReportTab: React.FC = () => {
 
       {!loading && data && (
         <>
+          <div className="flex items-center justify-between bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
+            <div>
+              <h2 className="text-xl font-bold text-on-surface">Daily Report</h2>
+              <p className="text-on-surface-variant text-sm mt-1">
+                Displaying attendance for: <span className="font-semibold text-primary">{data.summary.target_date}</span>
+              </p>
+            </div>
+          </div>
+
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
               <div className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-2">
-                Total Allocated
+                Total Students
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.total_allocated}
@@ -168,7 +165,7 @@ export const DailyReportTab: React.FC = () => {
           {/* Data Table */}
           <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
             <div className="p-6 border-b border-outline-variant">
-              <h3 className="text-lg font-bold text-on-surface">Student Attendance Log</h3>
+              <h3 className="text-lg font-bold text-on-surface">Student Attendance Report</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">
@@ -178,13 +175,14 @@ export const DailyReportTab: React.FC = () => {
                     <th className="px-6 py-4 font-semibold">ID</th>
                     <th className="px-6 py-4 font-semibold">Building</th>
                     <th className="px-6 py-4 font-semibold">Room</th>
+                    <th className="px-6 py-4 font-semibold">Time</th>
                     <th className="px-6 py-4 font-semibold">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant text-sm">
                   {data.students.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-outline-variant">
+                      <td colSpan={6} className="px-6 py-8 text-center text-outline-variant">
                         No students found.
                       </td>
                     </tr>
@@ -195,6 +193,11 @@ export const DailyReportTab: React.FC = () => {
                         <td className="px-6 py-4 text-on-surface-variant">{student.student_id}</td>
                         <td className="px-6 py-4 text-on-surface-variant">{student.building_name}</td>
                         <td className="px-6 py-4 text-on-surface-variant">{student.room_number}</td>
+                        <td className="px-6 py-4 text-on-surface-variant font-mono">
+                          {student.attendance_time 
+                            ? new Date(student.attendance_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase()
+                            : "____"}
+                        </td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 text-xs font-bold rounded-full uppercase tracking-widest ${
                             student.status === "attended" 

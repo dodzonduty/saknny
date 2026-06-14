@@ -18,12 +18,15 @@ router = APIRouter()
 
 @router.get("/daily", response_model=APIResponse[dict])
 def get_daily_report(
-    target_date: Optional[date] = None,
     db: Session = Depends(get_db),
     _=Depends(get_current_admin),
 ):
-    if target_date is None:
-        target_date = datetime.now().date()
+    now = datetime.now()
+    # If the time is before 22:15, today's attendance window hasn't closed yet. Show yesterday's report.
+    if now.hour < 22 or (now.hour == 22 and now.minute <= 15):
+        target_date = (now - timedelta(days=1)).date()
+    else:
+        target_date = now.date()
         
     # Get all active allocations with assigned_at <= target_date
     # We join with Student, Room, Building to get the necessary metadata
@@ -49,7 +52,7 @@ def get_daily_report(
         .all()
     )
     
-    attended_student_ids = {record.student_id for record in attendances}
+    attended_student_records = {record.student_id: record for record in attendances}
     
     # Aggregate logic
     total_allocated = len(allocations)
@@ -60,7 +63,8 @@ def get_daily_report(
     students_data = []
     
     for alloc, student, room, building in allocations:
-        is_attended = student.student_id in attended_student_ids
+        attendance_record = attended_student_records.get(student.student_id)
+        is_attended = attendance_record is not None
         if is_attended:
             total_attended += 1
             
@@ -97,7 +101,8 @@ def get_daily_report(
             "room_number": room.room_number,
             "dorm_id": building.dorm_id,
             "building_name": building.building_name,
-            "status": "attended" if is_attended else "missed"
+            "status": "attended" if is_attended else "missed",
+            "attendance_time": attendance_record.attendance_at.isoformat() if is_attended else None
         })
         
     # Calculate rates
@@ -108,6 +113,7 @@ def get_daily_report(
         stat["rate"] = round((stat["attended"] / stat["total"]) * 100, 2) if stat["total"] > 0 else 0.0
         
     summary = {
+        "target_date": target_date.isoformat(),
         "total_allocated": total_allocated,
         "attended": total_attended,
         "missed": total_allocated - total_attended
