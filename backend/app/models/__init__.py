@@ -26,3 +26,9 @@ from backend.app.models.audit_log import AuditLog  # noqa: F401
 from backend.app.models.survey import Survey, SurveyDispatch  # noqa: F401
 from backend.app.models.attendance_record import AttendanceRecord  # noqa: F401
 from backend.app.models.firebase_sync import FirebaseSyncCursor, FirebaseSyncFailure  # noqa: F401
+from backend.app.models.compatibility import (  # noqa: F401
+    CompatibilityQuestionnaire,
+    CompatibilityResponse,
+    ClusteringSession,
+    ClusteringResult,
+)

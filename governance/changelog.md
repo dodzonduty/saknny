@@ -300,3 +300,15 @@ Notes: Frontend tables currently only receive IDs (student_id, room_id, building
 - `GET /admin/lifecycle/room-change`
 The frontend has been preemptively updated to render these names gracefully if they exist.
 Date: 2026-06-13
+
+[FEATURE]
+
+Entity: API & Schema
+Name: Roommate Auto-Assignment via Clustering
+Role: A/B
+Path: backend/app/models/compatibility.py, backend/app/api/endpoints/compatibility.py, backend/app/services/ai/clustering.py
+Status: REAL
+Action: IMPLEMENTED
+Owner: AI (Role A/B)
+Notes: Added database schema, API endpoints, and a service stub for KMeans clustering to automatically assign students to rooms based on a compatibility questionnaire. Produced a hand-off document (docs/role_d_clustering_handoff.md) for Role D to implement the clustering algorithm.
+Date: 2026-06-14

@@ -16,6 +16,7 @@ from backend.app.api.endpoints import (
     residency,
     students,
     surveys,
+    compatibility,
 )
 
 api_router = APIRouter()
@@ -36,3 +37,4 @@ api_router.include_router(communications.router, tags=["communications"])
 api_router.include_router(insights.router, tags=["insights"])
 api_router.include_router(surveys.router, tags=["surveys"])
 api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
+api_router.include_router(compatibility.router, tags=["compatibility"])
