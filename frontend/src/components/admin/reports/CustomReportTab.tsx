@@ -266,7 +266,19 @@ export const CustomReportTab: React.FC = () => {
               <p className="text-sm text-on-surface-variant mb-4">Overall attendance across all filtered students day-by-day.</p>
               <div className="flex-grow min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.daily_trend}>
+                  <AreaChart 
+                    data={data.daily_trend}
+                    onClick={(e) => {
+                      if (e && e.activePayload && e.activePayload.length > 0) {
+                        const clickedDay = e.activePayload[0].payload.day;
+                        if (clickedDay) {
+                          setStartDate(clickedDay);
+                          setEndDate(clickedDay);
+                        }
+                      }
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
                     <defs>
                       <linearGradient id="colorAttended" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
