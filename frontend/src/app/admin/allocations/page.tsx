@@ -16,6 +16,18 @@ interface Allocation {
   assigned_at: string;
 }
 
+interface Room {
+  room_id: number;
+  dorm_id: number;
+  room_number: string;
+  available_beds: number;
+}
+
+interface Building {
+  dorm_id: number;
+  building_name: string;
+}
+
 export default function AdminAllocationsPage() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -23,12 +35,35 @@ export default function AdminAllocationsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [buildings, setBuildings] = useState<Building[]>([]);
   
   const [showManualForm, setShowManualForm] = useState(false);
   const [appId, setAppId] = useState("");
+  const [selectedAppDormId, setSelectedAppDormId] = useState<number | null>(null);
   const [roomId, setRoomId] = useState("");
   const [plan, setPlan] = useState("full_board");
   const [actionLoading, setActionLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAppDetails = async () => {
+      if (!appId || isNaN(parseInt(appId))) {
+        setSelectedAppDormId(null);
+        return;
+      }
+      const res = await apiClient<any>(`/admin/applications/${appId}`);
+      if (res.success && res.data && res.data.application) {
+        setSelectedAppDormId(res.data.application.preferred_dorm_id);
+      } else {
+        setSelectedAppDormId(null);
+      }
+    };
+    
+    const timeoutId = setTimeout(() => {
+      fetchAppDetails();
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [appId]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -41,8 +76,17 @@ export default function AdminAllocationsPage() {
       router.push("/dashboard");
     } else {
       fetchAllocations();
+      fetchCatalog();
     }
   }, [router]);
+
+  const fetchCatalog = async () => {
+    const rRes = await apiClient<{items: Room[]}>("/catalog/rooms");
+    if (rRes.success && rRes.data) setRooms(rRes.data.items);
+    
+    const bRes = await apiClient<{items: Building[]}>("/catalog/buildings");
+    if (bRes.success && bRes.data) setBuildings(bRes.data.items);
+  };
 
   const fetchAllocations = async () => {
     setLoading(true);
@@ -126,15 +170,29 @@ export default function AdminAllocationsPage() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Room ID</label>
-              <input 
-                type="number" 
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Room</label>
+              <select 
                 required
                 value={roomId}
                 onChange={e => setRoomId(e.target.value)}
                 className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                placeholder="e.g. 101"
-              />
+              >
+                <option value="">Select a room...</option>
+                {rooms
+                  .filter(room => {
+                    if (room.available_beds <= 0) return false;
+                    if (selectedAppDormId !== null && room.dorm_id !== selectedAppDormId) return false;
+                    return true;
+                  })
+                  .map(room => {
+                    const b = buildings.find(b => b.dorm_id === room.dorm_id);
+                    return (
+                      <option key={room.room_id} value={room.room_id}>
+                        {b ? b.building_name : "Building"} - Room {room.room_number} ({room.available_beds} beds available)
+                      </option>
+                    );
+                })}
+              </select>
             </div>
             <div className="flex-1 min-w-[200px]">
               <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Meal Plan</label>
@@ -200,7 +258,6 @@ export default function AdminAllocationsPage() {
                       {alloc.room_number ? (
                         <div>
                           <div className="font-bold text-on-surface">Room {alloc.room_number}</div>
-                          <div className="text-xs text-on-surface-variant font-medium">ID: {alloc.room_id}</div>
                         </div>
                       ) : (
                         alloc.room_id

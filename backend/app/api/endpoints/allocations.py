@@ -102,7 +102,7 @@ def admin_allocations(db: Session = Depends(get_db), _=Depends(get_current_admin
                     "student_name": row.Student.name if row.Student else None,
                     "room_id": row.Allocation.room_id,
                     "room_number": row.Room.room_number if row.Room else None,
-                    "building_name": row.Building.name if row.Building else None,
+                    "building_name": row.Building.building_name if row.Building else None,
                     "plan": row.Allocation.plan,
                     "status": row.Allocation.status,
                     "assigned_at": row.Allocation.assigned_at,
