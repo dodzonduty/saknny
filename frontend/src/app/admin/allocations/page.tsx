@@ -11,6 +11,7 @@ interface Allocation {
   student_name?: string;
   room_id: number;
   room_number?: string;
+  building_name?: string;
   plan: string;
   status: string;
   assigned_at: string;
@@ -257,7 +258,9 @@ export default function AdminAllocationsPage() {
                     <td className="px-6 py-4 font-semibold text-on-surface">
                       {alloc.room_number ? (
                         <div>
-                          <div className="font-bold text-on-surface">Room {alloc.room_number}</div>
+                          <div className="font-bold text-on-surface">
+                            {alloc.building_name ? `${alloc.building_name} - ` : ""}Room {alloc.room_number}
+                          </div>
                         </div>
                       ) : (
                         alloc.room_id

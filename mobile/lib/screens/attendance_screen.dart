@@ -646,8 +646,8 @@ class _Header extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/logo.png', height: 32),
-              const SizedBox(width: 12),
+              Image.asset('assets/images/logo.png', height: 50),
+              const SizedBox(width: 22),
               Text(
                 s.appName,
                 style: const TextStyle(
