@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../l10n/strings.dart';
 import '../saknny_mobile_app.dart';
+import '../services/attendance_service.dart';
 import '../theme/app_colors.dart';
 
 enum AttendanceState {
@@ -31,10 +32,21 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   bool _isArabic = false;
   String _userName = '';
 
+  // Demo mode
+  bool _demoModeEnabled = false;
+  AttendanceState _mockState = AttendanceState.beforeWindow;
+  double _mockDistance = 347.0;
+
   // Real data
   int _scoreDays = 0;
   bool _checkedInToday = false;
   String? _errorMessage;
+
+  // Room geofence data (from allocation)
+  double? _roomLat;
+  double? _roomLng;
+  int? _allowedRadius;
+  double? _distanceMeters;
 
   late final AnimationController _pulseCtrl;
   late final AnimationController _scanCtrl;
@@ -87,8 +99,6 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       if (mounted) {
         setState(() {
           _scoreDays = stats?['successful_checkins'] as int? ?? 0;
-          // check if today is in history or if already checked in
-          // the easiest way is if check_in today is true
           _checkedInToday = scoreData['checked_in_today'] == true;
         });
       }
@@ -96,10 +106,36 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       // Ignore score fetch error
     }
 
-    _determineState();
+    // Fetch allocation with room geofence data
+    try {
+      final allocation = await widget.services.attendanceService.fetchAllocation();
+      if (allocation != null && mounted) {
+        setState(() {
+          _roomLat = (allocation['latitude'] as num?)?.toDouble();
+          _roomLng = (allocation['longitude'] as num?)?.toDouble();
+          _allowedRadius = allocation['allowed_radius_meters'] as int?;
+        });
+      }
+    } catch (_) {
+      // Ignore allocation fetch error — geofence check will be skipped
+    }
+
+    await _determineState();
   }
 
-  void _determineState() {
+  Future<void> _determineState() async {
+    if (_demoModeEnabled) {
+      if (mounted) {
+        setState(() {
+          _state = _mockState;
+          if (_state == AttendanceState.windowOpenFarAway) {
+            _distanceMeters = _mockDistance;
+          }
+        });
+      }
+      return;
+    }
+
     if (_checkedInToday) {
       setState(() => _state = AttendanceState.checkedIn);
       return;
@@ -112,10 +148,47 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
     if (now.isBefore(start)) {
       setState(() => _state = AttendanceState.beforeWindow);
-    } else if (now.isAfter(end)) {
+      return;
+    }
+    if (now.isAfter(end)) {
       setState(() => _state = AttendanceState.windowClosed);
+      return;
+    }
+
+    // Window is open — check proximity to allocated room
+    if (_roomLat != null && _roomLng != null && _allowedRadius != null) {
+      try {
+        final position = await widget.services.attendanceService.getCurrentPosition();
+
+        // Check for mock location
+        if (position.isMocked) {
+          setState(() => _state = AttendanceState.mockLocationDetected);
+          return;
+        }
+
+        final distance = AttendanceService.haversineMeters(
+          position.latitude, position.longitude,
+          _roomLat!, _roomLng!,
+        );
+
+        if (mounted) {
+          setState(() {
+            _distanceMeters = distance;
+            if (distance <= _allowedRadius!) {
+              _state = AttendanceState.windowOpenNearby;
+            } else {
+              _state = AttendanceState.windowOpenFarAway;
+            }
+          });
+        }
+      } catch (_) {
+        // GPS unavailable — default to far away for safety
+        if (mounted) {
+          setState(() => _state = AttendanceState.windowOpenFarAway);
+        }
+      }
     } else {
-      // It's open. Let's assume nearby until they click, backend handles the rest.
+      // No geofence data available — allow attempt, backend will validate
       setState(() => _state = AttendanceState.windowOpenNearby);
     }
   }
@@ -136,15 +209,26 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     });
 
     try {
+      Position? positionOverride;
+      if (_demoModeEnabled) {
+        if (_mockState == AttendanceState.windowOpenNearby) {
+           positionOverride = Position(latitude: _roomLat ?? 0.0, longitude: _roomLng ?? 0.0, timestamp: DateTime.now(), accuracy: 10, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, isMocked: false, altitudeAccuracy: 0, headingAccuracy: 0);
+        } else if (_mockState == AttendanceState.windowOpenFarAway) {
+           positionOverride = Position(latitude: (_roomLat ?? 0.0) + 0.05, longitude: (_roomLng ?? 0.0) + 0.05, timestamp: DateTime.now(), accuracy: 10, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, isMocked: false, altitudeAccuracy: 0, headingAccuracy: 0);
+        } else if (_mockState == AttendanceState.mockLocationDetected) {
+           positionOverride = Position(latitude: _roomLat ?? 0.0, longitude: _roomLng ?? 0.0, timestamp: DateTime.now(), accuracy: 10, altitude: 0, heading: 0, speed: 0, speedAccuracy: 0, isMocked: true, altitudeAccuracy: 0, headingAccuracy: 0);
+        }
+      }
+
       // 2. Check mock location
-      final position = await Geolocator.getCurrentPosition();
+      final position = positionOverride ?? await Geolocator.getCurrentPosition();
       if (position.isMocked) {
         setState(() => _state = AttendanceState.mockLocationDetected);
         return;
       }
 
       // 3. API Call
-      await widget.services.attendanceService.checkInWithCurrentLocation();
+      await widget.services.attendanceService.checkInWithCurrentLocation(positionOverride: positionOverride);
 
       // Success
       setState(() {
@@ -247,6 +331,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             ),
           ],
         ),
+        floatingActionButton: _buildDebugFab(),
       ),
     );
   }
@@ -277,7 +362,9 @@ class _AttendanceScreenState extends State<AttendanceScreen>
         iconColor: AppColors.warning,
         iconBg: AppColors.warningContainer,
         title: s.farAwayTitle,
-        subtitle: s.tooFar,
+        subtitle: _distanceMeters != null
+            ? s.farAwayDistance(_distanceMeters!.round())
+            : s.tooFar,
         titleColor: AppColors.warning,
       ),
       AttendanceState.mockLocationDetected => _StatusCard(
@@ -452,6 +539,47 @@ class _AttendanceScreenState extends State<AttendanceScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDebugFab() {
+    return FloatingActionButton.small(
+      onPressed: _showDebugSheet,
+      backgroundColor: AppColors.primary,
+      child: const Icon(
+        Icons.build_rounded,
+        size: 20,
+        color: AppColors.accentYellow,
+      ),
+    );
+  }
+
+  void _showDebugSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _DebugSheet(
+        currentState: _state,
+        isArabic: _isArabic,
+        distance: _mockDistance,
+        onStateChanged: (st) {
+          setState(() {
+            _demoModeEnabled = true;
+            _mockState = st;
+          });
+          _determineState();
+          Navigator.pop(context);
+        },
+        onLanguageChanged: (val) {
+          setState(() => _isArabic = val);
+          Navigator.pop(context);
+        },
+        onDistanceChanged: (val) {
+          setState(() => _mockDistance = val);
+          _determineState();
+        },
       ),
     );
   }
@@ -846,6 +974,271 @@ class _ScanningFingerprint extends StatelessWidget {
                 ),
               );
             },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DebugSheet extends StatefulWidget {
+  const _DebugSheet({
+    required this.currentState,
+    required this.isArabic,
+    required this.distance,
+    required this.onStateChanged,
+    required this.onLanguageChanged,
+    required this.onDistanceChanged,
+  });
+
+  final AttendanceState currentState;
+  final bool isArabic;
+  final double distance;
+  final ValueChanged<AttendanceState> onStateChanged;
+  final ValueChanged<bool> onLanguageChanged;
+  final ValueChanged<double> onDistanceChanged;
+
+  @override
+  State<_DebugSheet> createState() => _DebugSheetState();
+}
+
+class _DebugSheetState extends State<_DebugSheet> {
+  late double _dist;
+
+  @override
+  void initState() {
+    super.initState();
+    _dist = widget.distance;
+  }
+
+  S get s => S(widget.isArabic);
+
+  @override
+  Widget build(BuildContext context) {
+    final states = [
+      (
+        AttendanceState.beforeWindow,
+        s.debugBeforeWindow,
+        Icons.schedule_rounded,
+        AppColors.accentYellow,
+      ),
+      (
+        AttendanceState.windowOpenNearby,
+        s.debugNearby,
+        Icons.location_on_rounded,
+        AppColors.successLight,
+      ),
+      (
+        AttendanceState.windowOpenFarAway,
+        s.debugFarAway,
+        Icons.location_off_rounded,
+        AppColors.warning,
+      ),
+      (
+        AttendanceState.mockLocationDetected,
+        s.debugMock,
+        Icons.gpp_bad_rounded,
+        AppColors.error,
+      ),
+      (
+        AttendanceState.windowClosed,
+        s.debugClosed,
+        Icons.nightlight_round,
+        AppColors.disabled,
+      ),
+      (
+        AttendanceState.checkedIn,
+        s.debugCheckedIn,
+        Icons.check_circle_rounded,
+        AppColors.success,
+      ),
+    ];
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.outlineVariant,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Title
+          Row(
+            children: [
+              const Icon(
+                Icons.build_rounded,
+                size: 20,
+                color: AppColors.accentYellow,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                s.debugTitle,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          // State grid
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: states.map((entry) {
+              final (state, label, icon, color) = entry;
+              final isSelected = widget.currentState == state;
+              return GestureDetector(
+                onTap: () => widget.onStateChanged(state),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? color.withValues(alpha: 0.15)
+                        : AppColors.surfaceVariant,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isSelected ? color : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 18, color: color),
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? color
+                              : AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          // Distance slider
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      s.distanceLabel,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                    Text(
+                      '${_dist.round()}m',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                Slider(
+                  value: _dist,
+                  min: 50,
+                  max: 2000,
+                  activeColor: AppColors.accentYellow,
+                  inactiveColor: AppColors.outlineVariant,
+                  onChanged: (val) {
+                    setState(() => _dist = val);
+                    widget.onDistanceChanged(val);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Language toggle
+          GestureDetector(
+            onTap: () => widget.onLanguageChanged(!widget.isArabic),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceVariant,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.language_rounded,
+                        size: 20,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        s.language,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      widget.isArabic ? 'عربي' : 'EN',
+                      style: const TextStyle(
+                        color: AppColors.onPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

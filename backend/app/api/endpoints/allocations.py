@@ -117,20 +117,29 @@ def admin_allocations(db: Session = Depends(get_db), _=Depends(get_current_admin
 @router.get("/allocations/me", response_model=APIResponse[dict])
 def my_allocation(db: Session = Depends(get_db), student=Depends(get_current_student)):
     row = (
-        db.query(Allocation)
+        db.query(Allocation, Room, Building)
+        .outerjoin(Room, Allocation.room_id == Room.room_id)
+        .outerjoin(Building, Room.dorm_id == Building.dorm_id)
         .filter(Allocation.student_id == student.student_id, Allocation.status == "assigned")
         .first()
     )
     if not row:
         return success_response({"allocation": None})
+    alloc, room, building = row.Allocation, row.Room, row.Building
     return success_response(
         {
             "allocation": {
-                "allocation_id": row.allocation_id,
-                "room_id": row.room_id,
-                "plan": row.plan,
-                "status": row.status,
-                "assigned_at": row.assigned_at,
+                "allocation_id": alloc.allocation_id,
+                "room_id": alloc.room_id,
+                "plan": alloc.plan,
+                "status": alloc.status,
+                "assigned_at": alloc.assigned_at,
+                "room_number": room.room_number if room else None,
+                "building_name": building.building_name if building else None,
+                "dorm_id": room.dorm_id if room else None,
+                "latitude": float(room.latitude) if room and room.latitude is not None else None,
+                "longitude": float(room.longitude) if room and room.longitude is not None else None,
+                "allowed_radius_meters": room.allowed_radius_meters if room else None,
             }
         }
     )

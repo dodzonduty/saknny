@@ -1,5 +1,8 @@
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
+import logging
+
+logger = logging.getLogger("attendance_api")
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -53,6 +56,7 @@ def _record_rejection(
     distance_meters: float | None = None,
 ) -> None:
     now_utc = datetime.now(timezone.utc)
+    logger.warning(f"[ATTENDANCE API] Recording REJECTION for Student {current_student.student_id}. Reason: {reason}")
     
     if getattr(settings, "ATTENDANCE_SYNC_VIA_FIREBASE", True) and settings.FIREBASE_ENABLED:
         event_payload = payload.model_dump()
@@ -141,6 +145,11 @@ def attendance_check_in(
 ):
     now_utc = datetime.now(timezone.utc)
     attendance_date = _local_attendance_date(now_utc)
+    
+    logger.info(f"========== [ATTENDANCE FLOW START] ==========")
+    logger.info(f"[ATTENDANCE API] Incoming check-in request from Student {student.student_id}")
+    logger.info(f"[ATTENDANCE API] Device ID: {payload.device_id}, Firebase UID: {payload.firebase_uid}")
+    logger.info(f"[ATTENDANCE API] Client Coordinates: Lat {payload.latitude}, Lng {payload.longitude}")
 
     if student.trusted_device_id and payload.device_id != student.trusted_device_id:
         _record_rejection(db, student, payload, "Trusted device mismatch")
@@ -214,6 +223,9 @@ def attendance_check_in(
         float(room.latitude),
         float(room.longitude),
     )
+    logger.info(f"[ATTENDANCE API] Haversine Distance Calculated: {distance:.2f} meters.")
+    logger.info(f"[ATTENDANCE API] Room {room.room_id} Geofence Radius: {room.allowed_radius_meters} meters.")
+
     if distance > room.allowed_radius_meters:
         _record_rejection(
             db,
@@ -228,6 +240,7 @@ def attendance_check_in(
         return error_response("Outside permitted attendance zone")
 
     if getattr(settings, "ATTENDANCE_SYNC_VIA_FIREBASE", True) and settings.FIREBASE_ENABLED:
+        logger.info(f"[ATTENDANCE API] Validation SUCCESS. Delegating write to Firebase (Async PSQL Sync).")
         event_payload = payload.model_dump()
         event_payload["status"] = "SUCCESS"
         event_payload["allocation_id"] = allocation.allocation_id

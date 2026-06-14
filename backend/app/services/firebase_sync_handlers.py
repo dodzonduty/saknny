@@ -27,6 +27,17 @@ def handle_attendance_check_in(event_doc: dict, db: Session) -> tuple[str, int |
     dt_str = payload.get("attendance_date")
     attendance_date = datetime.strptime(dt_str, "%Y-%m-%d").date() if dt_str else datetime.now().date()
     
+    # Async Race Condition Check: Prevent UniqueViolation if multiple SUCCESS events were queued
+    if payload.get("status") == "SUCCESS":
+        existing_success = db.query(AttendanceRecord).filter(
+            AttendanceRecord.student_id == student_id,
+            AttendanceRecord.attendance_date == attendance_date,
+            AttendanceRecord.status == "SUCCESS"
+        ).first()
+        if existing_success:
+            logger.warning(f"Student {student_id} already has a SUCCESS record for {attendance_date}. Ignoring duplicate event {event_id}.")
+            return "attendance_record", existing_success.attendance_id
+    
     record = AttendanceRecord(
         student_id=student_id,
         allocation_id=payload.get("allocation_id"),

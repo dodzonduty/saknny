@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:geolocator/geolocator.dart';
 
 import 'api_client.dart';
@@ -13,8 +15,31 @@ class AttendanceService {
   final ApiClient _apiClient;
   final SessionStore _sessionStore;
 
-  Future<Map<String, dynamic>> checkInWithCurrentLocation() async {
-    final position = await _getCurrentPosition();
+  /// Fetch the student's current allocation including room geofence data.
+  Future<Map<String, dynamic>?> fetchAllocation() async {
+    final data = await _apiClient.get('/allocations/me');
+    return data['allocation'] as Map<String, dynamic>?;
+  }
+
+  /// Client-side Haversine distance in meters between two lat/lng pairs.
+  static double haversineMeters(
+    double lat1, double lon1,
+    double lat2, double lon2,
+  ) {
+    const earthRadius = 6371000.0; // meters
+    final dLat = _toRadians(lat2 - lat1);
+    final dLon = _toRadians(lon2 - lon1);
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_toRadians(lat1)) * cos(_toRadians(lat2)) *
+        sin(dLon / 2) * sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return earthRadius * c;
+  }
+
+  static double _toRadians(double deg) => deg * pi / 180;
+
+  Future<Map<String, dynamic>> checkInWithCurrentLocation({Position? positionOverride}) async {
+    final position = positionOverride ?? await _getCurrentPosition();
     final firebaseUid = await _sessionStore.getFirebaseUid();
     final deviceId = await _sessionStore.getOrCreateDeviceId();
 
@@ -37,6 +62,10 @@ class AttendanceService {
   Future<Map<String, dynamic>> fetchScore() {
     return _apiClient.get('/attendance/score');
   }
+
+  /// Get the current GPS position with permission handling.
+  /// Exposed publicly so the attendance screen can use it for proximity checks.
+  Future<Position> getCurrentPosition() => _getCurrentPosition();
 
   Future<Position> _getCurrentPosition() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -61,3 +90,4 @@ class AttendanceService {
     );
   }
 }
+
