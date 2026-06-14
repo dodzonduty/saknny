@@ -312,3 +312,15 @@ Action: IMPLEMENTED
 Owner: AI (Role A/B)
 Notes: Added database schema, API endpoints, and a service stub for KMeans clustering to automatically assign students to rooms based on a compatibility questionnaire. Produced a hand-off document (docs/role_d_clustering_handoff.md) for Role D to implement the clustering algorithm.
 Date: 2026-06-14
+
+[FEATURE]
+
+Entity: API
+Name: Admin Analytical Reports
+Role: B
+Path: backend/app/api/endpoints/reports.py, backend/app/api/router.py
+Status: REAL
+Action: CREATED
+Owner: Backend Engineer
+Notes: Added `GET /admin/reports/daily` and `GET /admin/reports/custom` to provide admin dashboard analytics for attendance. The APIs calculate total assigned vs attended rates dynamically with support for filtering by date range, student, building, and room.
+Date: 2026-06-14
