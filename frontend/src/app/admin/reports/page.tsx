@@ -41,7 +41,7 @@ export default function AdminReportsPage() {
             activeTab === "custom" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
           }`}
         >
-          Custom Report
+          Student Log Report
           {activeTab === "custom" && (
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />
           )}

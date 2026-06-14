@@ -132,8 +132,7 @@ def get_custom_report(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     student_id: Optional[int] = None,
-    dorm_id: Optional[int] = None,
-    room_id: Optional[int] = None,
+    student_name: Optional[str] = None,
     db: Session = Depends(get_db),
     _=Depends(get_current_admin),
 ):
@@ -145,37 +144,22 @@ def get_custom_report(
         
     # Query Active Allocations matching filters
     query = (
-        db.query(Allocation)
+        db.query(Allocation, Student, Room, Building)
+        .join(Student, Allocation.student_id == Student.student_id)
         .join(Room, Allocation.room_id == Room.room_id)
+        .join(Building, Room.dorm_id == Building.dorm_id)
         .filter(Allocation.status == "assigned")
     )
     
     if student_id:
         query = query.filter(Allocation.student_id == student_id)
-    if room_id:
-        query = query.filter(Allocation.room_id == room_id)
-    if dorm_id:
-        query = query.filter(Room.dorm_id == dorm_id)
+    if student_name:
+        query = query.filter(Student.name.ilike(f"%{student_name}%"))
         
     allocations = query.all()
     
-    # Calculate Total Possible Attendances
-    total_possible = 0
-    student_total_days = 0
-    student_alloc_student_id = None
+    valid_student_ids = [a[1].student_id for a in allocations]
     
-    for alloc in allocations:
-        alloc_start = alloc.assigned_at.date()
-        valid_start = max(start_date, alloc_start)
-        valid_end = min(end_date, today)
-        
-        if valid_start <= valid_end:
-            days = (valid_end - valid_start).days + 1
-            total_possible += days
-            if student_id and alloc.student_id == student_id:
-                student_total_days += days
-                student_alloc_student_id = alloc.student_id
-
     # Query Successful Attendances in date range
     att_query = (
         db.query(AttendanceRecord)
@@ -185,38 +169,53 @@ def get_custom_report(
             AttendanceRecord.status == "SUCCESS"
         )
     )
-    
-    if student_id:
-        att_query = att_query.filter(AttendanceRecord.student_id == student_id)
+    if valid_student_ids:
+        att_query = att_query.filter(AttendanceRecord.student_id.in_(valid_student_ids))
     else:
-        # Filter attendance by the students who match the dorm/room criteria
-        valid_student_ids = [a.student_id for a in allocations]
-        if valid_student_ids:
-            att_query = att_query.filter(AttendanceRecord.student_id.in_(valid_student_ids))
-        else:
-            # No valid students, so no attendance
-            att_query = att_query.filter(AttendanceRecord.student_id == -1)
+        att_query = att_query.filter(AttendanceRecord.student_id == -1)
+        
+    attendances = att_query.all()
+    
+    # Create lookup dict: (student_id, date) -> record
+    att_dict = {(r.student_id, r.attendance_date): r for r in attendances}
+    
+    period_days = (end_date - start_date).days + 1
+    total_attended = 0
+    
+    logs = []
+    
+    # Generate log for every day in the period
+    for alloc, student, room, building in allocations:
+        for i in range(period_days):
+            current_day = start_date + timedelta(days=i)
             
-    total_attended = att_query.count()
-    total_missed = max(0, total_possible - total_attended)
+            # Check if attended
+            record = att_dict.get((student.student_id, current_day))
+            is_attended = record is not None
+            if is_attended:
+                total_attended += 1
+                
+            logs.append({
+                "student_name": student.name,
+                "student_id": student.student_id,
+                "building_name": building.building_name,
+                "room_number": room.room_number,
+                "day": current_day.isoformat(),
+                "attendance_time": record.attendance_at.isoformat() if is_attended else None,
+                "status": "attended" if is_attended else "missed"
+            })
+            
+    total_possible = period_days * len(allocations)
+    total_missed = total_possible - total_attended
     
     response_data = {
         "summary": {
-            "total_possible": total_possible,
+            "period_days": period_days,
             "attended": total_attended,
             "missed": total_missed,
             "overall_rate": round((total_attended / total_possible) * 100, 2) if total_possible > 0 else 0.0
-        }
+        },
+        "logs": logs
     }
     
-    if student_id:
-        student = db.query(Student).filter(Student.student_id == student_id).first()
-        response_data["student_breakdown"] = {
-            "student_id": student_id,
-            "name": student.name if student else None,
-            "attended_days": total_attended,
-            "missed_days": max(0, student_total_days - total_attended),
-            "total_days": student_total_days
-        }
-        
     return success_response(response_data)
