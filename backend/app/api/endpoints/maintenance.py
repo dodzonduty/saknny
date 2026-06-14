@@ -7,7 +7,10 @@ from sqlalchemy.orm import Session
 from backend.app.api.deps import get_current_admin, get_current_student
 from backend.app.core.database import get_db
 from backend.app.models.allocation import Allocation
+from backend.app.models.building import Building
 from backend.app.models.maintenance_ticket import MaintenanceTicket
+from backend.app.models.room import Room
+from backend.app.models.student import Student
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 
@@ -95,7 +98,10 @@ def admin_tickets(
     _=Depends(get_current_admin),
 ):
     rows = (
-        db.query(MaintenanceTicket)
+        db.query(MaintenanceTicket, Student, Room, Building)
+        .outerjoin(Student, MaintenanceTicket.student_id == Student.student_id)
+        .outerjoin(Room, MaintenanceTicket.room_id == Room.room_id)
+        .outerjoin(Building, Room.dorm_id == Building.dorm_id)
         .filter(MaintenanceTicket.status == status)
         .order_by(MaintenanceTicket.created_at.asc())
         .all()
@@ -104,11 +110,14 @@ def admin_tickets(
         {
             "items": [
                 {
-                    "ticket_id": row.ticket_id,
-                    "student_id": row.student_id,
-                    "room_id": row.room_id,
-                    "status": row.status,
-                    "priority": row.priority,
+                    "ticket_id": row.MaintenanceTicket.ticket_id,
+                    "student_id": row.MaintenanceTicket.student_id,
+                    "student_name": row.Student.name if row.Student else None,
+                    "room_id": row.MaintenanceTicket.room_id,
+                    "room_number": row.Room.room_number if row.Room else None,
+                    "building_name": row.Building.name if row.Building else None,
+                    "status": row.MaintenanceTicket.status,
+                    "priority": row.MaintenanceTicket.priority,
                 }
                 for row in rows
             ],

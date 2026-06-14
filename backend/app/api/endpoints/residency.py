@@ -7,8 +7,11 @@ from sqlalchemy.orm import Session
 from backend.app.api.deps import get_current_admin, get_current_student
 from backend.app.core.database import get_db
 from backend.app.models.allocation import Allocation
+from backend.app.models.building import Building
 from backend.app.models.checkin import CheckIn
+from backend.app.models.room import Room
 from backend.app.models.room_change_request import RoomChangeRequest
+from backend.app.models.student import Student
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 
@@ -121,7 +124,10 @@ def request_room_change(
 @router.get("/admin/lifecycle/room-change", response_model=APIResponse[dict])
 def admin_room_change_list(db: Session = Depends(get_db), _=Depends(get_current_admin)):
     rows = (
-        db.query(RoomChangeRequest)
+        db.query(RoomChangeRequest, Student, Room, Building)
+        .outerjoin(Student, RoomChangeRequest.student_id == Student.student_id)
+        .outerjoin(Room, RoomChangeRequest.current_room_id == Room.room_id)
+        .outerjoin(Building, RoomChangeRequest.target_building_id == Building.dorm_id)
         .order_by(RoomChangeRequest.created_at.desc())
         .all()
     )
@@ -129,12 +135,15 @@ def admin_room_change_list(db: Session = Depends(get_db), _=Depends(get_current_
         {
             "items": [
                 {
-                    "request_id": row.request_id,
-                    "student_id": row.student_id,
-                    "current_room_id": row.current_room_id,
-                    "target_building_id": row.target_building_id,
-                    "status": row.status,
-                    "reason": row.reason,
+                    "request_id": row.RoomChangeRequest.request_id,
+                    "student_id": row.RoomChangeRequest.student_id,
+                    "student_name": row.Student.name if row.Student else None,
+                    "current_room_id": row.RoomChangeRequest.current_room_id,
+                    "room_number": row.Room.room_number if row.Room else None,
+                    "target_building_id": row.RoomChangeRequest.target_building_id,
+                    "building_name": row.Building.name if row.Building else None,
+                    "status": row.RoomChangeRequest.status,
+                    "reason": row.RoomChangeRequest.reason,
                 }
                 for row in rows
             ],

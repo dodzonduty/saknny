@@ -85,17 +85,27 @@ def assign_bed(
 
 @router.get("/admin/allocations", response_model=APIResponse[dict])
 def admin_allocations(db: Session = Depends(get_db), _=Depends(get_current_admin)):
-    items = db.query(Allocation).order_by(Allocation.assigned_at.desc()).all()
+    items = (
+        db.query(Allocation, Student, Room, Building)
+        .outerjoin(Student, Allocation.student_id == Student.student_id)
+        .outerjoin(Room, Allocation.room_id == Room.room_id)
+        .outerjoin(Building, Room.dorm_id == Building.dorm_id)
+        .order_by(Allocation.assigned_at.desc())
+        .all()
+    )
     return success_response(
         {
             "items": [
                 {
-                    "allocation_id": row.allocation_id,
-                    "student_id": row.student_id,
-                    "room_id": row.room_id,
-                    "plan": row.plan,
-                    "status": row.status,
-                    "assigned_at": row.assigned_at,
+                    "allocation_id": row.Allocation.allocation_id,
+                    "student_id": row.Allocation.student_id,
+                    "student_name": row.Student.name if row.Student else None,
+                    "room_id": row.Allocation.room_id,
+                    "room_number": row.Room.room_number if row.Room else None,
+                    "building_name": row.Building.name if row.Building else None,
+                    "plan": row.Allocation.plan,
+                    "status": row.Allocation.status,
+                    "assigned_at": row.Allocation.assigned_at,
                 }
                 for row in items
             ],
