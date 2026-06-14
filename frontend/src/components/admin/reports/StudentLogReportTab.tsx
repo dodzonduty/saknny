@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/services/api";
+import { useSearchParams } from "next/navigation";
 import {
   PieChart,
   Pie,
@@ -30,10 +31,12 @@ interface StudentLogReportResponse {
 }
 
 export const StudentLogReportTab: React.FC = () => {
+  const searchParams = useSearchParams();
+  
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
-  const [studentName, setStudentName] = useState<string>("");
+  const [studentId, setStudentId] = useState<string>(searchParams.get("studentId") || "");
+  const [studentName, setStudentName] = useState<string>(searchParams.get("studentName") || "");
   
   const [searchResults, setSearchResults] = useState<{student_id: number; name: string}[]>([]);
   const [showDropdown, setShowDropdown] = useState<boolean>(false);

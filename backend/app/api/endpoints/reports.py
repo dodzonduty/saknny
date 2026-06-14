@@ -1,9 +1,10 @@
 from datetime import date, datetime, timedelta
-from typing import Optional
+from typing import Optional, List, Dict, Any
+from collections import defaultdict
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, and_
 
 from backend.app.api.deps import get_current_admin
 from backend.app.core.database import get_db
@@ -229,6 +230,110 @@ def get_student_log_report(
             "overall_rate": round((total_attended / total_possible) * 100, 2) if total_possible > 0 else 0.0
         },
         "logs": logs
+    }
+    
+    return success_response(response_data)
+
+@router.get("/custom", response_model=APIResponse[dict])
+def get_custom_report(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    student_ids: List[int] = Query(None),
+    student_names: List[str] = Query(None),
+    building_names: List[str] = Query(None),
+    room_numbers: List[str] = Query(None),
+    db: Session = Depends(get_db),
+    _=Depends(get_current_admin),
+):
+    today = datetime.now().date()
+    if end_date is None:
+        end_date = today
+    if start_date is None:
+        start_date = today.replace(day=1)
+        
+    period_days = (end_date - start_date).days + 1
+    
+    # Query Active Allocations matching filters
+    query = (
+        db.query(Allocation, Student, Room, Building)
+        .join(Student, Allocation.student_id == Student.student_id)
+        .join(Room, Allocation.room_id == Room.room_id)
+        .join(Building, Room.dorm_id == Building.dorm_id)
+        .filter(Allocation.status == "assigned")
+    )
+    
+    if student_ids:
+        query = query.filter(Allocation.student_id.in_(student_ids))
+    if student_names:
+        query = query.filter(Student.name.in_(student_names))
+    if building_names:
+        query = query.filter(Building.building_name.in_(building_names))
+    if room_numbers:
+        query = query.filter(Room.room_number.in_(room_numbers))
+        
+    allocations = query.all()
+    
+    if not allocations:
+        return success_response({
+            "summary": {"total_students": 0, "overall_rate": 0},
+            "students": [],
+            "daily_trend": []
+        })
+        
+    valid_student_ids = [a[1].student_id for a in allocations]
+    
+    # Query Successful Attendances
+    attendances = (
+        db.query(AttendanceRecord)
+        .filter(
+            AttendanceRecord.attendance_date >= start_date,
+            AttendanceRecord.attendance_date <= end_date,
+            AttendanceRecord.status == "SUCCESS",
+            AttendanceRecord.student_id.in_(valid_student_ids)
+        )
+        .all()
+    )
+    
+    # Group attendances
+    att_by_student = defaultdict(int)
+    att_by_day = defaultdict(int)
+    
+    for r in attendances:
+        att_by_student[r.student_id] += 1
+        att_by_day[r.attendance_date] += 1
+        
+    total_attended = len(attendances)
+    total_possible = period_days * len(allocations)
+    
+    students_data = []
+    for alloc, student, room, building in allocations:
+        att = att_by_student[student.student_id]
+        students_data.append({
+            "student_id": student.student_id,
+            "student_name": student.name,
+            "building_name": building.building_name,
+            "room_number": room.room_number,
+            "attended_days": att,
+            "missed_days": period_days - att
+        })
+        
+    daily_trend = []
+    for i in range(period_days):
+        current_day = start_date + timedelta(days=i)
+        att = att_by_day[current_day]
+        daily_trend.append({
+            "day": current_day.isoformat(),
+            "attended": att,
+            "missed": len(allocations) - att
+        })
+        
+    response_data = {
+        "summary": {
+            "total_students": len(allocations),
+            "overall_rate": round((total_attended / total_possible) * 100, 2) if total_possible > 0 else 0.0
+        },
+        "students": students_data,
+        "daily_trend": daily_trend
     }
     
     return success_response(response_data)

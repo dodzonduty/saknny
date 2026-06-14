@@ -1,11 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { DailyReportTab } from "@/components/admin/reports/DailyReportTab";
 import { StudentLogReportTab } from "@/components/admin/reports/StudentLogReportTab";
+import { CustomReportTab } from "@/components/admin/reports/CustomReportTab";
 
 export default function AdminReportsPage() {
-  const [activeTab, setActiveTab] = useState<"daily" | "student-log">("daily");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  const [activeTab, setActiveTab] = useState<"daily" | "student-log" | "custom">("daily");
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "daily" || tab === "student-log" || tab === "custom") {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab: "daily" | "student-log" | "custom") => {
+    setActiveTab(tab);
+    router.push(`/admin/reports?tab=${tab}`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -23,10 +40,10 @@ export default function AdminReportsPage() {
         </span>
       </div>
 
-      <div className="flex border-b border-outline-variant">
+      <div className="flex border-b border-outline-variant overflow-x-auto">
         <button
-          onClick={() => setActiveTab("daily")}
-          className={`px-6 py-3 font-semibold text-sm transition-colors relative ${
+          onClick={() => handleTabChange("daily")}
+          className={`px-6 py-3 font-semibold text-sm transition-colors relative whitespace-nowrap ${
             activeTab === "daily" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
           }`}
         >
@@ -36,8 +53,8 @@ export default function AdminReportsPage() {
           )}
         </button>
         <button
-          onClick={() => setActiveTab("student-log")}
-          className={`px-6 py-3 font-semibold text-sm transition-colors relative ${
+          onClick={() => handleTabChange("student-log")}
+          className={`px-6 py-3 font-semibold text-sm transition-colors relative whitespace-nowrap ${
             activeTab === "student-log" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
           }`}
         >
@@ -46,11 +63,23 @@ export default function AdminReportsPage() {
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />
           )}
         </button>
+        <button
+          onClick={() => handleTabChange("custom")}
+          className={`px-6 py-3 font-semibold text-sm transition-colors relative whitespace-nowrap ${
+            activeTab === "custom" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
+          }`}
+        >
+          Custom Report
+          {activeTab === "custom" && (
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />
+          )}
+        </button>
       </div>
 
       <div className="mt-6">
         {activeTab === "daily" && <DailyReportTab />}
         {activeTab === "student-log" && <StudentLogReportTab />}
+        {activeTab === "custom" && <CustomReportTab />}
       </div>
     </div>
   );
