@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from backend.app.api.endpoints import (
     admin,
+    ai,
     attendance,
     applications,
     allocations,
@@ -34,3 +35,4 @@ api_router.include_router(residency.router, tags=["residency"])
 api_router.include_router(communications.router, tags=["communications"])
 api_router.include_router(insights.router, tags=["insights"])
 api_router.include_router(surveys.router, tags=["surveys"])
+api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
