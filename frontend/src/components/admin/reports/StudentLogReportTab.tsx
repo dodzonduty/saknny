@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { apiClient } from "@/services/api";
 import { useSearchParams } from "next/navigation";
+import { exportToCSV, exportToPDF } from "@/utils/exportUtils";
 import {
   PieChart,
   Pie,
@@ -99,6 +100,48 @@ export const StudentLogReportTab: React.FC = () => {
       setData(null);
     }
     setLoading(false);
+  };
+
+  const handleExportCSV = () => {
+    if (!data) return;
+    const headers = ["Student Name", "Student ID", "Building", "Room", "Day", "Time", "Status"];
+    const tableData = [...data.logs]
+      .sort((a, b) => {
+        const timeA = new Date(a.day).getTime();
+        const timeB = new Date(b.day).getTime();
+        return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+      })
+      .map(log => [
+        log.student_name,
+        log.student_id,
+        log.building_name,
+        log.room_number,
+        log.day,
+        log.attendance_time ? new Date(log.attendance_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase() : "____",
+        log.status
+      ]);
+    exportToCSV(`Student_Log_Report_${studentName || studentId || "All"}`, headers, tableData);
+  };
+
+  const handleExportPDF = () => {
+    if (!data) return;
+    const headers = ["Student Name", "Student ID", "Building", "Room", "Day", "Time", "Status"];
+    const tableData = [...data.logs]
+      .sort((a, b) => {
+        const timeA = new Date(a.day).getTime();
+        const timeB = new Date(b.day).getTime();
+        return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+      })
+      .map(log => [
+        log.student_name,
+        log.student_id,
+        log.building_name,
+        log.room_number,
+        log.day,
+        log.attendance_time ? new Date(log.attendance_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase() : "____",
+        log.status
+      ]);
+    exportToPDF(`Student_Log_Report_${studentName || studentId || "All"}`, `Student Log Report - ${studentName || studentId || "All"}`, headers, tableData);
   };
 
   const chartData = data ? [
@@ -266,8 +309,16 @@ export const StudentLogReportTab: React.FC = () => {
           {/* Student Log Table */}
           {(studentId || studentName) ? (
             <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
-              <div className="p-6 border-b border-outline-variant">
+              <div className="p-6 border-b border-outline-variant flex items-center justify-between">
                 <h3 className="text-lg font-bold text-on-surface">Detailed Logs</h3>
+                <div className="flex gap-2">
+                  <button onClick={handleExportCSV} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
+                    <span className="material-symbols-outlined text-sm">table_view</span> Excel
+                  </button>
+                  <button onClick={handleExportPDF} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
+                    <span className="material-symbols-outlined text-sm">picture_as_pdf</span> PDF
+                  </button>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">

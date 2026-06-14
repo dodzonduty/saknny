@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/services/api";
 import { MultiSelectTags } from "@/components/common/MultiSelectTags";
+import { exportToCSV, exportToPDF } from "@/utils/exportUtils";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
@@ -159,6 +160,32 @@ export const CustomReportTab: React.FC = () => {
 
   const roomOptions = getAvailableRoomOptions();
 
+  const handleExportCSV = () => {
+    if (!data) return;
+    const headers = ["Student Name", "Building", "Room", "Attended Days", "Missed Days"];
+    const tableData = data.students.map(student => [
+      student.student_name,
+      student.building_name,
+      student.room_number,
+      student.attended_days,
+      student.missed_days
+    ]);
+    exportToCSV(`Custom_Report_${startDate}_to_${endDate}`, headers, tableData);
+  };
+
+  const handleExportPDF = () => {
+    if (!data) return;
+    const headers = ["Student Name", "Building", "Room", "Attended Days", "Missed Days"];
+    const tableData = data.students.map(student => [
+      student.student_name,
+      student.building_name,
+      student.room_number,
+      student.attended_days,
+      student.missed_days
+    ]);
+    exportToPDF(`Custom_Report_${startDate}_to_${endDate}`, `Custom Attendance Report (${startDate} to ${endDate})`, headers, tableData);
+  };
+
   // Sort students for the chart to show top 10 most missed
   const topMissedStudents = data ? [...data.students].sort((a, b) => b.missed_days - a.missed_days).slice(0, 10) : [];
 
@@ -303,9 +330,19 @@ export const CustomReportTab: React.FC = () => {
 
           <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden mt-6">
             <div className="p-6 border-b border-outline-variant flex items-center justify-between">
-              <h3 className="text-lg font-bold text-on-surface">Student Summaries</h3>
-              <div className="text-sm text-on-surface-variant font-medium">
-                Overall Rate: <span className="text-primary font-bold">{data.summary.overall_rate}%</span>
+              <div>
+                <h3 className="text-lg font-bold text-on-surface">Student Summaries</h3>
+                <div className="text-sm text-on-surface-variant font-medium mt-1">
+                  Overall Rate: <span className="text-primary font-bold">{data.summary.overall_rate}%</span>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handleExportCSV} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
+                  <span className="material-symbols-outlined text-sm">table_view</span> Excel
+                </button>
+                <button onClick={handleExportPDF} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
+                  <span className="material-symbols-outlined text-sm">picture_as_pdf</span> PDF
+                </button>
               </div>
             </div>
             <div className="overflow-x-auto">
