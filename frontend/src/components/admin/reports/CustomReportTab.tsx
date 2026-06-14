@@ -269,15 +269,15 @@ export const CustomReportTab: React.FC = () => {
                   <AreaChart 
                     data={data.daily_trend}
                     onClick={(e) => {
-                      if (e && e.activePayload && e.activePayload.length > 0) {
-                        const clickedDay = e.activePayload[0].payload.day;
+                      if (e && e.activeTooltipIndex !== undefined) {
+                        const clickedDay = data.daily_trend[e.activeTooltipIndex]?.day;
                         if (clickedDay) {
                           setStartDate(clickedDay);
                           setEndDate(clickedDay);
                         }
                       }
                     }}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", outline: "none" }}
                   >
                     <defs>
                       <linearGradient id="colorAttended" x1="0" y1="0" x2="0" y2="1">
