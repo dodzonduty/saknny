@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { DailyReportTab } from "@/components/admin/reports/DailyReportTab";
-import { CustomReportTab } from "@/components/admin/reports/CustomReportTab";
+import { StudentLogReportTab } from "@/components/admin/reports/StudentLogReportTab";
 
 export default function AdminReportsPage() {
-  const [activeTab, setActiveTab] = useState<"daily" | "custom">("daily");
+  const [activeTab, setActiveTab] = useState<"daily" | "student-log">("daily");
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -36,20 +36,21 @@ export default function AdminReportsPage() {
           )}
         </button>
         <button
-          onClick={() => setActiveTab("custom")}
+          onClick={() => setActiveTab("student-log")}
           className={`px-6 py-3 font-semibold text-sm transition-colors relative ${
-            activeTab === "custom" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
+            activeTab === "student-log" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
           }`}
         >
           Student Log Report
-          {activeTab === "custom" && (
+          {activeTab === "student-log" && (
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />
           )}
         </button>
       </div>
 
       <div className="mt-6">
-        {activeTab === "daily" ? <DailyReportTab /> : <CustomReportTab />}
+        {activeTab === "daily" && <DailyReportTab />}
+        {activeTab === "student-log" && <StudentLogReportTab />}
       </div>
     </div>
   );

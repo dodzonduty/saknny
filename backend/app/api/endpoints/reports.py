@@ -127,8 +127,8 @@ def get_daily_report(
     })
 
 
-@router.get("/custom", response_model=APIResponse[dict])
-def get_custom_report(
+@router.get("/student-log", response_model=APIResponse[dict])
+def get_student_log_report(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     student_id: Optional[int] = None,
@@ -141,6 +141,19 @@ def get_custom_report(
         end_date = today
     if start_date is None:
         start_date = today.replace(day=1)
+        
+    period_days = (end_date - start_date).days + 1
+        
+    if not student_id and not student_name:
+        return success_response({
+            "summary": {
+                "period_days": period_days,
+                "attended": 0,
+                "missed": 0,
+                "overall_rate": 0.0
+            },
+            "logs": []
+        })
         
     # Query Active Allocations matching filters
     query = (

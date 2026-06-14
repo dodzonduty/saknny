@@ -21,6 +21,18 @@ class EnrollmentUpdateRequest(BaseModel):
     enroll_status: bool
 
 
+@router.get("/students/search", response_model=APIResponse[dict])
+def search_students(q: str, db: Session = Depends(get_db), current_admin: Admin = Depends(get_current_admin)):
+    if not q or len(q) < 2:
+        return success_response({"students": []})
+        
+    students = db.query(Student).filter(Student.name.ilike(f"%{q}%")).limit(10).all()
+    return success_response({
+        "students": [
+            {"student_id": s.student_id, "name": s.name} for s in students
+        ]
+    })
+
 @router.get("/verifications", response_model=APIResponse[dict])
 def list_verifications(status: str = "pending", db: Session = Depends(get_db), current_admin: Admin = Depends(get_current_admin)):
     if status not in {"pending", "approved", "rejected"}:

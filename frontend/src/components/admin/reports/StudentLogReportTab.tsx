@@ -11,7 +11,7 @@ import {
   Legend
 } from "recharts";
 
-interface CustomReportResponse {
+interface StudentLogReportResponse {
   summary: {
     period_days: number;
     attended: number;
@@ -29,14 +29,39 @@ interface CustomReportResponse {
   }[];
 }
 
-export const CustomReportTab: React.FC = () => {
+export const StudentLogReportTab: React.FC = () => {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [studentId, setStudentId] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
   
+  const [searchResults, setSearchResults] = useState<{student_id: number; name: string}[]>([]);
+  const [showDropdown, setShowDropdown] = useState<boolean>(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  
   const [loading, setLoading] = useState<boolean>(false);
-  const [data, setData] = useState<CustomReportResponse | null>(null);
+  const [data, setData] = useState<StudentLogReportResponse | null>(null);
+
+  // Autocomplete fetch effect
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (studentName.length >= 2 && showDropdown) {
+        setIsSearching(true);
+        const res = await apiClient<{students: {student_id: number; name: string}[]}>(`/admin/students/search?q=${studentName}`);
+        if (res.success && res.data) {
+          setSearchResults(res.data.students);
+        } else {
+          setSearchResults([]);
+        }
+        setIsSearching(false);
+      } else if (studentName.length < 2) {
+        setSearchResults([]);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [studentName, showDropdown]);
 
   // Initialize dates
   useEffect(() => {
@@ -64,7 +89,7 @@ export const CustomReportTab: React.FC = () => {
     if (studentId) params.append("student_id", studentId);
     if (studentName) params.append("student_name", studentName);
 
-    const res = await apiClient<CustomReportResponse>(`/admin/reports/custom?${params.toString()}`);
+    const res = await apiClient<StudentLogReportResponse>(`/admin/reports/student-log?${params.toString()}`);
     if (res.success && res.data) {
       setData(res.data);
     } else {
@@ -112,15 +137,45 @@ export const CustomReportTab: React.FC = () => {
               className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
             />
           </div>
-          <div>
+          <div className="relative">
             <label className="block text-sm font-semibold text-on-surface mb-1">Student Name (Opt)</label>
             <input
               type="text"
               placeholder="Search by name..."
               value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
+              onFocus={() => setShowDropdown(true)}
+              onChange={(e) => {
+                setStudentName(e.target.value);
+                setShowDropdown(true);
+                // Clear the exact student ID when typing to search generally by name or pick a new one
+                if (studentId) setStudentId(""); 
+              }}
               className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-sm"
             />
+            {showDropdown && (studentName.length >= 2) && (
+              <div className="absolute z-50 w-full mt-1 bg-surface border border-outline-variant rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {isSearching ? (
+                  <div className="p-3 text-sm text-on-surface-variant text-center">Searching...</div>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map(s => (
+                    <div 
+                      key={s.student_id}
+                      className="p-3 text-sm text-on-surface hover:bg-surface-container-high cursor-pointer border-b border-outline-variant last:border-0"
+                      onClick={() => {
+                        setStudentId(s.student_id.toString());
+                        setStudentName(s.name);
+                        setShowDropdown(false);
+                      }}
+                    >
+                      <div className="font-semibold">{s.name}</div>
+                      <div className="text-xs text-on-surface-variant">ID: {s.student_id}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-3 text-sm text-on-surface-variant text-center">No students found</div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -206,59 +261,81 @@ export const CustomReportTab: React.FC = () => {
           </div>
 
           {/* Student Log Table */}
-          <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
-            <div className="p-6 border-b border-outline-variant">
-              <h3 className="text-lg font-bold text-on-surface">Detailed Logs</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Student Name</th>
-                    <th className="px-6 py-4 font-semibold">Student ID</th>
-                    <th className="px-6 py-4 font-semibold">Building</th>
-                    <th className="px-6 py-4 font-semibold">Room</th>
-                    <th className="px-6 py-4 font-semibold">Day</th>
-                    <th className="px-6 py-4 font-semibold">Time</th>
-                    <th className="px-6 py-4 font-semibold">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant text-sm">
-                  {data.logs.length === 0 ? (
+          {(studentId || studentName) ? (
+            <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+              <div className="p-6 border-b border-outline-variant">
+                <h3 className="text-lg font-bold text-on-surface">Detailed Logs</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
                     <tr>
-                      <td colSpan={7} className="px-6 py-8 text-center text-outline-variant">
-                        No logs found for this period.
-                      </td>
+                      <th className="px-6 py-4 font-semibold">Student Name</th>
+                      <th className="px-6 py-4 font-semibold">Student ID</th>
+                      <th className="px-6 py-4 font-semibold">Building</th>
+                      <th className="px-6 py-4 font-semibold">Room</th>
+                      <th 
+                        className="px-6 py-4 font-semibold cursor-pointer hover:text-primary transition-colors flex items-center gap-1"
+                        onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                      >
+                        Day
+                        <span className="material-symbols-outlined text-sm">
+                          {sortOrder === "asc" ? "arrow_upward" : "arrow_downward"}
+                        </span>
+                      </th>
+                      <th className="px-6 py-4 font-semibold">Time</th>
+                      <th className="px-6 py-4 font-semibold">Status</th>
                     </tr>
-                  ) : (
-                    data.logs.map((log, i) => (
-                      <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
-                        <td className="px-6 py-4 font-medium text-on-surface">{log.student_name}</td>
-                        <td className="px-6 py-4 text-on-surface-variant">{log.student_id}</td>
-                        <td className="px-6 py-4 text-on-surface-variant">{log.building_name}</td>
-                        <td className="px-6 py-4 text-on-surface-variant">{log.room_number}</td>
-                        <td className="px-6 py-4 text-on-surface-variant">{log.day}</td>
-                        <td className="px-6 py-4 text-on-surface-variant font-mono">
-                          {log.attendance_time 
-                            ? new Date(log.attendance_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase()
-                            : "____"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-1 text-xs font-bold rounded-full uppercase tracking-widest ${
-                            log.status === "attended" 
-                              ? "bg-success-container text-success" 
-                              : "bg-error-container text-error"
-                          }`}>
-                            {log.status}
-                          </span>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant text-sm">
+                    {data.logs.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-8 text-center text-outline-variant">
+                          No logs found for this period.
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      [...data.logs]
+                        .sort((a, b) => {
+                          const timeA = new Date(a.day).getTime();
+                          const timeB = new Date(b.day).getTime();
+                          return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+                        })
+                        .map((log, i) => (
+                          <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
+                            <td className="px-6 py-4 font-medium text-on-surface">{log.student_name}</td>
+                          <td className="px-6 py-4 text-on-surface-variant">{log.student_id}</td>
+                          <td className="px-6 py-4 text-on-surface-variant">{log.building_name}</td>
+                          <td className="px-6 py-4 text-on-surface-variant">{log.room_number}</td>
+                          <td className="px-6 py-4 text-on-surface-variant">{log.day}</td>
+                          <td className="px-6 py-4 text-on-surface-variant font-mono">
+                            {log.attendance_time 
+                              ? new Date(log.attendance_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase()
+                              : "____"}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`px-2 py-1 text-xs font-bold rounded-full uppercase tracking-widest ${
+                              log.status === "attended" 
+                                ? "bg-success-container text-success" 
+                                : "bg-error-container text-error"
+                            }`}>
+                              {log.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-surface rounded-2xl p-8 shadow-sm border border-outline-variant text-center">
+              <span className="material-symbols-outlined text-4xl text-outline-variant mb-2">table_view</span>
+              <h3 className="text-lg font-bold text-on-surface">Detailed Logs Hidden</h3>
+              <p className="text-on-surface-variant">Enter a specific Student ID or Student Name in the filters above to view the day-by-day table.</p>
+            </div>
+          )}
         </>
       )}
     </div>
