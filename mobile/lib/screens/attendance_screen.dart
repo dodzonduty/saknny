@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -27,7 +28,7 @@ class AttendanceScreen extends StatefulWidget {
 }
 
 class _AttendanceScreenState extends State<AttendanceScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   AttendanceState _state = AttendanceState.beforeWindow;
   bool _isArabic = false;
   String _userName = '';
@@ -52,11 +53,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   late final AnimationController _scanCtrl;
   late final Animation<double> _pulseAnim;
 
+  late Timer _refreshTimer;
+
   S get s => S(_isArabic);
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final langCode =
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;
     _isArabic = langCode == 'ar';
@@ -75,11 +79,24 @@ class _AttendanceScreenState extends State<AttendanceScreen>
       duration: const Duration(milliseconds: 1200),
     )..repeat();
 
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      _determineState();
+    });
+
     _loadData();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _determineState();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _refreshTimer.cancel();
     _pulseCtrl.dispose();
     _scanCtrl.dispose();
     super.dispose();
@@ -598,6 +615,7 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
     return Container(
+      width: double.infinity,
       padding: EdgeInsets.fromLTRB(24, topPad + 20, 24, 28),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -614,9 +632,10 @@ class _Header extends StatelessWidget {
         children: [
           if (userName.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 12, left: 40, right: 40),
               child: Text(
                 s.welcome(userName),
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -624,14 +643,21 @@ class _Header extends StatelessWidget {
                 ),
               ),
             ),
-          Text(
-            s.appName,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: AppColors.onPrimary,
-              letterSpacing: -0.5,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/images/logo.png', height: 32),
+              const SizedBox(width: 12),
+              Text(
+                s.appName,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.onPrimary,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
           Text(
@@ -874,9 +900,30 @@ class _CheckedInCardState extends State<_CheckedInCard>
   }
 }
 
-class _CountdownChip extends StatelessWidget {
+class _CountdownChip extends StatefulWidget {
   const _CountdownChip({required this.s});
   final S s;
+
+  @override
+  State<_CountdownChip> createState() => _CountdownChipState();
+}
+
+class _CountdownChipState extends State<_CountdownChip> {
+  late Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -886,8 +933,8 @@ class _CountdownChip extends StatelessWidget {
 
     // Display countdown if less than 24 hours
     final label = diff.isNegative
-        ? s.countdown(0, 0)
-        : s.countdown(diff.inHours, diff.inMinutes.remainder(60));
+        ? widget.s.countdown(0, 0)
+        : widget.s.countdown(diff.inHours, diff.inMinutes.remainder(60));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -905,7 +952,7 @@ class _CountdownChip extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            '${s.opensIn}  ',
+            '${widget.s.opensIn}  ',
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.onSurfaceVariant,

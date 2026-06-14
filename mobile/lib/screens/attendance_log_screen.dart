@@ -441,11 +441,9 @@ class _CalendarCell extends StatelessWidget {
     if (isAttended) {
       bgColor = AppColors.success;
       textColor = Colors.white;
-      badge = const Icon(Icons.check_rounded, size: 10, color: Colors.white);
     } else if (isMissed) {
       bgColor = AppColors.error;
       textColor = Colors.white;
-      badge = const Icon(Icons.close_rounded, size: 10, color: Colors.white);
     } else if (isToday) {
       bgColor = AppColors.accentYellow;
       textColor = AppColors.primary;
