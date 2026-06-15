@@ -31,6 +31,8 @@ class Student(Base):
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     gender: Mapped[str] = mapped_column(String(1), nullable=False)  # 'M' or 'F'
     home_city: Mapped[str] = mapped_column(String(50), nullable=False)
+    nationality_id: Mapped[str] = mapped_column(String(14), unique=True, nullable=False)
+    faculty: Mapped[str] = mapped_column(String(100), nullable=False)
 
     # ── Authentication ────────────────────────────────────────────────
     # bcrypt produces ~60-char hashes; VARCHAR(255) gives headroom.
@@ -49,6 +51,11 @@ class Student(Base):
     # ── Mobile/Firebase Identity ───────────────────────────────────────
     firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, nullable=True)
     fcm_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    
+    # ── Profile ───────────────────────────────────────────────────────
+    profile_picture_url: Mapped[str] = mapped_column(String(255), nullable=False)
+    nationality_id_photo_front: Mapped[str] = mapped_column(String(255), nullable=False)
+    nationality_id_photo_back: Mapped[str] = mapped_column(String(255), nullable=False)
     
     # ── Biometrics & Devices ──────────────────────────────────────────
     biometric_unlock_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

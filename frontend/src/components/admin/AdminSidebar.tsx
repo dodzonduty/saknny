@@ -12,7 +12,7 @@ export const AdminSidebar: React.FC = () => {
   const navItems = [
     { href: "/admin", icon: "dashboard", label: t("dashboard.adminSidebarOverview") },
     { href: "/admin/verifications", icon: "verified_user", label: t("dashboard.adminSidebarVerifications") },
-    { href: "/admin/students", icon: "school", label: t("dashboard.adminSidebarStudents") },
+    { href: "/admin/students", icon: "badge", label: t("dashboard.adminSidebarStudents") },
     { href: "/admin/applications", icon: "assignment", label: t("dashboard.adminSidebarApplications") },
     { href: "/admin/catalog", icon: "apartment", label: t("dashboard.adminSidebarCatalog") },
     { href: "/admin/allocations", icon: "bed", label: t("dashboard.adminSidebarAllocations") },

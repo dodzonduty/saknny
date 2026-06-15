@@ -102,12 +102,18 @@ export default function AdminVerificationsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-white rounded-xl shadow-soft p-2 border border-transparent">
+        <div className="flex items-center gap-2 bg-white rounded-xl shadow-soft p-2 border border-transparent flex-wrap">
           <button 
             onClick={() => setStatusFilter("pending")}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${statusFilter === 'pending' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
           >
             Pending
+          </button>
+          <button 
+            onClick={() => setStatusFilter("incomplete")}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${statusFilter === 'incomplete' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
+          >
+            Incomplete
           </button>
           <button 
             onClick={() => setStatusFilter("approved")}
@@ -163,64 +169,13 @@ export default function AdminVerificationsPage() {
               </div>
 
               <div className="flex flex-col items-start md:items-end gap-3 min-w-[200px]">
-                <a 
-                  href={doc.file_url} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="bg-surface-container-lowest border-2 border-outline-variant px-4 py-2 rounded-lg text-sm font-bold text-primary hover:bg-surface-container-low transition-colors flex items-center gap-2 w-full md:w-auto justify-center"
+                <button
+                  onClick={() => router.push(`/admin/verifications/${doc.doc_id}`)}
+                  className="bg-primary text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
                 >
                   <span className="material-symbols-outlined text-[18px]">visibility</span>
-                  View Document
-                </a>
-                
-                {statusFilter === "pending" && (
-                  <div className="flex gap-2 w-full md:w-auto">
-                    {rejectingId === doc.doc_id ? (
-                      <div className="flex flex-col gap-2 w-full">
-                        <input
-                          type="text"
-                          placeholder="Reason for rejection..."
-                          value={rejectionReason}
-                          onChange={e => setRejectionReason(e.target.value)}
-                          className="w-full text-sm border-2 border-outline-variant rounded-lg px-3 py-2"
-                          autoFocus
-                        />
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleReview(doc.doc_id, "rejected")}
-                            disabled={actionLoadingId === doc.doc_id}
-                            className="bg-error text-white text-xs font-bold px-3 py-2 rounded flex-grow hover:bg-error/90"
-                          >
-                            {actionLoadingId === doc.doc_id ? "..." : "Confirm Reject"}
-                          </button>
-                          <button
-                            onClick={() => { setRejectingId(null); setRejectionReason(""); }}
-                            className="bg-surface-container-high text-on-surface text-xs font-bold px-3 py-2 rounded flex-grow hover:bg-surface-container-highest"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => handleReview(doc.doc_id, "approved")}
-                          disabled={actionLoadingId === doc.doc_id}
-                          className="bg-emerald-500 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors flex-grow flex items-center justify-center gap-1"
-                        >
-                          {actionLoadingId === doc.doc_id ? "..." : <><span className="material-symbols-outlined text-[16px]">check</span> Approve</>}
-                        </button>
-                        <button
-                          onClick={() => setRejectingId(doc.doc_id)}
-                          disabled={actionLoadingId === doc.doc_id}
-                          className="bg-error-container text-on-error-container text-sm font-bold px-4 py-2 rounded-lg hover:bg-error-container/80 transition-colors flex-grow flex items-center justify-center gap-1"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">close</span> Reject
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
+                  View
+                </button>
               </div>
 
             </div>

@@ -17,7 +17,7 @@ The file_path column stores the relative path from the project root.
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Integer, String, Boolean, Text, DateTime, ForeignKey
+from sqlalchemy import Integer, String, Boolean, Text, DateTime, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.app.core.database import Base
@@ -64,6 +64,12 @@ class VerificationDocument(Base):
 
     # Reason for rejection (NULL if approved or still pending)
     rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # JSON list of fields the admin requested the student to edit
+    fields_to_edit: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+
+    # JSON list of fields the student actually updated
+    fields_updated: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
 
     # ── Fraud Detection ───────────────────────────────────────────────
     # System (Policy Engine) can flag suspicious uploads for priority review

@@ -22,6 +22,7 @@ export default function AnnouncementsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [isAllocated, setIsAllocated] = useState<boolean | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -29,8 +30,20 @@ export default function AnnouncementsPage() {
     const role = localStorage.getItem("user_role");
     if (!token) router.push("/auth");
     else if (role === "admin") router.push("/admin");
-    else fetchAnnouncements();
+    else {
+      checkAllocation().then(allocated => {
+        if (allocated) fetchAnnouncements();
+        else setLoading(false);
+      });
+    }
   }, [router]);
+
+  const checkAllocation = async () => {
+    const res = await apiClient<any>("/allocations/me");
+    const allocated = !!(res.success && res.data && res.data.allocation);
+    setIsAllocated(allocated);
+    return allocated;
+  };
 
   const fetchAnnouncements = async () => {
     setLoading(true);
@@ -59,7 +72,15 @@ export default function AnnouncementsPage() {
             </div>
           </div>
 
-          {loading ? (
+          {isAllocated === false ? (
+            <div className="bg-surface rounded-2xl p-12 text-center shadow-sm border border-outline-variant">
+              <span className="material-symbols-outlined text-6xl text-error/50">gpp_maybe</span>
+              <h3 className="text-xl font-bold text-on-surface mt-4">Not Allocated</h3>
+              <p className="text-on-surface-variant max-w-md mx-auto mt-2">
+                You must be allocated to a room before you can view announcements.
+              </p>
+            </div>
+          ) : loading ? (
             <div className="py-12 flex justify-center"><span className="material-symbols-outlined text-primary text-4xl animate-spin">refresh</span></div>
           ) : announcements.length === 0 ? (
             <div className="bg-white shadow-soft rounded-2xl p-12 text-center border border-transparent">
