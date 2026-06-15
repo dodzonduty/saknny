@@ -362,3 +362,53 @@ Action: CREATED
 Owner: AI (Role C)
 Notes: Created a floating toggleable chat widget mounted in the root layout (visible site-wide). Uses exclusively the existing design tokens: primary, accent-yellow, surface-container tokens, outline-variant, material-symbols-outlined, and the font-headline/font-body/font-label families. RTL-safe using CSS logical properties. Sends messages to POST /chatbot/chat via the existing apiClient utility. Includes bilingual AR/EN welcome message, typing-dots indicator, and unread-notification pulse badge.
 Date: 2026-06-15
+
+---
+
+[FEATURE]
+
+Entity: Service
+Name: TicketPriorityClassifier (Intelligence Layer)
+Role: D
+Path: backend/app/services/ai/ticket_classifier.py
+Status: REAL
+Action: CREATED
+Owner: AI (Role D)
+Notes: Created a Gemini-powered maintenance ticket priority classifier. Reuses settings.GEMINI_API_KEY and the google-genai SDK (same pattern as DormChatbot). Accepts title + description, calls gemini-2.5-flash with a fixed system instruction, parses the JSON priority out of the response, and normalises it to one of the four DB-valid values (urgent/high/medium/low). Implements a 3-step parse fallback (direct JSON → JSON block extraction → keyword scan) before defaulting to "medium" so ticket submission never fails due to AI errors. No new dependencies. Database schema is completely untouched.
+Date: 2026-06-16
+
+[API]
+
+Entity: API
+Name: POST /maintenance/tickets — AI priority injection
+Role: B
+Path: backend/app/api/endpoints/maintenance.py
+Status: REAL
+Action: UPDATED
+Owner: AI (Role B)
+Notes: Removed `priority` from CreateTicketRequest schema (frontend no longer sends it). Injected TicketPriorityClassifier call before db.add() so every new ticket receives an AI-determined priority written directly into the existing `priority` column. Audit log after_state now includes ai_classified=True flag. Also added `title` and `building_name` to the GET /admin/maintenance/tickets serialised response. All other endpoints (assign, escalate) are unchanged.
+Date: 2026-06-16
+
+[COMPONENT]
+
+Entity: Component
+Name: Student Maintenance Request Form — AI Priority UI
+Role: C
+Path: frontend/src/app/dashboard/maintenance/page.tsx
+Status: REAL
+Action: UPDATED
+Owner: AI (Role C)
+Notes: Removed priority state, Priority select dropdown, and priority from the submission payload. Added a styled AI-info pill (auto_awesome icon + "Priority is automatically assigned by AI based on your description.") above the submit button. Submit button loading state now shows a spinning progress_activity icon and reads "AI is classifying priority…" while the backend AI call completes.
+Date: 2026-06-16
+
+[COMPONENT]
+
+Entity: Component
+Name: Admin Facility Maintenance Dashboard — AI Priority Display
+Role: C
+Path: frontend/src/app/admin/maintenance/page.tsx
+Status: REAL
+Action: UPDATED
+Owner: AI (Role C)
+Notes: Extended Ticket interface with optional title and building_name fields. Added Title column to the admin table showing ticket title with building name as subtitle. Priority cell now renders the existing badge plus a small "AI" label (auto_awesome icon) to signal AI-assigned classification. Added priorityBadgeClass helper covering all four priority levels. All tab/action/escalate logic unchanged.
+Date: 2026-06-16

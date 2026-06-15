@@ -7,12 +7,28 @@ import { apiClient } from "@/services/api";
 
 interface Ticket {
   ticket_id: number;
+  title?: string;
   student_id: number;
   student_name?: string;
   room_id: number | null;
   room_number?: string;
+  building_name?: string;
   status: string;
   priority: string;
+}
+
+/** Maps a priority string to Tailwind colour classes for the badge */
+function priorityBadgeClass(priority: string): string {
+  switch (priority) {
+    case "urgent":
+      return "bg-error-container text-on-error-container";
+    case "high":
+      return "bg-orange-50 text-orange-800";
+    case "medium":
+      return "bg-amber-50 text-amber-800";
+    default:
+      return "bg-surface-container-high text-on-surface";
+  }
 }
 
 export default function AdminMaintenancePage() {
@@ -146,6 +162,7 @@ export default function AdminMaintenancePage() {
               <thead className="bg-surface-container-lowest border-b-2 border-outline-variant/30">
                 <tr>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.ticketIdCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Title</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.priorityCol")}</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.roomCol")}</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.studentCol")}</th>
@@ -155,16 +172,35 @@ export default function AdminMaintenancePage() {
               <tbody className="divide-y divide-outline-variant/20">
                 {tickets.map(ticket => (
                   <tr key={ticket.ticket_id} className="hover:bg-surface-container-lowest/50 transition-colors">
+
+                    {/* Ticket ID */}
                     <td className="px-6 py-4 font-bold text-primary">#{ticket.ticket_id}</td>
-                    <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded ${
-                        ticket.priority === 'urgent' ? 'bg-error-container text-on-error-container' : 
-                        ticket.priority === 'high' ? 'bg-orange-50 text-orange-800' :
-                        'bg-surface-container-high text-on-surface'
-                      }`}>
-                        {ticket.priority}
-                      </span>
+
+                    {/* Title */}
+                    <td className="px-6 py-4 max-w-[200px]">
+                      <p className="font-semibold text-on-surface truncate" title={ticket.title}>
+                        {ticket.title || "—"}
+                      </p>
+                      {ticket.building_name && (
+                        <p className="text-xs text-on-surface-variant mt-0.5">{ticket.building_name}</p>
+                      )}
                     </td>
+
+                    {/* Priority — badge with AI label */}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1">
+                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded w-fit ${priorityBadgeClass(ticket.priority)}`}>
+                          {ticket.priority}
+                        </span>
+                        {/* AI classification indicator */}
+                        <span className="inline-flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-widest text-primary/60 w-fit">
+                          <span className="material-symbols-outlined text-[11px]">auto_awesome</span>
+                          AI
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* Room */}
                     <td className="px-6 py-4 font-semibold text-on-surface-variant">
                       {ticket.room_id ? (
                         ticket.room_number ? (
@@ -179,6 +215,8 @@ export default function AdminMaintenancePage() {
                         t("admin.unassigned")
                       )}
                     </td>
+
+                    {/* Student */}
                     <td className="px-6 py-4 font-semibold text-on-surface-variant">
                       {ticket.student_name ? (
                         <div>
@@ -189,6 +227,8 @@ export default function AdminMaintenancePage() {
                         ticket.student_id
                       )}
                     </td>
+
+                    {/* Actions */}
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
                         {statusFilter !== 'resolved' && (
@@ -216,6 +256,7 @@ export default function AdminMaintenancePage() {
                         )}
                       </div>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
