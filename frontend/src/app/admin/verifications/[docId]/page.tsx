@@ -21,6 +21,7 @@ export default function AdminVerificationReviewPage() {
   const router = useRouter();
   const params = useParams();
   const docId = params.docId as string;
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [doc, setDoc] = useState<any>(null);
@@ -104,11 +105,11 @@ export default function AdminVerificationReviewPage() {
   const submitReview = async (status: "approved" | "rejected" | "incomplete") => {
     setErrorMsg(null);
     if ((status === "rejected" || status === "incomplete") && !comment.trim()) {
-      setErrorMsg("Comment is required. Please explain the issue to the student.");
+      setErrorMsg(t("admin.commentRequiredErr"));
       return;
     }
     if (status === "incomplete" && selectedFields.length === 0) {
-      setErrorMsg("Please select at least one field to be edited.");
+      setErrorMsg(t("admin.fieldsRequiredErr"));
       return;
     }
 
@@ -147,7 +148,7 @@ export default function AdminVerificationReviewPage() {
   }
 
   if (!doc || !student) {
-    return <div className="p-12 text-center text-error font-bold">Document or Student not found.</div>;
+    return <div className="p-12 text-center text-error font-bold">{t("admin.docOrStudentNotFound")}</div>;
   }
 
   // Get fields updated by student since last incomplete mark
@@ -160,9 +161,9 @@ export default function AdminVerificationReviewPage() {
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
         <div>
-          <h1 className="text-3xl font-black text-primary font-headline">Review Profile: {student.name}</h1>
+          <h1 className="text-3xl font-black text-primary font-headline">{t("admin.reviewProfileTitle").replace("{{name}}", student.name)}</h1>
           <div className="flex items-center gap-2 text-sm text-on-surface-variant mt-1">
-            Status: 
+            {t("admin.statusText")}
             <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase ${
               doc.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
               doc.status === 'rejected' ? 'bg-error-container text-on-error-container' :
@@ -179,43 +180,43 @@ export default function AdminVerificationReviewPage() {
         {/* Left Column: Student Data */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl p-6 shadow-soft">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">person</span> Student Details</h2>
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">person</span> {t("admin.studentDetailsTitle")}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { label: "Full Name", value: student.name, field: "name" },
-                { label: "Faculty ID", value: student.faculty_id, field: "faculty_id" },
-                { label: "Nationality ID", value: student.nationality_id, field: "nationality_id" },
-                { label: "Email", value: student.email, field: "email" },
-                { label: "Faculty", value: student.faculty, field: "faculty" },
-                { label: "Gender", value: student.gender, field: "gender" },
-                { label: "Home City", value: student.home_city, field: "home_city" }
+                { label: t("admin.fullNameLabel"), value: student.name, field: "name" },
+                { label: t("admin.facultyIdLabel"), value: student.faculty_id, field: "faculty_id" },
+                { label: t("admin.nationalityIdLabel"), value: student.nationality_id, field: "nationality_id" },
+                { label: t("admin.emailLabel"), value: student.email, field: "email" },
+                { label: t("admin.facultyLabel"), value: student.faculty, field: "faculty" },
+                { label: t("admin.genderLabel"), value: student.gender, field: "gender" },
+                { label: t("admin.homeCityLabel"), value: student.home_city, field: "home_city" }
               ].map(item => (
                 <div key={item.field} className={`p-4 rounded-xl border-2 ${fieldsUpdated.includes(item.field) ? 'border-primary bg-primary/5' : 'border-outline-variant/30 bg-surface-container-lowest'}`}>
                   <div className="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-1">{item.label}</div>
                   <div className="font-medium text-on-surface">{item.value || "-"}</div>
-                  {fieldsUpdated.includes(item.field) && <div className="text-[10px] text-primary font-bold mt-1">UPDATED</div>}
+                  {fieldsUpdated.includes(item.field) && <div className="text-[10px] text-primary font-bold mt-1">{t("admin.updatedBadge")}</div>}
                 </div>
               ))}
             </div>
           </div>
 
           <div className="bg-white rounded-2xl p-6 shadow-soft">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">photo_camera</span> Identity Photos</h2>
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2"><span className="material-symbols-outlined text-primary">photo_camera</span> {t("admin.identityPhotosTitle")}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
               <div className={`p-4 rounded-xl border-2 ${fieldsUpdated.includes("profile_picture") ? 'border-primary bg-primary/5' : 'border-outline-variant/30 bg-surface-container-lowest'}`}>
-                <div className="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-3">Profile Picture</div>
+                <div className="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-3">{t("admin.profilePictureTitle")}</div>
                 <div className="aspect-square bg-surface-variant rounded-lg overflow-hidden flex items-center justify-center">
                   {student.profile_picture_url ? (
                     <img src={student.profile_picture_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : <span className="material-symbols-outlined text-4xl text-outline-variant">person</span>}
                 </div>
-                {fieldsUpdated.includes("profile_picture") && <div className="text-[10px] text-primary font-bold mt-2 text-center">UPDATED</div>}
+                {fieldsUpdated.includes("profile_picture") && <div className="text-[10px] text-primary font-bold mt-2 text-center">{t("admin.updatedBadge")}</div>}
               </div>
 
               <div className={`p-4 rounded-xl border-2 ${fieldsUpdated.includes("nationality_id_photo_front") ? 'border-primary bg-primary/5' : 'border-outline-variant/30 bg-surface-container-lowest'}`}>
-                <div className="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-3">National ID (Front)</div>
+                <div className="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-3">{t("admin.nationalIdFrontTitle")}</div>
                 <div className="aspect-video bg-surface-variant rounded-lg overflow-hidden flex items-center justify-center">
                   {student.nationality_id_photo_front ? (
                     <a href={student.nationality_id_photo_front} target="_blank" rel="noreferrer">
@@ -223,11 +224,11 @@ export default function AdminVerificationReviewPage() {
                     </a>
                   ) : <span className="material-symbols-outlined text-4xl text-outline-variant">badge</span>}
                 </div>
-                {fieldsUpdated.includes("nationality_id_photo_front") && <div className="text-[10px] text-primary font-bold mt-2 text-center">UPDATED</div>}
+                {fieldsUpdated.includes("nationality_id_photo_front") && <div className="text-[10px] text-primary font-bold mt-2 text-center">{t("admin.updatedBadge")}</div>}
               </div>
 
               <div className={`p-4 rounded-xl border-2 ${fieldsUpdated.includes("nationality_id_photo_back") ? 'border-primary bg-primary/5' : 'border-outline-variant/30 bg-surface-container-lowest'}`}>
-                <div className="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-3">National ID (Back)</div>
+                <div className="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-3">{t("admin.nationalIdBackTitle")}</div>
                 <div className="aspect-video bg-surface-variant rounded-lg overflow-hidden flex items-center justify-center">
                   {student.nationality_id_photo_back ? (
                     <a href={student.nationality_id_photo_back} target="_blank" rel="noreferrer">
@@ -235,7 +236,7 @@ export default function AdminVerificationReviewPage() {
                     </a>
                   ) : <span className="material-symbols-outlined text-4xl text-outline-variant">badge</span>}
                 </div>
-                {fieldsUpdated.includes("nationality_id_photo_back") && <div className="text-[10px] text-primary font-bold mt-2 text-center">UPDATED</div>}
+                {fieldsUpdated.includes("nationality_id_photo_back") && <div className="text-[10px] text-primary font-bold mt-2 text-center">{t("admin.updatedBadge")}</div>}
               </div>
 
             </div>
@@ -245,14 +246,14 @@ export default function AdminVerificationReviewPage() {
         {/* Right Column: Uploaded Doc & Actions */}
         <div className="space-y-6">
           <div className={`bg-white rounded-2xl p-6 shadow-soft border-2 ${fieldsUpdated.includes("verification_document") ? 'border-primary' : 'border-transparent'}`}>
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-primary">description</span> Uploaded Document</h2>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-primary">description</span> {t("admin.uploadedDocTitle")}</h2>
             <div className="text-sm font-medium mb-4 text-on-surface-variant">
-              Type: <span className="uppercase text-on-surface">{doc.doc_type.replace("_", " ")}</span>
+              {t("admin.typeText")} <span className="uppercase text-on-surface">{doc.doc_type.replace("_", " ")}</span>
             </div>
             
             {doc.file_url.endsWith(".pdf") ? (
               <a href={doc.file_url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-error-container text-on-error-container py-4 rounded-xl font-bold">
-                <span className="material-symbols-outlined">picture_as_pdf</span> View PDF Document
+                <span className="material-symbols-outlined">picture_as_pdf</span> {t("admin.viewPdfBtn")}
               </a>
             ) : (
               <a href={doc.file_url} target="_blank" rel="noreferrer" className="block rounded-xl overflow-hidden border border-outline-variant/30">
@@ -260,7 +261,7 @@ export default function AdminVerificationReviewPage() {
               </a>
             )}
             
-            {fieldsUpdated.includes("verification_document") && <div className="text-xs text-primary font-bold mt-3 text-center">STUDENT UPLOADED NEW DOCUMENT</div>}
+            {fieldsUpdated.includes("verification_document") && <div className="text-xs text-primary font-bold mt-3 text-center">{t("admin.studentUploadedNewDoc")}</div>}
             
             {doc.status === "pending" && (
               <div className="mt-8 space-y-3">
@@ -268,19 +269,19 @@ export default function AdminVerificationReviewPage() {
                   onClick={() => handleReview("approved")}
                   className="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl hover:bg-emerald-600 transition-colors flex items-center justify-center gap-2"
                 >
-                  <span className="material-symbols-outlined">check_circle</span> Approve Verification
+                  <span className="material-symbols-outlined">check_circle</span> {t("admin.approveVerificationBtn")}
                 </button>
                 <button 
                   onClick={() => handleReview("incomplete")}
                   className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
                 >
-                  <span className="material-symbols-outlined">edit_note</span> Mark Incomplete
+                  <span className="material-symbols-outlined">edit_note</span> {t("admin.markIncompleteBtn")}
                 </button>
                 <button 
                   onClick={() => handleReview("rejected")}
                   className="w-full bg-error text-white font-bold py-3 rounded-xl hover:bg-error/90 transition-colors flex items-center justify-center gap-2"
                 >
-                  <span className="material-symbols-outlined">cancel</span> Final Reject
+                  <span className="material-symbols-outlined">cancel</span> {t("admin.finalRejectBtn")}
                 </button>
               </div>
             )}
@@ -288,10 +289,10 @@ export default function AdminVerificationReviewPage() {
 
           {/* History Timeline */}
           <div className="bg-white rounded-2xl p-6 shadow-soft">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-primary">history</span> History</h2>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-primary">history</span> {t("admin.historyTitle")}</h2>
             <div className="space-y-4">
               {history.length === 0 ? (
-                <div className="text-sm text-outline-variant text-center py-4">No history records</div>
+                <div className="text-sm text-outline-variant text-center py-4">{t("admin.noHistoryText")}</div>
               ) : (
                 history.map(h => (
                   <div key={h.history_id} className="border-l-2 border-outline-variant/30 pl-4 py-1 relative">
@@ -300,7 +301,7 @@ export default function AdminVerificationReviewPage() {
                       <span className="text-xs font-bold uppercase">{h.action}</span>
                       <span className="text-[10px] text-outline-variant">{new Date(h.created_at).toLocaleString()}</span>
                     </div>
-                    <div className="text-xs text-on-surface-variant font-medium">By {h.actor_role}</div>
+                    <div className="text-xs text-on-surface-variant font-medium">{t("admin.byRoleText").replace("{{role}}", h.actor_role)}</div>
                     {h.comment && <div className="text-sm mt-2 bg-surface-container-lowest p-2 rounded-lg border border-outline-variant/30">"{h.comment}"</div>}
                     {h.fields_requested && h.fields_requested.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
@@ -320,10 +321,10 @@ export default function AdminVerificationReviewPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl">
             <h2 className="text-2xl font-black mb-2 text-primary font-headline">
-              {actionType === "incomplete" ? "Mark as Incomplete" : "Final Rejection"}
+              {actionType === "incomplete" ? t("admin.markIncompleteModalTitle") : t("admin.finalRejectModalTitle")}
             </h2>
             <p className="text-sm text-on-surface-variant mb-6">
-              {actionType === "incomplete" ? "Select the fields the student needs to fix and provide a comment." : "Provide a reason for the final rejection. The student will not be able to edit their profile after this."}
+              {actionType === "incomplete" ? t("admin.markIncompleteModalDesc") : t("admin.finalRejectModalDesc")}
             </p>
             
             {errorMsg && (
@@ -335,11 +336,11 @@ export default function AdminVerificationReviewPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-bold mb-2">Comment / Reason <span className="text-error">*</span></label>
+                <label className="block text-sm font-bold mb-2">{t("admin.commentReasonLabel")} <span className="text-error">*</span></label>
                 <textarea 
                   className="w-full border-2 border-outline-variant rounded-xl p-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none resize-none"
                   rows={4}
-                  placeholder="Explain what is wrong..."
+                  placeholder={t("admin.commentPlaceholder")}
                   value={comment}
                   onChange={e => setComment(e.target.value)}
                 />
@@ -347,7 +348,7 @@ export default function AdminVerificationReviewPage() {
 
               {actionType === "incomplete" && (
                 <div>
-                  <label className="block text-sm font-bold mb-3">Fields to Edit <span className="text-error">*</span></label>
+                  <label className="block text-sm font-bold mb-3">{t("admin.fieldsToEditLabel")} <span className="text-error">*</span></label>
                   <div className="grid grid-cols-2 gap-2">
                     {FIELD_OPTIONS.map(opt => (
                       <label key={opt.id} className="flex items-center gap-2 p-2 rounded-lg border border-outline-variant/50 hover:bg-surface-container-lowest cursor-pointer transition-colors">
@@ -357,7 +358,7 @@ export default function AdminVerificationReviewPage() {
                           checked={selectedFields.includes(opt.id)}
                           onChange={() => toggleField(opt.id)}
                         />
-                        <span className="text-xs font-medium">{opt.label}</span>
+                        <span className="text-xs font-medium">{t(`admin.${opt.id}Label`) || opt.label}</span>
                       </label>
                     ))}
                   </div>
@@ -370,14 +371,14 @@ export default function AdminVerificationReviewPage() {
                 onClick={() => setIsModalOpen(false)}
                 className="flex-1 py-3 rounded-xl font-bold bg-surface-variant text-on-surface hover:bg-surface-container-highest transition-colors"
               >
-                Cancel
+                {t("admin.cancelBtn")}
               </button>
               <button 
                 onClick={() => submitReview(actionType!)}
                 disabled={actionLoading}
                 className={`flex-1 py-3 rounded-xl font-bold text-white transition-opacity ${actionType === 'incomplete' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-error hover:bg-error/90'} disabled:opacity-50`}
               >
-                {actionLoading ? "Processing..." : "Confirm"}
+                {actionLoading ? t("admin.processingText") : t("admin.confirmBtn")}
               </button>
             </div>
           </div>

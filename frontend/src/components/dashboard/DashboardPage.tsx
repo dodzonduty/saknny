@@ -85,7 +85,7 @@ export const DashboardPage: React.FC = () => {
       <DashboardSidebar />
       
       {/* Main Content Area */}
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-7xl mx-auto grid grid-cols-12 gap-8">
           
           {/* Left Column */}
@@ -111,8 +111,8 @@ export const DashboardPage: React.FC = () => {
                       <div className="bg-emerald-50 text-emerald-800 p-6 rounded-xl shadow-soft flex items-center gap-4">
                         <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                         <div>
-                          <p className="font-bold text-lg">Successfully Uploaded</p>
-                          <p className="text-sm mt-1">Please go to <a href="/dashboard/verification" className="underline font-bold">My Verifications</a> to Resubmit your application.</p>
+                          <p className="font-bold text-lg">{t("dashboardAdditions.successUpload")}</p>
+                          <p className="text-sm mt-1">{t("dashboardAdditions.successUploadDesc").replace("My Verifications", "")} <a href="/dashboard/verification" className="underline font-bold">{t("dashboard.sidebarVerification")}</a></p>
                         </div>
                       </div>
                     );
@@ -123,8 +123,8 @@ export const DashboardPage: React.FC = () => {
                       <div className="bg-orange-50 text-orange-900 p-6 rounded-xl shadow-soft flex items-center gap-4 border border-orange-200">
                         <span className="material-symbols-outlined text-3xl">warning</span>
                         <div>
-                          <p className="font-bold text-lg">Action Required</p>
-                          <p className="text-sm mt-1">Please go to <a href="/dashboard/verification" className="underline font-bold">My Verifications</a> to see what needs to be fixed and Resubmit.</p>
+                          <p className="font-bold text-lg">{t("dashboardAdditions.actionRequired")}</p>
+                          <p className="text-sm mt-1">{t("dashboardAdditions.actionRequiredDesc").replace("My Verifications", "")} <a href="/dashboard/verification" className="underline font-bold">{t("dashboard.sidebarVerification")}</a></p>
                         </div>
                       </div>
                     );
@@ -150,7 +150,7 @@ export const DashboardPage: React.FC = () => {
             {/* Documents List */}
             {documents.length > 0 && (
               <section className="mb-8">
-                <h3 className="text-xl font-bold text-primary font-headline mb-4">Your Documents</h3>
+                <h3 className="text-xl font-bold text-primary font-headline mb-4">{t("dashboardAdditions.yourDocuments")}</h3>
                 <div className="flex flex-col gap-4">
                   {documents.map((doc) => (
                     <div key={doc.doc_id} className="bg-white rounded-xl shadow-soft p-5 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between border border-transparent hover:border-outline-variant/30 transition-colors">
@@ -163,16 +163,16 @@ export const DashboardPage: React.FC = () => {
                         <div>
                           <div className="flex items-center gap-2">
                             <h4 className="font-bold text-on-surface">
-                              {doc.doc_type === "college_id" ? "College ID" : doc.doc_type === "enrollment_proof" ? "Enrollment Proof" : doc.doc_type}
+                              {doc.doc_type === "college_id" ? t("dashboardAdditions.collegeId") : doc.doc_type === "enrollment_proof" ? t("dashboardAdditions.enrollmentProof") : doc.doc_type}
                             </h4>
                             {doc.is_flagged && (
                               <span className="bg-orange-50 text-orange-800 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded">
-                                Flagged
+                                {t("dashboardAdditions.flagged")}
                               </span>
                             )}
                           </div>
                           <p className="text-xs text-on-surface-variant mt-1">
-                            Uploaded: {new Date(doc.created_at).toLocaleDateString()}
+                            {t("dashboardAdditions.uploaded")}: {new Date(doc.created_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -186,12 +186,12 @@ export const DashboardPage: React.FC = () => {
                             {doc.status}
                           </span>
                           <a href={doc.file_url} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary hover:underline flex items-center gap-1">
-                            View File <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                            {t("dashboardAdditions.viewFile")} <span className="material-symbols-outlined text-[16px]">open_in_new</span>
                           </a>
                         </div>
                         {doc.status === 'rejected' && doc.rejection_reason && (
                           <p className="text-xs text-error font-semibold max-w-xs text-right mt-1">
-                            Reason: {doc.rejection_reason}
+                            {t("dashboardAdditions.reason")}: {doc.rejection_reason}
                           </p>
                         )}
                       </div>
@@ -209,7 +209,7 @@ export const DashboardPage: React.FC = () => {
                 iconTextColor="text-primary"
                 title={t("dashboard.myApplication")}
                 description={t("dashboard.myApplicationDesc")}
-                linkText="Review Details"
+                linkText={t("dashboardAdditions.reviewDetails")}
                 href="/dashboard/applications"
                 badge="Active"
                 badgeBgColor="bg-tertiary-fixed"
@@ -222,7 +222,7 @@ export const DashboardPage: React.FC = () => {
                 iconTextColor="text-orange-900"
                 title={t("dashboard.findHousing")}
                 description={t("dashboard.findHousingDesc")}
-                linkText="Explore Map"
+                linkText={t("dashboardAdditions.exploreMap")}
                 href="/dashboard/catalog"
               />
               
@@ -232,7 +232,7 @@ export const DashboardPage: React.FC = () => {
                 iconTextColor="text-emerald-900"
                 title={t("dashboard.roommateMatching")}
                 description={t("dashboard.roommateMatchingDesc")}
-                linkText="View Potential Matches"
+                linkText={t("dashboardAdditions.viewMatches")}
                 badge="82% Matched"
                 badgeBgColor="bg-transparent"
                 badgeTextColor="text-on-surface-variant"
@@ -244,7 +244,7 @@ export const DashboardPage: React.FC = () => {
                 iconTextColor="text-purple-900"
                 title={t("dashboard.maintenanceRequest")}
                 description={t("dashboard.maintenanceDesc")}
-                linkText="New Ticket"
+                linkText={t("dashboardAdditions.newTicket")}
                 href="/dashboard/maintenance"
               />
             </section>

@@ -61,10 +61,10 @@ export default function AdminAuditPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black tracking-tight text-primary font-headline">
-              Audit Logs
+              {t("admin.auditLogsTitle")}
             </h1>
             <p className="text-sm text-on-surface-variant">
-              System-wide immutable ledger of all administrative and student actions.
+              {t("admin.auditLogsSubtitle")}
             </p>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function AdminAuditPage() {
           className="bg-surface-container-low text-on-surface px-4 py-2 rounded-lg font-bold hover:bg-surface-container-high transition-colors flex items-center gap-2"
         >
           <span className="material-symbols-outlined text-[18px]">refresh</span>
-          Refresh Logs
+          {t("admin.refreshLogs")}
         </button>
       </div>
 
@@ -85,8 +85,8 @@ export default function AdminAuditPage() {
       ) : logs.length === 0 ? (
         <div className="bg-white shadow-soft rounded-2xl p-12 text-center">
           <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">history</span>
-          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">No Logs Found</h3>
-          <p className="text-on-surface-variant">The audit trail is currently empty.</p>
+          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("admin.noLogsFound")}</h3>
+          <p className="text-on-surface-variant">{t("admin.auditTrailEmpty")}</p>
         </div>
       ) : (
         <div className="bg-white shadow-soft rounded-2xl border border-transparent overflow-hidden">
@@ -95,11 +95,11 @@ export default function AdminAuditPage() {
               <thead className="bg-surface-container-lowest border-b-2 border-outline-variant/30">
                 <tr>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">ID</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Actor</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Action</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Target Entity</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Timestamp</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">Details</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.actorCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.actionCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.targetEntityCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.timestampCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">{t("admin.detailsCol")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
@@ -135,7 +135,7 @@ export default function AdminAuditPage() {
                           onClick={() => setExpandedId(expandedId === log.audit_id ? null : log.audit_id)}
                           className="bg-surface-container-lowest border border-outline-variant/50 text-on-surface px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-surface-container-low transition-colors"
                         >
-                          {expandedId === log.audit_id ? "Hide State" : "View State"}
+                          {expandedId === log.audit_id ? t("admin.hideState") : t("admin.viewState")}
                         </button>
                       </td>
                     </tr>
@@ -145,13 +145,13 @@ export default function AdminAuditPage() {
                         <td colSpan={6} className="px-6 py-6 border-l-4 border-primary">
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                              <h5 className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-2">Before State</h5>
+                              <h5 className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-2">{t("admin.beforeState")}</h5>
                               <pre className="bg-surface-container-low p-4 rounded-xl text-xs font-mono text-on-surface overflow-x-auto border border-outline-variant/30">
                                 {log.before_state ? JSON.stringify(log.before_state, null, 2) : "null"}
                               </pre>
                             </div>
                             <div>
-                              <h5 className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-2">After State</h5>
+                              <h5 className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-2">{t("admin.afterState")}</h5>
                               <pre className="bg-surface-container-low p-4 rounded-xl text-xs font-mono text-emerald-700 overflow-x-auto border border-emerald-200">
                                 {log.after_state ? JSON.stringify(log.after_state, null, 2) : "null"}
                               </pre>

@@ -65,13 +65,13 @@ export default function AdminDashboardPage() {
       <div className="bg-gradient-to-r from-primary to-blue-800 rounded-2xl p-8 text-white shadow-soft relative overflow-hidden">
         <div className="relative z-10">
           <div className="inline-block bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-            Administrator
+            {t("admin.role")}
           </div>
           <h1 className="text-3xl font-black tracking-tight mb-2 font-headline">
-            System Overview
+            {t("admin.overviewTitle")}
           </h1>
           <p className="text-blue-100 max-w-xl">
-            Monitor real-time housing metrics, track occupancy, and review pending administrative tasks across the Sakny portal.
+            {t("admin.overviewSubtitle")}
           </p>
         </div>
         <span className="material-symbols-outlined absolute -right-4 -bottom-10 text-[180px] text-white/5 pointer-events-none transform -rotate-12">
@@ -90,53 +90,53 @@ export default function AdminDashboardPage() {
             <div className="bg-white rounded-2xl p-6 shadow-soft border border-transparent">
               <div className="flex items-center gap-3 mb-2 text-on-surface-variant">
                 <span className="material-symbols-outlined text-emerald-500">pie_chart</span>
-                <span className="text-sm font-bold uppercase tracking-widest">Occupancy Rate</span>
+                <span className="text-sm font-bold uppercase tracking-widest">{t("admin.occupancyRate")}</span>
               </div>
               <div className="text-4xl font-black text-on-surface">{data.occupancy_rate}%</div>
-              <div className="mt-2 text-xs font-medium text-outline-variant">Target: 95%</div>
+              <div className="mt-2 text-xs font-medium text-outline-variant">{t("admin.target")}: 95%</div>
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-soft border border-transparent">
               <div className="flex items-center gap-3 mb-2 text-on-surface-variant">
                 <span className="material-symbols-outlined text-blue-500">king_bed</span>
-                <span className="text-sm font-bold uppercase tracking-widest">Available Beds</span>
+                <span className="text-sm font-bold uppercase tracking-widest">{t("admin.availableBeds")}</span>
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.total_available_beds} <span className="text-lg font-bold text-outline-variant">/ {data.total_beds}</span>
               </div>
-              <div className="mt-2 text-xs font-medium text-outline-variant">Across {data.total_rooms} rooms</div>
+              <div className="mt-2 text-xs font-medium text-outline-variant">{t("admin.acrossRooms").replace("{rooms}", data.total_rooms.toString())}</div>
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-soft border border-transparent">
               <div className="flex items-center gap-3 mb-2 text-on-surface-variant">
                 <span className="material-symbols-outlined text-primary">assignment_turned_in</span>
-                <span className="text-sm font-bold uppercase tracking-widest">Active Allocations</span>
+                <span className="text-sm font-bold uppercase tracking-widest">{t("admin.activeAllocations")}</span>
               </div>
               <div className="text-4xl font-black text-on-surface">{data.active_allocations}</div>
-              <div className="mt-2 text-xs font-medium text-outline-variant">Students assigned</div>
+              <div className="mt-2 text-xs font-medium text-outline-variant">{t("admin.studentsAssigned")}</div>
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-soft border border-transparent border-t-4 border-t-orange-400">
               <div className="flex items-center gap-3 mb-2 text-on-surface-variant">
                 <span className="material-symbols-outlined text-orange-500">home_repair_service</span>
-                <span className="text-sm font-bold uppercase tracking-widest">Open Tickets</span>
+                <span className="text-sm font-bold uppercase tracking-widest">{t("admin.openTickets")}</span>
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.tickets.open || 0}
               </div>
-              <div className="mt-2 text-xs font-medium text-outline-variant">Requires attention</div>
+              <div className="mt-2 text-xs font-medium text-outline-variant">{t("admin.requiresAttention")}</div>
             </div>
 
             <Link href="/admin/reports" className="block">
               <div className="bg-white rounded-2xl p-6 shadow-soft border border-transparent border-t-4 border-t-error hover:shadow-md transition-all cursor-pointer h-full">
                 <div className="flex items-center gap-3 mb-2 text-on-surface-variant">
                   <span className="material-symbols-outlined text-error">event_busy</span>
-                  <span className="text-sm font-bold uppercase tracking-widest truncate">Missed Attendance</span>
+                  <span className="text-sm font-bold uppercase tracking-widest truncate">{t("admin.missedAttendance")}</span>
                 </div>
                 <div className="text-4xl font-black text-on-surface">
                   {missedAttendance !== null ? missedAttendance : '-'}
                 </div>
-                <div className="mt-2 text-xs font-medium text-outline-variant">Today's absent students</div>
+                <div className="mt-2 text-xs font-medium text-outline-variant">{t("admin.todaysAbsent")}</div>
               </div>
             </Link>
           </div>
@@ -147,12 +147,12 @@ export default function AdminDashboardPage() {
             {/* Applications Breakdown */}
             <div className="bg-white rounded-2xl shadow-soft p-6 border border-transparent">
               <h3 className="text-lg font-bold text-on-surface mb-6 font-headline flex items-center justify-between">
-                <span>Housing Applications</span>
-                <Link href="/admin/applications" className="text-xs font-bold text-primary hover:underline">View All</Link>
+                <span>{t("admin.housingApps")}</span>
+                <Link href="/admin/applications" className="text-xs font-bold text-primary hover:underline">{t("admin.viewAll")}</Link>
               </h3>
               <div className="space-y-4">
                 {Object.entries(data.applications).length === 0 ? (
-                  <div className="text-sm text-outline-variant">No applications yet.</div>
+                  <div className="text-sm text-outline-variant">{t("admin.noApps")}</div>
                 ) : (
                   Object.entries(data.applications).map(([status, count]) => (
                     <div key={status} className="flex justify-between items-center">
@@ -173,12 +173,12 @@ export default function AdminDashboardPage() {
             {/* Payments Breakdown */}
             <div className="bg-white rounded-2xl shadow-soft p-6 border border-transparent">
               <h3 className="text-lg font-bold text-on-surface mb-6 font-headline flex items-center justify-between">
-                <span>Payment Status</span>
-                <Link href="/admin/billing" className="text-xs font-bold text-primary hover:underline">View All</Link>
+                <span>{t("admin.paymentStatus")}</span>
+                <Link href="/admin/billing" className="text-xs font-bold text-primary hover:underline">{t("admin.viewAll")}</Link>
               </h3>
               <div className="space-y-4">
                 {Object.entries(data.payments).length === 0 ? (
-                  <div className="text-sm text-outline-variant">No payments yet.</div>
+                  <div className="text-sm text-outline-variant">{t("admin.noPayments")}</div>
                 ) : (
                   Object.entries(data.payments).map(([status, count]) => (
                     <div key={status} className="flex justify-between items-center">
@@ -199,12 +199,12 @@ export default function AdminDashboardPage() {
             {/* Tickets Breakdown */}
             <div className="bg-white rounded-2xl shadow-soft p-6 border border-transparent">
               <h3 className="text-lg font-bold text-on-surface mb-6 font-headline flex items-center justify-between">
-                <span>Maintenance</span>
-                <Link href="/admin/maintenance" className="text-xs font-bold text-primary hover:underline">View All</Link>
+                <span>{t("admin.maintenance")}</span>
+                <Link href="/admin/maintenance" className="text-xs font-bold text-primary hover:underline">{t("admin.viewAll")}</Link>
               </h3>
               <div className="space-y-4">
                 {Object.entries(data.tickets).length === 0 ? (
-                  <div className="text-sm text-outline-variant">No tickets yet.</div>
+                  <div className="text-sm text-outline-variant">{t("admin.noTickets")}</div>
                 ) : (
                   Object.entries(data.tickets).map(([status, count]) => (
                     <div key={status} className="flex justify-between items-center">

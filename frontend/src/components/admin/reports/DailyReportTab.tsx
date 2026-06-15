@@ -48,7 +48,10 @@ interface DailyReportResponse {
   }[];
 }
 
+import { useTranslation } from "@/i18n/useTranslation";
+
 export const DailyReportTab: React.FC = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
   const [data, setData] = useState<DailyReportResponse | null>(null);
 
@@ -107,9 +110,9 @@ export const DailyReportTab: React.FC = () => {
         <>
           <div className="flex items-center justify-between bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
             <div>
-              <h2 className="text-xl font-bold text-on-surface">Daily Report</h2>
+              <h2 className="text-xl font-bold text-on-surface">{t("dailyReport.dailyTitle")}</h2>
               <p className="text-on-surface-variant text-sm mt-1">
-                Displaying attendance for: <span className="font-semibold text-primary">{data.summary.target_date}</span>
+                {t("dailyReport.displayingFor")} <span className="font-semibold text-primary">{data.summary.target_date}</span>
               </p>
             </div>
           </div>
@@ -118,7 +121,7 @@ export const DailyReportTab: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
               <div className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-2">
-                Total Students
+                {t("dailyReport.totalStudents")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.total_allocated}
@@ -126,7 +129,7 @@ export const DailyReportTab: React.FC = () => {
             </div>
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-success">
               <div className="text-sm font-bold uppercase tracking-widest text-success mb-2">
-                Attended
+                {t("dailyReport.attended")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.attended}
@@ -134,7 +137,7 @@ export const DailyReportTab: React.FC = () => {
             </div>
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-error">
               <div className="text-sm font-bold uppercase tracking-widest text-error mb-2">
-                Missed
+                {t("dailyReport.missed")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.missed}
@@ -145,9 +148,9 @@ export const DailyReportTab: React.FC = () => {
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant h-[400px] flex flex-col">
-              <h3 className="text-lg font-bold text-on-surface mb-6">Building Attendance Rates (%)</h3>
+              <h3 className="text-lg font-bold text-on-surface mb-6">{t("dailyReport.buildingRates")}</h3>
               {data.building_rates.length === 0 ? (
-                <div className="flex-grow flex items-center justify-center text-outline-variant">No building data</div>
+                <div className="flex-grow flex items-center justify-center text-outline-variant">{t("dailyReport.noBuildingData")}</div>
               ) : (
                 <div className="flex-grow min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -156,7 +159,7 @@ export const DailyReportTab: React.FC = () => {
                       <XAxis dataKey="building_name" tick={{ fontSize: 12 }} interval={0} angle={-45} textAnchor="end" />
                       <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
                       <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
-                      <Bar dataKey="rate" name="Attendance Rate %" radius={[4, 4, 0, 0]}>
+                      <Bar dataKey="rate" name={t("dailyReport.attendanceRate")} radius={[4, 4, 0, 0]}>
                         {data.building_rates.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.rate >= 80 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'} />
                         ))}
@@ -168,9 +171,9 @@ export const DailyReportTab: React.FC = () => {
             </div>
 
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant h-[400px] flex flex-col">
-              <h3 className="text-lg font-bold text-on-surface mb-6">Room Attendance Rates (%)</h3>
+              <h3 className="text-lg font-bold text-on-surface mb-6">{t("dailyReport.roomRates")}</h3>
               {data.room_rates.length === 0 ? (
-                <div className="flex-grow flex items-center justify-center text-outline-variant">No room data</div>
+                <div className="flex-grow flex items-center justify-center text-outline-variant">{t("dailyReport.noRoomData")}</div>
               ) : (
                 <div className="flex-grow min-h-0">
                   <ResponsiveContainer width="100%" height="100%">
@@ -179,7 +182,7 @@ export const DailyReportTab: React.FC = () => {
                       <XAxis dataKey="room_number" tick={{ fontSize: 12 }} interval={0} angle={-45} textAnchor="end" />
                       <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />
                       <RechartsTooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
-                      <Bar dataKey="rate" name="Attendance Rate %" radius={[4, 4, 0, 0]}>
+                      <Bar dataKey="rate" name={t("dailyReport.attendanceRate")} radius={[4, 4, 0, 0]}>
                         {data.room_rates.slice(0, 20).map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.rate >= 80 ? '#10b981' : entry.rate >= 50 ? '#f59e0b' : '#ef4444'} />
                         ))}
@@ -194,13 +197,13 @@ export const DailyReportTab: React.FC = () => {
           {/* Data Table */}
           <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
             <div className="p-6 border-b border-outline-variant flex items-center justify-between">
-              <h3 className="text-lg font-bold text-on-surface">Student Attendance Report</h3>
+              <h3 className="text-lg font-bold text-on-surface">{t("dailyReport.tableTitle")}</h3>
               <div className="flex gap-2">
                 <button onClick={handleExportCSV} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
-                  <span className="material-symbols-outlined text-sm">table_view</span> Excel
+                  <span className="material-symbols-outlined text-sm">table_view</span> {t("dailyReport.excel")}
                 </button>
                 <button onClick={handleExportPDF} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
-                  <span className="material-symbols-outlined text-sm">picture_as_pdf</span> PDF
+                  <span className="material-symbols-outlined text-sm">picture_as_pdf</span> {t("dailyReport.pdf")}
                 </button>
               </div>
             </div>
@@ -208,19 +211,19 @@ export const DailyReportTab: React.FC = () => {
               <table className="w-full text-left">
                 <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
                   <tr>
-                    <th className="px-6 py-4 font-semibold">Student</th>
-                    <th className="px-6 py-4 font-semibold">ID</th>
-                    <th className="px-6 py-4 font-semibold">Building</th>
-                    <th className="px-6 py-4 font-semibold">Room</th>
-                    <th className="px-6 py-4 font-semibold">Time</th>
-                    <th className="px-6 py-4 font-semibold">Status</th>
+                    <th className="px-6 py-4 font-semibold">{t("dailyReport.colStudent")}</th>
+                    <th className="px-6 py-4 font-semibold">{t("dailyReport.colId")}</th>
+                    <th className="px-6 py-4 font-semibold">{t("dailyReport.colBuilding")}</th>
+                    <th className="px-6 py-4 font-semibold">{t("dailyReport.colRoom")}</th>
+                    <th className="px-6 py-4 font-semibold">{t("dailyReport.colTime")}</th>
+                    <th className="px-6 py-4 font-semibold">{t("dailyReport.colStatus")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant text-sm">
                   {data.students.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-8 text-center text-outline-variant">
-                        No students found.
+                        {t("dailyReport.noStudents")}
                       </td>
                     </tr>
                   ) : (
@@ -241,7 +244,7 @@ export const DailyReportTab: React.FC = () => {
                               ? "bg-success-container text-success" 
                               : "bg-error-container text-error"
                           }`}>
-                            {student.status}
+                            {student.status === "attended" ? t("profileLog.statusAttended") : t("profileLog.statusMissed")}
                           </span>
                         </td>
                       </tr>

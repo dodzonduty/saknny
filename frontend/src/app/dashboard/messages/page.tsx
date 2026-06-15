@@ -108,7 +108,7 @@ export default function MessagesPage() {
       <DashboardNavbar />
       <DashboardSidebar />
 
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-4xl mx-auto space-y-8">
 
           <div className="flex items-center gap-4 mb-8">
@@ -116,17 +116,17 @@ export default function MessagesPage() {
               <span className="material-symbols-outlined text-2xl">chat</span>
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-primary font-headline">Messages</h1>
-              <p className="text-sm text-on-surface-variant">Send and receive messages with administrators.</p>
+              <h1 className="text-3xl font-black tracking-tight text-primary font-headline">{t("messages.messagesTitle")}</h1>
+              <p className="text-sm text-on-surface-variant">{t("messages.messagesDesc")}</p>
             </div>
           </div>
 
           {isAllocated === false ? (
             <div className="bg-surface rounded-2xl p-12 text-center shadow-sm border border-outline-variant">
               <span className="material-symbols-outlined text-6xl text-error/50">gpp_maybe</span>
-              <h3 className="text-xl font-bold text-on-surface mt-4">Not Allocated</h3>
+              <h3 className="text-xl font-bold text-on-surface mt-4">{t("messages.notAllocated")}</h3>
               <p className="text-on-surface-variant max-w-md mx-auto mt-2">
-                You must be allocated to a room before you can send or receive messages.
+                {t("messages.mustBeAllocatedDesc")}
               </p>
             </div>
           ) : (
@@ -135,10 +135,10 @@ export default function MessagesPage() {
               <div className="lg:col-span-2 bg-white shadow-soft rounded-2xl border border-transparent overflow-hidden">
                 <div className="bg-surface-container-lowest border-b-2 border-outline-variant/20 p-4 flex items-center justify-between">
                   <h3 className="font-bold text-on-surface text-sm">
-                    {threadWithRole ? `Thread with ${threadWithRole} #${threadWithId}` : "All Messages"}
+                    {threadWithRole ? `Thread with ${threadWithRole} #${threadWithId}` : t("messages.showAll")}
                   </h3>
                   {threadWithRole && (
-                    <button onClick={clearThread} className="text-xs font-bold text-primary hover:underline">Show All</button>
+                    <button onClick={clearThread} className="text-xs font-bold text-primary hover:underline">{t("messages.showAll")}</button>
                   )}
                 </div>
 
@@ -148,7 +148,7 @@ export default function MessagesPage() {
                   ) : messages.length === 0 ? (
                     <div className="text-center py-8">
                       <span className="material-symbols-outlined text-4xl text-outline-variant mb-2">forum</span>
-                      <p className="text-on-surface-variant text-sm">No messages yet.</p>
+                      <p className="text-on-surface-variant text-sm">{t("messages.noMessages")}</p>
                     </div>
                   ) : (
                     messages.map((msg) => {
@@ -171,26 +171,26 @@ export default function MessagesPage() {
 
               {/* Compose Area */}
               <div className="bg-white shadow-soft rounded-2xl p-6 border border-transparent">
-                <h3 className="font-bold text-on-surface mb-4 text-sm">Send Message</h3>
+                <h3 className="font-bold text-on-surface mb-4 text-sm">{t("messages.sendMessageButton")}</h3>
                 <form onSubmit={handleSend} className="space-y-4">
                   <div>
                     <label className="block text-xs font-bold text-outline-variant uppercase tracking-widest mb-1">To (Role)</label>
                     <select value={recipientRole} onChange={(e) => setRecipientRole(e.target.value)} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm focus:border-primary outline-none">
-                      <option value="admin">Admin</option>
-                      <option value="student">Student</option>
+                      <option value="admin">{t("messages.adminLabel")}</option>
+                      <option value="student">{t("messages.studentLabel")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-outline-variant uppercase tracking-widest mb-1">Recipient ID</label>
+                    <label className="block text-xs font-bold text-outline-variant uppercase tracking-widest mb-1">{t("messages.recipientId")}</label>
                     <input type="number" required value={recipientId} onChange={(e) => setRecipientId(e.target.value)} placeholder="e.g. 1" className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm focus:border-primary outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-outline-variant uppercase tracking-widest mb-1">Message</label>
-                    <textarea required value={body} onChange={(e) => setBody(e.target.value)} placeholder="Type your message..." rows={4} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm focus:border-primary outline-none resize-none" />
+                    <label className="block text-xs font-bold text-outline-variant uppercase tracking-widest mb-1">{t("messages.messagePlaceholder")}</label>
+                    <textarea required value={body} onChange={(e) => setBody(e.target.value)} placeholder="..." rows={4} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm focus:border-primary outline-none resize-none" />
                   </div>
                   <button type="submit" disabled={isSending} className="w-full bg-primary text-white rounded-xl py-3 font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
                     {isSending ? <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
-                    Send
+                    {t("messages.sendMessageButton")}
                   </button>
                 </form>
               </div>

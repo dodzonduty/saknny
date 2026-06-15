@@ -13,6 +13,8 @@ import {
   Legend
 } from "recharts";
 
+import { useTranslation } from "@/i18n/useTranslation";
+
 interface StudentLogReportResponse {
   summary: {
     period_days: number;
@@ -32,6 +34,7 @@ interface StudentLogReportResponse {
 }
 
 export const StudentLogReportTab: React.FC = () => {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   
   const [startDate, setStartDate] = useState<string>("");
@@ -145,18 +148,18 @@ export const StudentLogReportTab: React.FC = () => {
   };
 
   const chartData = data ? [
-    { name: "Attended", value: data.summary.attended, color: "#10b981" },
-    { name: "Missed", value: data.summary.missed, color: "#ef4444" }
+    { name: t("profileLog.statusAttended"), value: data.summary.attended, color: "#10b981" },
+    { name: t("profileLog.statusMissed"), value: data.summary.missed, color: "#ef4444" }
   ] : [];
 
   return (
     <div className="space-y-6">
       {/* Filters Multi-select form */}
       <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
-        <h3 className="text-lg font-bold text-on-surface mb-4">Report Filters</h3>
+        <h3 className="text-lg font-bold text-on-surface mb-4">{t("profileLog.filters")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-on-surface mb-1">Start Date</label>
+            <label className="block text-sm font-semibold text-on-surface mb-1">{t("profileLog.startDate")}</label>
             <input
               type="date"
               value={startDate}
@@ -165,7 +168,7 @@ export const StudentLogReportTab: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-on-surface mb-1">End Date</label>
+            <label className="block text-sm font-semibold text-on-surface mb-1">{t("profileLog.endDate")}</label>
             <input
               type="date"
               value={endDate}
@@ -238,7 +241,7 @@ export const StudentLogReportTab: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-success">
               <div className="text-sm font-bold uppercase tracking-widest text-success mb-2">
-                Attended Days
+                {t("profileLog.attendedDays")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.attended}
@@ -246,7 +249,7 @@ export const StudentLogReportTab: React.FC = () => {
             </div>
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-error">
               <div className="text-sm font-bold uppercase tracking-widest text-error mb-2">
-                Missed Days
+                {t("profileLog.missedDays")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.missed}
@@ -254,22 +257,22 @@ export const StudentLogReportTab: React.FC = () => {
             </div>
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-primary">
               <div className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
-                Overall Rate
+                {t("profileLog.overallRate")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.overall_rate}%
               </div>
-              <div className="mt-2 text-xs font-medium text-outline-variant">Across {data.summary.period_days} days</div>
+              <div className="mt-2 text-xs font-medium text-outline-variant">{t("profileLog.acrossDays").replace("{days}", data.summary.period_days.toString())}</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Chart */}
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant h-[350px] flex flex-col col-span-1 lg:col-span-1">
-              <h3 className="text-lg font-bold text-on-surface mb-2">Attendance Distribution</h3>
+              <h3 className="text-lg font-bold text-on-surface mb-2">{t("profileLog.distTitle")}</h3>
               <div className="flex-grow min-h-0">
                 {(data.summary.attended === 0 && data.summary.missed === 0) ? (
-                  <div className="h-full flex items-center justify-center text-outline-variant">No data available</div>
+                  <div className="h-full flex items-center justify-center text-outline-variant">{t("profileLog.noData")}</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -297,11 +300,10 @@ export const StudentLogReportTab: React.FC = () => {
             {/* Empty space or additional info area can go here if needed, but we'll use col-span-2 for some helpful text */}
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant col-span-1 lg:col-span-2 flex flex-col items-center justify-center text-center">
                 <span className="material-symbols-outlined text-6xl text-primary/50 mb-4">school</span>
-                <h3 className="text-lg font-bold text-on-surface mb-2">Student Log Active</h3>
+                <h3 className="text-lg font-bold text-on-surface mb-2">{t("profileLog.activeTitle")}</h3>
                 <p className="text-on-surface-variant max-w-md">
-                  This report shows exactly how many days a student attended or missed out of the 
-                  <span className="font-bold"> {data.summary.period_days} days</span> selected in the filters. 
-                  View the detailed log below for a day-by-day breakdown.
+                  {t("profileLog.activeDesc1")}
+                  <span className="font-bold"> {data.summary.period_days}</span> {t("profileLog.activeDesc2")}
                 </p>
             </div>
           </div>
@@ -310,7 +312,7 @@ export const StudentLogReportTab: React.FC = () => {
           {(studentId || studentName) ? (
             <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
               <div className="p-6 border-b border-outline-variant flex items-center justify-between">
-                <h3 className="text-lg font-bold text-on-surface">Detailed Logs</h3>
+                <h3 className="text-lg font-bold text-on-surface">{t("profileLog.adminTableTitle")}</h3>
                 <div className="flex gap-2">
                   <button onClick={handleExportCSV} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
                     <span className="material-symbols-outlined text-sm">table_view</span> Excel
@@ -324,21 +326,21 @@ export const StudentLogReportTab: React.FC = () => {
                 <table className="w-full text-left">
                   <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
                     <tr>
-                      <th className="px-6 py-4 font-semibold">Student Name</th>
-                      <th className="px-6 py-4 font-semibold">Student ID</th>
-                      <th className="px-6 py-4 font-semibold">Building</th>
-                      <th className="px-6 py-4 font-semibold">Room</th>
+                      <th className="px-6 py-4 font-semibold">{t("profileLog.colStudentName")}</th>
+                      <th className="px-6 py-4 font-semibold">{t("profileLog.colStudentId")}</th>
+                      <th className="px-6 py-4 font-semibold">{t("profileLog.colBuilding")}</th>
+                      <th className="px-6 py-4 font-semibold">{t("profileLog.colRoom")}</th>
                       <th 
                         className="px-6 py-4 font-semibold cursor-pointer hover:text-primary transition-colors flex items-center gap-1"
                         onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
                       >
-                        Day
+                        {t("profileLog.colDay")}
                         <span className="material-symbols-outlined text-sm">
                           {sortOrder === "asc" ? "arrow_upward" : "arrow_downward"}
                         </span>
                       </th>
-                      <th className="px-6 py-4 font-semibold">Time</th>
-                      <th className="px-6 py-4 font-semibold">Status</th>
+                      <th className="px-6 py-4 font-semibold">{t("profileLog.colTime")}</th>
+                      <th className="px-6 py-4 font-semibold">{t("profileLog.colStatus")}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant text-sm">
@@ -373,7 +375,7 @@ export const StudentLogReportTab: React.FC = () => {
                                 ? "bg-success-container text-success" 
                                 : "bg-error-container text-error"
                             }`}>
-                              {log.status}
+                              {log.status === "attended" ? t("profileLog.statusAttended") : t("profileLog.statusMissed")}
                             </span>
                           </td>
                         </tr>
@@ -386,8 +388,8 @@ export const StudentLogReportTab: React.FC = () => {
           ) : (
             <div className="bg-surface rounded-2xl p-8 shadow-sm border border-outline-variant text-center">
               <span className="material-symbols-outlined text-4xl text-outline-variant mb-2">table_view</span>
-              <h3 className="text-lg font-bold text-on-surface">Detailed Logs Hidden</h3>
-              <p className="text-on-surface-variant">Enter a specific Student ID or Student Name in the filters above to view the day-by-day table.</p>
+              <h3 className="text-lg font-bold text-on-surface">{t("profileLog.adminTableHiddenTitle")}</h3>
+              <p className="text-on-surface-variant">{t("profileLog.adminTableHiddenDesc")}</p>
             </div>
           )}
         </>

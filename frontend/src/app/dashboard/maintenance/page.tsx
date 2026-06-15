@@ -94,7 +94,7 @@ export default function StudentMaintenancePage() {
       <DashboardNavbar />
       <DashboardSidebar />
       
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-4xl mx-auto space-y-8">
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -118,7 +118,7 @@ export default function StudentMaintenancePage() {
                 className="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-soft"
               >
                 <span className="material-symbols-outlined">{showForm ? 'close' : 'add'}</span>
-                {showForm ? "Cancel" : t("maintenance.newRequest")}
+                {showForm ? t("dashboardAdditions.cancel") : t("maintenance.newRequest")}
               </button>
             )}
           </div>
@@ -126,16 +126,16 @@ export default function StudentMaintenancePage() {
           {isAllocated === false ? (
             <div className="bg-surface rounded-2xl p-12 text-center shadow-sm border border-outline-variant">
               <span className="material-symbols-outlined text-6xl text-error/50">gpp_maybe</span>
-              <h3 className="text-xl font-bold text-on-surface mt-4">Not Allocated</h3>
+              <h3 className="text-xl font-bold text-on-surface mt-4">{t("maintenance.notAllocated")}</h3>
               <p className="text-on-surface-variant max-w-md mx-auto mt-2">
-                You must be allocated to a room before you can submit maintenance requests.
+                {t("maintenance.mustBeAllocatedDesc")}
               </p>
             </div>
           ) : (
             <>
               {showForm && (
                 <div className="bg-white rounded-2xl shadow-soft p-8 border-l-4 border-primary mb-8">
-                  <h3 className="text-xl font-bold text-on-surface mb-6 font-headline">Submit a New Request</h3>
+                  <h3 className="text-xl font-bold text-on-surface mb-6 font-headline">{t("maintenance.submitNewRequest")}</h3>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                       <label className="block text-sm font-bold text-on-surface mb-2">{t("maintenance.titleLabel")}</label>
@@ -197,7 +197,7 @@ export default function StudentMaintenancePage() {
                     <span className="material-symbols-outlined text-4xl text-outline-variant">home_repair_service</span>
                   </div>
                   <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("maintenance.emptyState")}</h3>
-                  <p className="text-on-surface-variant">You have not submitted any maintenance requests.</p>
+                  <p className="text-on-surface-variant">{t("maintenance.noRequestsDesc")}</p>
                 </div>
               ) : (
                 <div className="space-y-4">

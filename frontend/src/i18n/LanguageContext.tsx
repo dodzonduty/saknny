@@ -26,18 +26,20 @@ const translations = {
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [locale, setLocaleState] = useState<Locale>("en");
 
-  // Load from local storage on mount (optional)
-  useEffect(() => {
-    const savedLocale = localStorage.getItem("locale") as Locale;
-    if (savedLocale === "en" || savedLocale === "ar") {
-      setLocaleState(savedLocale);
-    }
-  }, []);
-
   const setLocale = (newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem("locale", newLocale);
+    if (typeof document !== "undefined") {
+      document.documentElement.dir = newLocale === "ar" ? "rtl" : "ltr";
+      document.documentElement.lang = newLocale;
+    }
   };
+
+  // Load from local storage on mount (optional)
+  useEffect(() => {
+    const savedLocale = (localStorage.getItem("locale") as Locale) || "en";
+    setLocale(savedLocale);
+  }, []);
 
   const t = (key: string) => {
     const keys = key.split(".");
