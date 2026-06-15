@@ -21,6 +21,7 @@ export default function AdminVerificationReviewPage() {
   const router = useRouter();
   const params = useParams();
   const docId = params.docId as string;
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [doc, setDoc] = useState<any>(null);
