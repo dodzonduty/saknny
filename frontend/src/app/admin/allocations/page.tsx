@@ -210,10 +210,10 @@ export default function AdminAllocationsPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black tracking-tight text-primary font-headline">
-              {t("allocations.adminTitle")}
+              {t("admin.allocationsTitle")}
             </h1>
             <p className="text-sm text-on-surface-variant">
-              {t("allocations.adminSubtitle")}
+              {t("admin.allocationsSubtitle")}
             </p>
           </div>
         </div>
@@ -224,14 +224,14 @@ export default function AdminAllocationsPage() {
             className="bg-secondary-container text-on-secondary-container px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-soft"
           >
             <span className="material-symbols-outlined">auto_awesome</span>
-            {showAutoAssign ? "Cancel AI" : "AI Auto Assign"}
+            {showAutoAssign ? t("admin.cancelAi") : t("admin.aiAutoAssign")}
           </button>
           <button 
             onClick={() => { setShowManualForm(!showManualForm); setShowAutoAssign(false); }}
             className="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-soft"
           >
             <span className="material-symbols-outlined">add_task</span>
-            {showManualForm ? "Cancel Assignment" : t("allocations.manualAssign")}
+            {showManualForm ? t("admin.cancelAssignment") : t("admin.manualAssign")}
           </button>
         </div>
       </div>
@@ -246,27 +246,27 @@ export default function AdminAllocationsPage() {
           
           <div className="flex flex-wrap items-end gap-4 mb-6">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Target Dorm</label>
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">{t("admin.targetDorm")}</label>
               <select 
                 value={autoDormId}
                 onChange={e => setAutoDormId(e.target.value)}
                 className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-2 text-sm focus:border-secondary focus:ring-1 focus:ring-secondary outline-none"
               >
-                <option value="">Select Target Dorm...</option>
+                <option value="">{t("admin.selectTargetDorm")}</option>
                 {buildings.map(b => (
                   <option key={b.dorm_id} value={b.dorm_id}>{b.building_name}</option>
                 ))}
               </select>
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Meal Plan Default</label>
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">{t("admin.mealPlanDefault")}</label>
               <select 
                 value={plan}
                 onChange={e => setPlan(e.target.value)}
                 className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-2 text-sm focus:border-secondary outline-none"
               >
-                <option value="standard">Standard</option>
-                <option value="full_board">Full Board</option>
+                <option value="standard">{t("admin.standard")}</option>
+                <option value="full_board">{t("admin.fullBoard")}</option>
               </select>
             </div>
             <button 
@@ -276,16 +276,16 @@ export default function AdminAllocationsPage() {
               className="bg-secondary text-white px-6 py-2 h-[42px] rounded-xl font-bold transition-all hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
             >
               {autoLoading && !autoPreview ? <span className="material-symbols-outlined animate-spin text-sm">refresh</span> : null}
-              Generate Clusters
+              {t("admin.generateClusters")}
             </button>
           </div>
 
           {autoPreview && (
             <div className="mt-6 border-t border-outline-variant pt-6">
-              <h4 className="font-bold text-on-surface mb-4">Preview Assignments</h4>
+              <h4 className="font-bold text-on-surface mb-4">{t("admin.previewAssignments")}</h4>
               <div className="bg-surface-container-lowest rounded-xl p-4 max-h-60 overflow-y-auto border border-outline-variant mb-4">
                 {Object.keys(autoPreview).length === 0 ? (
-                  <p className="text-sm text-on-surface-variant">No compatible students or rooms available to assign.</p>
+                  <p className="text-sm text-on-surface-variant">{t("admin.noCompatible")}</p>
                 ) : (
                   <ul className="space-y-2">
                     {Object.entries(autoPreview).map(([clusterLabel, rId]) => {
@@ -293,7 +293,7 @@ export default function AdminAllocationsPage() {
                       return (
                         <li key={clusterLabel} className="text-sm flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                          Cluster {clusterLabel} &rarr; <span className="font-bold">{roomName}</span>
+                          {t("admin.cluster")} {clusterLabel} &rarr; <span className="font-bold">{roomName}</span>
                         </li>
                       );
                     })}
@@ -307,7 +307,7 @@ export default function AdminAllocationsPage() {
                 className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 disabled:opacity-50 transition-colors"
               >
                 {autoLoading ? <span className="material-symbols-outlined animate-spin text-sm">refresh</span> : <span className="material-symbols-outlined text-sm">check_circle</span>}
-                Confirm & Allocate
+                {t("admin.confirmAllocate")}
               </button>
             </div>
           )}
@@ -316,10 +316,10 @@ export default function AdminAllocationsPage() {
 
       {showManualForm && (
         <div className="bg-white rounded-2xl shadow-soft p-6 border-l-4 border-primary">
-          <h3 className="text-lg font-bold text-on-surface mb-4">Manual Room Assignment</h3>
+          <h3 className="text-lg font-bold text-on-surface mb-4">{t("admin.manualRoomAssign")}</h3>
           <form onSubmit={handleManualAssign} className="flex flex-wrap items-end gap-4">
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Application ID</label>
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">{t("admin.appIdLabel")}</label>
               <input 
                 type="number" 
                 required
@@ -330,14 +330,14 @@ export default function AdminAllocationsPage() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Room</label>
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">{t("admin.roomLabel")}</label>
               <select 
                 required
                 value={roomId}
                 onChange={e => setRoomId(e.target.value)}
                 className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
               >
-                <option value="">Select a room...</option>
+                <option value="">{t("admin.selectRoom")}</option>
                 {rooms
                   .filter(room => {
                     if (room.available_beds <= 0) return false;
@@ -355,14 +355,14 @@ export default function AdminAllocationsPage() {
               </select>
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Meal Plan</label>
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">{t("admin.mealPlan")}</label>
               <select 
                 value={plan}
                 onChange={e => setPlan(e.target.value)}
                 className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
               >
-                <option value="full_board">Full Board</option>
-                <option value="breakfast">Breakfast Only</option>
+                <option value="full_board">{t("admin.fullBoard")}</option>
+                <option value="breakfast">{t("admin.breakfastOnly")}</option>
               </select>
             </div>
             <button 
@@ -370,7 +370,7 @@ export default function AdminAllocationsPage() {
               disabled={actionLoading}
               className="bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-600 transition-colors disabled:opacity-50"
             >
-              {actionLoading ? "Assigning..." : "Assign Room"}
+              {actionLoading ? t("admin.assigning") : t("admin.assignRoom")}
             </button>
           </form>
         </div>
@@ -383,8 +383,8 @@ export default function AdminAllocationsPage() {
       ) : allocations.length === 0 ? (
         <div className="bg-white shadow-soft rounded-2xl p-12 text-center">
           <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">king_bed</span>
-          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">No Allocations Yet</h3>
-          <p className="text-on-surface-variant">There are currently no active room assignments.</p>
+          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("admin.noAllocations")}</h3>
+          <p className="text-on-surface-variant">{t("admin.noActiveAssign")}</p>
         </div>
       ) : (
         <div className="bg-white shadow-soft rounded-2xl border border-transparent overflow-hidden">

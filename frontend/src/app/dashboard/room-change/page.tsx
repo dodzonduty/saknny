@@ -69,7 +69,7 @@ export default function RoomChangePage() {
       <DashboardNavbar />
       <DashboardSidebar />
 
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-2xl mx-auto space-y-8">
 
           <div className="flex items-center gap-4 mb-8">
@@ -77,8 +77,8 @@ export default function RoomChangePage() {
               <span className="material-symbols-outlined text-2xl">swap_horiz</span>
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-primary font-headline">Room Change</h1>
-              <p className="text-sm text-on-surface-variant">Request a transfer to a different room or building.</p>
+              <h1 className="text-3xl font-black tracking-tight text-primary font-headline">{t("roomChange.roomChangeTitle")}</h1>
+              <p className="text-sm text-on-surface-variant">{t("roomChange.roomChangeDesc")}</p>
             </div>
           </div>
 
@@ -86,15 +86,15 @@ export default function RoomChangePage() {
             {successResult ? (
               <div className="text-center py-8">
                 <span className="material-symbols-outlined text-6xl text-emerald-500 mb-4">check_circle</span>
-                <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">Request Submitted</h3>
-                <p className="text-on-surface-variant mb-6">Your room change request has been sent to an administrator for review.</p>
+                <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("roomChange.requestSubmitted")}</h3>
+                <p className="text-on-surface-variant mb-6">{t("roomChange.requestSubmittedDesc")}</p>
                 <div className="bg-surface-container-lowest rounded-xl p-4 inline-flex gap-8">
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-widest text-outline-variant">Request ID</div>
+                    <div className="text-xs font-bold uppercase tracking-widest text-outline-variant">{t("roomChange.requestId")}</div>
                     <div className="text-lg font-black text-primary">#{successResult.request_id}</div>
                   </div>
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-widest text-outline-variant">Status</div>
+                    <div className="text-xs font-bold uppercase tracking-widest text-outline-variant">{t("roomChange.statusLabel")}</div>
                     <div className="text-lg font-black text-amber-700 capitalize">{successResult.status.replace("_", " ")}</div>
                   </div>
                 </div>
@@ -116,7 +116,7 @@ export default function RoomChangePage() {
                       onChange={(e) => setTargetBuildingId(e.target.value)}
                       className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl py-3 px-4 text-on-surface font-semibold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none transition-all"
                     >
-                      <option value="">No preference</option>
+                      <option value="">{t("roomChange.noPreference")}</option>
                       {buildings.map((b) => (
                         <option key={b.dorm_id} value={b.dorm_id}>{b.building_name}</option>
                       ))}
@@ -141,7 +141,7 @@ export default function RoomChangePage() {
                     className="w-full bg-primary text-white rounded-xl py-4 font-bold tracking-wide hover:opacity-90 transition-opacity disabled:opacity-70 flex justify-center items-center gap-2 shadow-soft"
                   >
                     {isSubmitting ? <span className="material-symbols-outlined animate-spin">refresh</span> : <span className="material-symbols-outlined">send</span>}
-                    Submit Request
+                    {t("maintenance.submit")}
                   </button>
                 </form>
               </>

@@ -84,8 +84,8 @@ export default function AdminSurveysPage() {
           <span className="material-symbols-outlined text-2xl">poll</span>
         </div>
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-primary font-headline">Survey Management</h1>
-          <p className="text-sm text-on-surface-variant">Create and distribute surveys to students.</p>
+          <h1 className="text-3xl font-black tracking-tight text-primary font-headline">{t("admin.surveyManagementTitle")}</h1>
+          <p className="text-sm text-on-surface-variant">{t("admin.surveyManagementSubtitle")}</p>
         </div>
       </div>
 
@@ -94,32 +94,32 @@ export default function AdminSurveysPage() {
         <div className="bg-white shadow-soft rounded-2xl p-8 border border-transparent">
           <h3 className="text-lg font-bold text-on-surface mb-6 font-headline flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">add_chart</span>
-            Create Survey
+            {t("admin.createSurveyTitle")}
           </h3>
 
           {createResult && (
             <div className="mb-4 p-3 rounded-lg bg-emerald-50 text-emerald-800 text-sm font-semibold flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px]">check_circle</span>
-              Survey #{createResult.survey_id} created!
+              {t("admin.surveyCreated").replace("{{id}}", createResult.survey_id.toString())}
             </div>
           )}
 
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">Title</label>
-              <input type="text" required value={surveyTitle} onChange={(e) => setSurveyTitle(e.target.value)} placeholder="Survey title..." className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
+              <label className="block text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">{t("admin.surveyTitleLabel")}</label>
+              <input type="text" required value={surveyTitle} onChange={(e) => setSurveyTitle(e.target.value)} placeholder={t("admin.surveyTitlePlaceholder")} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">Description</label>
-              <textarea value={surveyDesc} onChange={(e) => setSurveyDesc(e.target.value)} placeholder="Optional description..." rows={3} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm outline-none focus:border-primary resize-none" />
+              <label className="block text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">{t("admin.surveyDescLabel")}</label>
+              <textarea value={surveyDesc} onChange={(e) => setSurveyDesc(e.target.value)} placeholder={t("admin.surveyDescPlaceholder")} rows={3} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm outline-none focus:border-primary resize-none" />
             </div>
             <div className="flex items-center gap-2">
               <input type="checkbox" id="surveyActive" checked={surveyActive} onChange={(e) => setSurveyActive(e.target.checked)} className="w-4 h-4 accent-primary" />
-              <label htmlFor="surveyActive" className="text-sm font-semibold text-on-surface">Active</label>
+              <label htmlFor="surveyActive" className="text-sm font-semibold text-on-surface">{t("admin.surveyActiveLabel")}</label>
             </div>
             <button type="submit" disabled={createLoading} className="w-full bg-primary text-white rounded-xl py-3 font-bold hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2">
               {createLoading ? <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span> : <span className="material-symbols-outlined text-[18px]">add</span>}
-              Create Survey
+              {t("admin.createSurveyBtn")}
             </button>
           </form>
         </div>
@@ -128,29 +128,29 @@ export default function AdminSurveysPage() {
         <div className="bg-white shadow-soft rounded-2xl p-8 border border-transparent">
           <h3 className="text-lg font-bold text-on-surface mb-6 font-headline flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">send</span>
-            Dispatch Survey
+            {t("admin.dispatchSurveyTitle")}
           </h3>
 
           {dispatchResult && (
             <div className="mb-4 p-3 rounded-lg bg-emerald-50 text-emerald-800 text-sm font-semibold flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px]">check_circle</span>
-              Survey #{dispatchResult.survey_id} dispatched to {dispatchResult.dispatched_count} student(s)!
+              {t("admin.surveyDispatched").replace("{{surveyId}}", dispatchResult.survey_id.toString()).replace("{{count}}", dispatchResult.dispatched_count.toString())}
             </div>
           )}
 
           <form onSubmit={handleDispatch} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">Survey ID</label>
+              <label className="block text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">{t("admin.surveyIdLabel")}</label>
               <input type="number" required value={dispatchSurveyId} onChange={(e) => setDispatchSurveyId(e.target.value)} placeholder="e.g. 1" className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">Student IDs (comma-separated)</label>
-              <input type="text" value={dispatchStudentIds} onChange={(e) => setDispatchStudentIds(e.target.value)} placeholder="Leave empty for all students" className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
-              <p className="text-xs text-on-surface-variant mt-1">Leave blank to dispatch to all registered students.</p>
+              <label className="block text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">{t("admin.studentIdsLabel")}</label>
+              <input type="text" value={dispatchStudentIds} onChange={(e) => setDispatchStudentIds(e.target.value)} placeholder={t("admin.studentIdsPlaceholder")} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
+              <p className="text-xs text-on-surface-variant mt-1">{t("admin.studentIdsHint")}</p>
             </div>
             <button type="submit" disabled={dispatchLoading} className="w-full bg-emerald-500 text-white rounded-xl py-3 font-bold hover:bg-emerald-600 disabled:opacity-50 flex items-center justify-center gap-2">
               {dispatchLoading ? <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span> : <span className="material-symbols-outlined text-[18px]">send</span>}
-              Dispatch
+              {t("admin.dispatchBtn")}
             </button>
           </form>
         </div>

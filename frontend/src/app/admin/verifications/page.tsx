@@ -94,10 +94,10 @@ export default function AdminVerificationsPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black tracking-tight text-primary font-headline">
-              Document Verification
+              {t("admin.docVerificationTitle")}
             </h1>
             <p className="text-sm text-on-surface-variant">
-              Review and approve student identity and enrollment documents.
+              {t("admin.docVerificationSubtitle")}
             </p>
           </div>
         </div>
@@ -107,25 +107,25 @@ export default function AdminVerificationsPage() {
             onClick={() => setStatusFilter("pending")}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${statusFilter === 'pending' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
           >
-            Pending
+            {t("admin.pendingFilter")}
           </button>
           <button 
             onClick={() => setStatusFilter("incomplete")}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${statusFilter === 'incomplete' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
           >
-            Incomplete
+            {t("admin.incompleteFilter")}
           </button>
           <button 
             onClick={() => setStatusFilter("approved")}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${statusFilter === 'approved' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
           >
-            Approved
+            {t("admin.approvedFilter")}
           </button>
           <button 
             onClick={() => setStatusFilter("rejected")}
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${statusFilter === 'rejected' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-low'}`}
           >
-            Rejected
+            {t("admin.rejectedFilter")}
           </button>
         </div>
       </div>
@@ -137,8 +137,8 @@ export default function AdminVerificationsPage() {
       ) : documents.length === 0 ? (
         <div className="bg-white shadow-soft rounded-2xl p-12 text-center">
           <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">task</span>
-          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">All caught up!</h3>
-          <p className="text-on-surface-variant">No {statusFilter} verifications at the moment.</p>
+          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("admin.allCaughtUp")}</h3>
+          <p className="text-on-surface-variant">{t("admin.noVerificationsStatus").replace("{{status}}", statusFilter)}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -156,14 +156,14 @@ export default function AdminVerificationsPage() {
                     <h3 className="font-bold text-lg text-on-surface">{doc.student_name}</h3>
                     <span className="text-xs text-on-surface-variant font-medium">(ID: {doc.student_id})</span>
                     {doc.is_flagged && (
-                      <span className="bg-orange-50 text-orange-800 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded">Flagged</span>
+                      <span className="bg-orange-50 text-orange-800 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded">{t("admin.flaggedText")}</span>
                     )}
                   </div>
                   <div className="text-sm font-medium text-on-surface-variant">
-                    Type: <span className="uppercase">{doc.doc_type.replace("_", " ")}</span>
+                    {t("admin.typeText")} <span className="uppercase">{doc.doc_type.replace("_", " ")}</span>
                   </div>
                   <div className="text-xs text-outline-variant mt-1">
-                    Submitted: {new Date(doc.created_at).toLocaleString()}
+                    {t("admin.submittedText")} {new Date(doc.created_at).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function AdminVerificationsPage() {
                   className="bg-primary text-white text-sm font-bold px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
                 >
                   <span className="material-symbols-outlined text-[18px]">visibility</span>
-                  View
+                  {t("admin.viewBtn")}
                 </button>
               </div>
 

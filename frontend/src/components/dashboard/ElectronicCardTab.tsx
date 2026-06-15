@@ -98,9 +98,9 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
     return (
       <div className="bg-surface rounded-2xl p-8 shadow-sm border border-outline-variant text-center space-y-4">
         <span className="material-symbols-outlined text-6xl text-error/50">block</span>
-        <h3 className="text-xl font-bold text-on-surface">Card Unavailable</h3>
+        <h3 className="text-xl font-bold text-on-surface">{t("dashboardAdditions.cardUnavailable")}</h3>
         <p className="text-on-surface-variant max-w-md mx-auto">
-          You must be fully verified and allocated to a room before you can generate your electronic dormitory ID card.
+          {t("dashboardAdditions.cardUnavailableDesc")}
         </p>
       </div>
     );
@@ -113,8 +113,8 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
     <div className="space-y-8 max-w-2xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-black text-primary font-headline">Electronic ID Card</h2>
-          <p className="text-sm text-on-surface-variant mt-1">Use this card for building entry and restaurant access.</p>
+          <h2 className="text-2xl font-black text-primary font-headline">{t("dashboardAdditions.electronicIdCard")}</h2>
+          <p className="text-sm text-on-surface-variant mt-1">{t("dashboardAdditions.electronicIdCardDesc")}</p>
         </div>
         <button
           onClick={handleDownload}
@@ -122,7 +122,7 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
           className="bg-primary text-white font-bold py-2 px-6 rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
         >
           <span className="material-symbols-outlined">{downloading ? 'hourglass_top' : 'download'}</span>
-          {downloading ? 'Generating...' : 'Download PDF'}
+          {downloading ? t("dashboardAdditions.generating") : t("dashboardAdditions.downloadPdf")}
         </button>
       </div>
 
@@ -191,25 +191,25 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
 
               <div className="flex flex-col">
                 <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">اسم الطالب / Student Name</span>
-                <span className="text-xs font-bold text-on-surface leading-tight">{name || "Unknown"}</span>
+                <span className="text-xs font-bold text-on-surface leading-tight">{name || t("dashboardAdditions.unknown")}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-0.5">
                 <div className="flex flex-col">
                   <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">الكلية / Faculty</span>
-                  <span className="text-[10px] font-bold text-on-surface truncate">{faculty || "N/A"}</span>
+                  <span className="text-[10px] font-bold text-on-surface truncate">{faculty || t("dashboardAdditions.na")}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">الرقم الجامعي / Faculty ID</span>
-                  <span className="text-[10px] font-bold text-on-surface truncate font-mono">{facultyId || "N/A"}</span>
+                  <span className="text-[10px] font-bold text-on-surface truncate font-mono">{facultyId || t("dashboardAdditions.na")}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">الرقم القومي / National ID</span>
-                  <span className="text-[10px] font-bold text-on-surface truncate font-mono">{nationalityId || "N/A"}</span>
+                  <span className="text-[10px] font-bold text-on-surface truncate font-mono">{nationalityId || t("dashboardAdditions.na")}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">العنوان / Address</span>
-                  <span className="text-[10px] font-bold text-on-surface truncate">{homeCity || "N/A"}</span>
+                  <span className="text-[10px] font-bold text-on-surface truncate">{homeCity || t("dashboardAdditions.na")}</span>
                 </div>
               </div>
 
@@ -221,12 +221,12 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
              <div className="flex items-center gap-4">
                 <div className="flex flex-col">
                   <span className="text-[8px] font-bold uppercase text-primary tracking-wider">المبنى / Building</span>
-                  <span className="text-xs font-black text-on-surface">{allocation.building_name || "N/A"}</span>
+                  <span className="text-xs font-black text-on-surface">{allocation.building_name || t("dashboardAdditions.na")}</span>
                 </div>
                 <div className="w-px h-6 bg-blue-200/50"></div>
                 <div className="flex flex-col">
                   <span className="text-[8px] font-bold uppercase text-primary tracking-wider">رقم الغرفة / Room No.</span>
-                  <span className="text-xs font-black text-on-surface">{allocation.room_number || "N/A"}</span>
+                  <span className="text-xs font-black text-on-surface">{allocation.room_number || t("dashboardAdditions.na")}</span>
                 </div>
              </div>
              <div className="flex flex-col items-end">

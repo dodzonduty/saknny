@@ -7,8 +7,11 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DocumentStatusStepper } from "@/components/dashboard/DocumentStatusStepper";
 import { apiClient } from "@/services/api";
 
+import { useTranslation } from "@/i18n/useTranslation";
+
 export default function MyVerificationPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   
   const [isMounted, setIsMounted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -84,11 +87,11 @@ export default function MyVerificationPage() {
       <DashboardNavbar />
       <DashboardSidebar />
       
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-4xl mx-auto space-y-8">
           
           <h1 className="text-3xl font-black tracking-tight text-primary font-headline">
-            My Verification
+            {t("verification.title")}
           </h1>
 
           {loading ? (
@@ -96,13 +99,13 @@ export default function MyVerificationPage() {
           ) : !latestDoc ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-soft">
               <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">description</span>
-              <h2 className="text-xl font-bold mb-2">No Verification Document Found</h2>
-              <p className="text-on-surface-variant mb-6">Please upload your verification document from the home dashboard.</p>
+              <h2 className="text-xl font-bold mb-2">{t("verification.noDocument")}</h2>
+              <p className="text-on-surface-variant mb-6">{t("verification.uploadFromDashboard")}</p>
               <button 
                 onClick={() => router.push("/dashboard")}
                 className="bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary/90 transition-colors"
               >
-                Go to Dashboard
+                {t("verification.goToDashboard")}
               </button>
             </div>
           ) : (
@@ -110,8 +113,8 @@ export default function MyVerificationPage() {
               <div className="bg-white rounded-2xl p-8 shadow-soft">
                 <div className="flex items-center justify-between mb-8">
                   <div>
-                    <h2 className="text-2xl font-bold">Current Status</h2>
-                    <p className="text-sm text-on-surface-variant mt-1">Uploaded on {new Date(latestDoc.created_at).toLocaleDateString()}</p>
+                    <h2 className="text-2xl font-bold">{t("verification.currentStatus")}</h2>
+                    <p className="text-sm text-on-surface-variant mt-1">{t("verification.uploadedOn")} {new Date(latestDoc.created_at).toLocaleDateString()}</p>
                   </div>
                   <span className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${
                     latestDoc.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
@@ -125,19 +128,19 @@ export default function MyVerificationPage() {
 
                 {latestDoc.status === "rejected" && (
                   <div className="bg-error-container text-on-error-container p-6 rounded-xl border border-error/20 mb-8">
-                    <h3 className="font-bold mb-2 flex items-center gap-2"><span className="material-symbols-outlined">cancel</span> Application Rejected</h3>
+                    <h3 className="font-bold mb-2 flex items-center gap-2"><span className="material-symbols-outlined">cancel</span> {t("verification.appRejected")}</h3>
                     <p className="text-sm">{latestDoc.rejection_reason}</p>
-                    <p className="text-xs font-bold mt-4 opacity-80">This decision is final and your profile cannot be edited.</p>
+                    <p className="text-xs font-bold mt-4 opacity-80">{t("verification.decisionFinal")}</p>
                   </div>
                 )}
 
                 {latestDoc.status === "incomplete" && (
                   <div className="bg-orange-50 text-orange-900 p-6 rounded-xl border border-orange-200 mb-8">
-                    <h3 className="font-bold mb-2 flex items-center gap-2 text-orange-800"><span className="material-symbols-outlined">warning</span> Action Required</h3>
+                    <h3 className="font-bold mb-2 flex items-center gap-2 text-orange-800"><span className="material-symbols-outlined">warning</span> {t("verification.actionRequired")}</h3>
                     <p className="text-sm font-medium mb-4">{latestDoc.rejection_reason}</p>
                     
                     <div className="bg-white/60 p-4 rounded-lg mb-6">
-                      <p className="text-xs font-bold uppercase tracking-wider mb-3 text-orange-800">Fields to Update:</p>
+                      <p className="text-xs font-bold uppercase tracking-wider mb-3 text-orange-800">{t("verification.fieldsToUpdate")}</p>
                       <ul className="list-disc list-inside text-sm space-y-1">
                         {latestDoc.fields_to_edit?.map((field: string) => (
                           <li key={field} className="font-medium">{field.replace(/_/g, " ")}</li>
@@ -145,7 +148,7 @@ export default function MyVerificationPage() {
                       </ul>
                     </div>
                     
-                    <p className="text-sm mb-4">Please go to your Profile to update these fields, or to the Dashboard if you need to re-upload your document. Once you have made all requested changes, click Resubmit below.</p>
+                    <p className="text-sm mb-4">{t("verification.updateInstructions")}</p>
                     
                     {errorMsg && (
                       <div className="bg-error-container text-on-error-container p-4 rounded-xl mb-4 text-sm font-bold flex items-center gap-2 border border-error/20">
@@ -159,14 +162,14 @@ export default function MyVerificationPage() {
                         onClick={() => router.push("/dashboard/profile")}
                         className="bg-white text-orange-800 font-bold py-2 px-6 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors"
                       >
-                        Edit Profile
+                        {t("verification.editProfile")}
                       </button>
                       <button 
                         onClick={handleResubmit}
                         className="bg-orange-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2"
                       >
                         <span className="material-symbols-outlined text-[18px]">send</span>
-                        Resubmit Application
+                        {t("verification.resubmitApp")}
                       </button>
                     </div>
                   </div>
@@ -174,22 +177,22 @@ export default function MyVerificationPage() {
 
                 {latestDoc.status === "pending" && (
                   <div className="bg-blue-50 text-blue-900 p-6 rounded-xl border border-blue-200 mb-8">
-                    <h3 className="font-bold mb-2 flex items-center gap-2 text-blue-800"><span className="material-symbols-outlined">info</span> Under Review</h3>
-                    <p className="text-sm">Your application is currently being reviewed by our administration team. This usually takes 1-2 business days. We will notify you once a decision has been made.</p>
+                    <h3 className="font-bold mb-2 flex items-center gap-2 text-blue-800"><span className="material-symbols-outlined">info</span> {t("verification.underReview")}</h3>
+                    <p className="text-sm">{t("verification.reviewDesc")}</p>
                   </div>
                 )}
                 
                 {latestDoc.status === "approved" && (
                   <div className="bg-emerald-50 text-emerald-900 p-6 rounded-xl border border-emerald-200 mb-8">
-                    <h3 className="font-bold mb-2 flex items-center gap-2 text-emerald-800"><span className="material-symbols-outlined">verified</span> Verification Approved</h3>
-                    <p className="text-sm">Congratulations! Your verification has been approved. You are now eligible to apply for housing.</p>
+                    <h3 className="font-bold mb-2 flex items-center gap-2 text-emerald-800"><span className="material-symbols-outlined">verified</span> {t("verification.verifApproved")}</h3>
+                    <p className="text-sm">{t("verification.approvedDesc")}</p>
                   </div>
                 )}
                 
-                <h3 className="text-lg font-bold mb-4 border-t border-outline-variant/30 pt-6">Submitted Document</h3>
+                <h3 className="text-lg font-bold mb-4 border-t border-outline-variant/30 pt-6">{t("verification.submittedDoc")}</h3>
                 {latestDoc.file_url.endsWith(".pdf") ? (
                   <a href={latestDoc.file_url} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 bg-surface-variant text-on-surface py-4 rounded-xl font-bold hover:bg-surface-container-highest">
-                    <span className="material-symbols-outlined">picture_as_pdf</span> View PDF Document
+                    <span className="material-symbols-outlined">picture_as_pdf</span> {t("verification.viewPdf")}
                   </a>
                 ) : (
                   <a href={latestDoc.file_url} target="_blank" rel="noreferrer" className="block max-w-sm rounded-xl overflow-hidden border border-outline-variant/30 hover:opacity-90">

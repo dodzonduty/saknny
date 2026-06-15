@@ -140,13 +140,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     }
 
     if (!formData.nationality_id || formData.nationality_id.length !== 14) {
-      newErrors.nationality_id = "Nationality ID must be exactly 14 digits";
+      newErrors.nationality_id = t("auth.errors.nationalityIdLen");
     }
-    if (!formData.faculty) newErrors.faculty = "Faculty is required";
+    if (!formData.faculty) newErrors.faculty = t("auth.errors.facultyRequired");
     
-    if (!files.profile_picture) newErrors.profile_picture = "Profile picture is required";
-    if (!files.nationality_id_photo_front) newErrors.nationality_id_photo_front = "National ID Front is required";
-    if (!files.nationality_id_photo_back) newErrors.nationality_id_photo_back = "National ID Back is required";
+    if (!files.profile_picture) newErrors.profile_picture = t("auth.errors.profilePicRequired");
+    if (!files.nationality_id_photo_front) newErrors.nationality_id_photo_front = t("auth.errors.nationalIdFrontRequired");
+    if (!files.nationality_id_photo_back) newErrors.nationality_id_photo_back = t("auth.errors.nationalIdBackRequired");
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -177,12 +177,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     setIsSubmitting(false);
 
     if (response.success) {
-      setSuccessMessage("Account created successfully! Please sign in.");
+      setSuccessMessage(t("auth.registerSuccess"));
       setTimeout(() => {
           onSwitchToLogin();
       }, 2000);
     } else {
-      setApiError(response.error || "Registration failed");
+      setApiError(response.error || t("auth.registerFailed"));
     }
   };
 
@@ -280,7 +280,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
             id="nationality_id"
             name="nationality_id"
             type="text"
-            label="Nationality ID"
+            label={t("auth.fields.nationalityId")}
             icon="pin"
             value={formData.nationality_id}
             onChange={(e) => {
@@ -297,7 +297,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
             id="faculty"
             name="faculty"
             type="text"
-            label="Faculty Name"
+            label={t("auth.fields.faculty")}
             icon="school"
             value={formData.faculty}
             onChange={handleChange}
@@ -335,31 +335,31 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
       </div>
 
       <div className="flex flex-col gap-4 mt-2">
-        <h3 className="text-lg font-bold text-primary font-headline border-b border-outline-variant/30 pb-2">Required Documents</h3>
-        <p className="text-xs text-on-surface-variant -mt-2 mb-2">Upload these images to verify your identity. Only images (JPG, PNG) are allowed.</p>
+        <h3 className="text-lg font-bold text-primary font-headline border-b border-outline-variant/30 pb-2">{t("auth.documentsTitle")}</h3>
+        <p className="text-xs text-on-surface-variant -mt-2 mb-2">{t("auth.documentsDesc")}</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
             {renderFileUpload(
               "profile_picture", 
-              "Profile Picture *", 
+              t("auth.profilePictureLabel"), 
               "face", 
-              "Upload a clear, recent photo of your face", 
+              t("auth.profilePictureDesc"), 
               fileInputRefs.profile_picture
             )}
           </div>
           {renderFileUpload(
             "nationality_id_photo_front", 
-            "National ID (Front) *", 
+            t("auth.nationalIdFrontLabel"), 
             "badge", 
-            "Front side of your ID", 
+            t("auth.nationalIdFrontDesc"), 
             fileInputRefs.nationality_id_photo_front
           )}
           {renderFileUpload(
             "nationality_id_photo_back", 
-            "National ID (Back) *", 
+            t("auth.nationalIdBackLabel"), 
             "credit_card", 
-            "Back side of your ID", 
+            t("auth.nationalIdBackDesc"), 
             fileInputRefs.nationality_id_photo_back
           )}
         </div>

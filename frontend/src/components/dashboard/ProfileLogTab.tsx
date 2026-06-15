@@ -11,6 +11,8 @@ import {
   Legend
 } from "recharts";
 
+import { useTranslation } from "@/i18n/useTranslation";
+
 interface StudentLogReportResponse {
   summary: {
     period_days: number;
@@ -35,6 +37,7 @@ interface ProfileLogTabProps {
 }
 
 export const ProfileLogTab: React.FC<ProfileLogTabProps> = ({ studentId }) => {
+  const { t } = useTranslation();
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -76,18 +79,18 @@ export const ProfileLogTab: React.FC<ProfileLogTabProps> = ({ studentId }) => {
   };
 
   const chartData = data ? [
-    { name: "Attended", value: data.summary.attended, color: "#10b981" },
-    { name: "Missed", value: data.summary.missed, color: "#ef4444" }
+    { name: t("profileLog.statusAttended"), value: data.summary.attended, color: "#10b981" },
+    { name: t("profileLog.statusMissed"), value: data.summary.missed, color: "#ef4444" }
   ] : [];
 
   return (
     <div className="space-y-6">
       {/* Filters Form */}
       <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
-        <h3 className="text-lg font-bold text-on-surface mb-4">Report Filters</h3>
+        <h3 className="text-lg font-bold text-on-surface mb-4">{t("profileLog.filters")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-on-surface mb-1">Start Date</label>
+            <label className="block text-sm font-semibold text-on-surface mb-1">{t("profileLog.startDate")}</label>
             <input
               type="date"
               value={startDate}
@@ -96,7 +99,7 @@ export const ProfileLogTab: React.FC<ProfileLogTabProps> = ({ studentId }) => {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-on-surface mb-1">End Date</label>
+            <label className="block text-sm font-semibold text-on-surface mb-1">{t("profileLog.endDate")}</label>
             <input
               type="date"
               value={endDate}
@@ -113,23 +116,13 @@ export const ProfileLogTab: React.FC<ProfileLogTabProps> = ({ studentId }) => {
         </div>
       )}
 
-      {!loading && data && data.summary.is_allocated === false && (
-        <div className="bg-surface rounded-2xl p-8 shadow-sm border border-outline-variant text-center space-y-4">
-          <span className="material-symbols-outlined text-6xl text-primary/50">home_work</span>
-          <h3 className="text-xl font-bold text-on-surface">Not Allocated</h3>
-          <p className="text-on-surface-variant max-w-md mx-auto">
-            You have not been allocated a room yet. Your attendance log will become available once you move in.
-          </p>
-        </div>
-      )}
-
-      {!loading && data && data.summary.is_allocated !== false && (
+      {!loading && data && (
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-success">
               <div className="text-sm font-bold uppercase tracking-widest text-success mb-2">
-                Attended Days
+                {t("profileLog.attendedDays")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.attended}
@@ -137,7 +130,7 @@ export const ProfileLogTab: React.FC<ProfileLogTabProps> = ({ studentId }) => {
             </div>
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-error">
               <div className="text-sm font-bold uppercase tracking-widest text-error mb-2">
-                Missed Days
+                {t("profileLog.missedDays")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.missed}
@@ -145,22 +138,22 @@ export const ProfileLogTab: React.FC<ProfileLogTabProps> = ({ studentId }) => {
             </div>
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant border-t-4 border-t-primary">
               <div className="text-sm font-bold uppercase tracking-widest text-primary mb-2">
-                Overall Rate
+                {t("profileLog.overallRate")}
               </div>
               <div className="text-4xl font-black text-on-surface">
                 {data.summary.overall_rate}%
               </div>
-              <div className="mt-2 text-xs font-medium text-outline-variant">Across {data.summary.period_days} days</div>
+              <div className="mt-2 text-xs font-medium text-outline-variant">{t("profileLog.acrossDays").replace("{days}", data.summary.period_days.toString())}</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Chart */}
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant h-[350px] flex flex-col col-span-1 lg:col-span-1">
-              <h3 className="text-lg font-bold text-on-surface mb-2">Attendance Distribution</h3>
+              <h3 className="text-lg font-bold text-on-surface mb-2">{t("profileLog.distTitle")}</h3>
               <div className="flex-grow min-h-0">
                 {(data.summary.attended === 0 && data.summary.missed === 0) ? (
-                  <div className="h-full flex items-center justify-center text-outline-variant">No data available</div>
+                  <div className="h-full flex items-center justify-center text-outline-variant">{t("profileLog.noData")}</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -187,74 +180,72 @@ export const ProfileLogTab: React.FC<ProfileLogTabProps> = ({ studentId }) => {
 
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant col-span-1 lg:col-span-2 flex flex-col items-center justify-center text-center">
                 <span className="material-symbols-outlined text-6xl text-primary/50 mb-4">school</span>
-                <h3 className="text-lg font-bold text-on-surface mb-2">Student Log Active</h3>
+                <h3 className="text-lg font-bold text-on-surface mb-2">{t("profileLog.activeTitle")}</h3>
                 <p className="text-on-surface-variant max-w-md">
-                  This report shows exactly how many days you attended or missed out of the 
-                  <span className="font-bold"> {data.summary.period_days} days</span> selected in the filters. 
-                  View the detailed log below for a day-by-day breakdown.
+                  {t("profileLog.activeDesc1")}
+                  <span className="font-bold"> {data.summary.period_days}</span> {t("profileLog.activeDesc2")}
                 </p>
             </div>
           </div>
 
           {/* Student Log Table */}
           <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
-            <div className="p-6 border-b border-outline-variant flex items-center justify-between">
-              <h3 className="text-lg font-bold text-on-surface">Detailed Logs</h3>
+            <div className="p-6 border-b border-outline-variant bg-surface-container-lowest flex justify-between items-center">
+              <h3 className="text-lg font-bold text-on-surface">{t("profileLog.tableTitle")}</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-outline-variant hover:bg-surface-variant/30 transition-colors text-sm font-semibold"
+                >
+                  <span className="material-symbols-outlined text-lg">sort</span>
+                  Sort {sortOrder === "asc" ? "Oldest First" : "Newest First"}
+                </button>
+              </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold">Building</th>
-                    <th className="px-6 py-4 font-semibold">Room</th>
-                    <th 
-                      className="px-6 py-4 font-semibold cursor-pointer hover:text-primary transition-colors flex items-center gap-1"
-                      onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
-                    >
-                      Day
-                      <span className="material-symbols-outlined text-sm">
-                        {sortOrder === "asc" ? "arrow_upward" : "arrow_downward"}
-                      </span>
-                    </th>
-                    <th className="px-6 py-4 font-semibold">Time</th>
-                    <th className="px-6 py-4 font-semibold">Status</th>
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-container-low text-on-surface-variant text-sm border-b border-outline-variant">
+                    <th className="py-4 px-6 font-semibold">{t("profileLog.colDay")}</th>
+                    <th className="py-4 px-6 font-semibold">{t("profileLog.colLocation")}</th>
+                    <th className="py-4 px-6 font-semibold">{t("profileLog.colTime")}</th>
+                    <th className="py-4 px-6 font-semibold">{t("profileLog.colStatus")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant text-sm">
-                  {data.logs.length === 0 ? (
+                  {[...data.logs]
+                    .sort((a, b) => {
+                      const timeA = new Date(a.day).getTime();
+                      const timeB = new Date(b.day).getTime();
+                      return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+                    })
+                    .map((log, i) => (
+                      <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
+                        <td className="px-6 py-4 text-on-surface-variant">{log.day}</td>
+                        <td className="px-6 py-4 text-on-surface-variant">{log.building_name} - {log.room_number}</td>
+                        <td className="px-6 py-4 text-on-surface-variant font-mono">
+                          {log.attendance_time 
+                            ? new Date(log.attendance_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase()
+                            : "____"}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${
+                            log.status === "attended" 
+                              ? 'bg-success/10 text-success' 
+                              : 'bg-error/10 text-error'
+                          }`}>
+                            {log.status === "attended" ? t("profileLog.statusAttended") : t("profileLog.statusMissed")}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  }
+                  {data.logs.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-outline-variant">
-                        No logs found for this period.
+                      <td colSpan={4} className="py-8 text-center text-on-surface-variant">
+                        {t("profileLog.noRecords")}
                       </td>
                     </tr>
-                  ) : (
-                    [...data.logs]
-                      .sort((a, b) => {
-                        const timeA = new Date(a.day).getTime();
-                        const timeB = new Date(b.day).getTime();
-                        return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
-                      })
-                      .map((log, i) => (
-                        <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
-                          <td className="px-6 py-4 text-on-surface-variant">{log.building_name}</td>
-                          <td className="px-6 py-4 text-on-surface-variant">{log.room_number}</td>
-                          <td className="px-6 py-4 text-on-surface-variant">{log.day}</td>
-                          <td className="px-6 py-4 text-on-surface-variant font-mono">
-                            {log.attendance_time 
-                              ? new Date(log.attendance_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase()
-                              : "____"}
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2 py-1 text-xs font-bold rounded-full uppercase tracking-widest ${
-                              log.status === "attended" 
-                                ? "bg-success-container text-success" 
-                                : "bg-error-container text-error"
-                            }`}>
-                              {log.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
                   )}
                 </tbody>
               </table>

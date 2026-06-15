@@ -70,7 +70,7 @@ export default function ApplicationsPage() {
       <DashboardNavbar />
       <DashboardSidebar />
       
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-4xl mx-auto space-y-8">
           
           <div className="flex items-center gap-4 mb-8">
@@ -98,7 +98,7 @@ export default function ApplicationsPage() {
               </div>
               <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("applications.emptyState")}</h3>
               <p className="text-on-surface-variant mb-8 max-w-md mx-auto">
-                You haven't submitted any housing applications yet. Review the catalog and submit an application to secure your room.
+                {t("applications.emptyStateDesc")}
               </p>
               <Link 
                 href="/dashboard/apply" 
@@ -115,7 +115,7 @@ export default function ApplicationsPage() {
                   
                   <div className="flex-grow space-y-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-lg font-black text-on-surface font-headline">Application #{app.app_id}</span>
+                      <span className="text-lg font-black text-on-surface font-headline">{t("applications.applicationNumber")}{app.app_id}</span>
                       <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded flex items-center gap-1 ${
                         app.status === 'approved' ? 'bg-emerald-50 text-emerald-800' : 
                         app.status === 'rejected' ? 'bg-error-container text-on-error-container' : 
@@ -130,13 +130,13 @@ export default function ApplicationsPage() {
                     
                     <div className="text-sm text-on-surface-variant flex items-center gap-2">
                       <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-                      Submitted: {new Date(app.submission_date).toLocaleDateString()}
+                      {t("applications.submitted")} {new Date(app.submission_date).toLocaleDateString()}
                     </div>
                     
                     {app.preferred_dorm_id && (
                       <div className="text-sm font-semibold text-primary flex items-center gap-2">
                         <span className="material-symbols-outlined text-[16px]">apartment</span>
-                        Preferred Dorm ID: {app.preferred_dorm_id}
+                        {t("applications.preferredDormId")} {app.preferred_dorm_id}
                       </div>
                     )}
 
@@ -149,7 +149,7 @@ export default function ApplicationsPage() {
 
                   <div className="flex flex-col items-start md:items-end gap-3 min-w-[200px]">
                     <div className="text-xs font-bold uppercase tracking-widest text-outline-variant">
-                      Next Action
+                      {t("applications.nextAction")}
                     </div>
                     <div className="text-sm font-medium text-on-surface bg-surface-container-lowest px-4 py-2 rounded-lg border border-outline-variant/30 w-full md:w-auto text-center">
                       {app.next_actions.replace(/_/g, " ")}

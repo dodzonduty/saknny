@@ -75,7 +75,7 @@ export default function SurveysPage() {
       <DashboardNavbar />
       <DashboardSidebar />
 
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-3xl mx-auto space-y-8">
 
           <div className="flex items-center gap-4 mb-8">
@@ -83,8 +83,8 @@ export default function SurveysPage() {
               <span className="material-symbols-outlined text-2xl">poll</span>
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-primary font-headline">Surveys</h1>
-              <p className="text-sm text-on-surface-variant">Complete assigned surveys to help improve housing services.</p>
+              <h1 className="text-3xl font-black tracking-tight text-primary font-headline">{t("surveys.surveysTitle")}</h1>
+              <p className="text-sm text-on-surface-variant">{t("surveys.surveysDesc")}</p>
             </div>
           </div>
 
@@ -95,8 +95,8 @@ export default function SurveysPage() {
               <div className="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="material-symbols-outlined text-4xl text-outline-variant">ballot</span>
               </div>
-              <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">No Surveys</h3>
-              <p className="text-on-surface-variant">You don't have any surveys assigned at this time.</p>
+              <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("surveys.noSurveys")}</h3>
+              <p className="text-on-surface-variant">{t("surveys.noSurveysDesc")}</p>
             </div>
           ) : (
             <div className="space-y-4">
