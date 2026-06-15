@@ -286,10 +286,26 @@ def get_session(session_id: int, db: Session = Depends(get_db), admin=Depends(ge
 
 @router.get("/admin/compatibility/sessions/{session_id}/preview", response_model=APIResponse[dict])
 def preview_assignments(session_id: int, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+    session = db.query(ClusteringSession).filter(ClusteringSession.session_id == session_id).first()
+    if not session:
+        return error_response("Session not found")
+
     service = RoommateClusteringService()
     try:
-        # Fetch actual cluster sizes and room capacities and call service
-        return success_response({"suggested_assignments": service.suggest_room_assignments({}, [])})
+        # Fetch actual cluster sizes
+        results = db.query(ClusteringResult).filter(ClusteringResult.session_id == session_id).all()
+        cluster_sizes = {}
+        for r in results:
+            cluster_sizes[r.cluster_label] = cluster_sizes.get(r.cluster_label, 0) + 1
+            
+        # Fetch actual room capacities for the target dorm
+        rooms = db.query(Room).filter(Room.dorm_id == session.dorm_id, Room.available_beds > 0, Room.status == 'active').all()
+        available_rooms = [
+            {"room_id": room.room_id, "available_beds": room.available_beds}
+            for room in rooms
+        ]
+        
+        return success_response({"suggested_assignments": service.suggest_room_assignments(cluster_sizes, available_rooms)})
     except NotImplementedError:
         return error_response("Clustering service not yet implemented")
 

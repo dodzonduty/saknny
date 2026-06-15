@@ -11,6 +11,7 @@ from backend.app.models.application import Application
 from backend.app.models.application_review import ApplicationReview
 from backend.app.models.building import Building
 from backend.app.models.student import Student
+from backend.app.models.compatibility import CompatibilityResponse
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 
@@ -41,6 +42,22 @@ def submit_application(
 ):
     if not student.enroll_status:
         return error_response("Student must be enrollment-verified before applying")
+
+    # Enforce Questionnaire: Check if student has answered the active compatibility questionnaire,
+    # ONLY if there is an active questionnaire for this student's gender in the system.
+    from backend.app.models.compatibility import CompatibilityQuestionnaire
+    active_q = db.query(CompatibilityQuestionnaire).filter(
+        CompatibilityQuestionnaire.is_active == True,
+        (CompatibilityQuestionnaire.target_gender == None) | (CompatibilityQuestionnaire.target_gender == student.gender)
+    ).first()
+
+    if active_q:
+        response_exists = db.query(CompatibilityResponse).filter(
+            CompatibilityResponse.student_id == student.student_id,
+            CompatibilityResponse.questionnaire_id == active_q.questionnaire_id
+        ).first()
+        if not response_exists:
+            return error_response("You must complete the roommate compatibility questionnaire before applying.")
 
     active_count = db.query(Application).filter(
         Application.student_id == student.student_id,
