@@ -305,6 +305,81 @@ def attendance_check_in(
     )
 
 
+from datetime import date
+from typing import Optional
+import calendar
+
+@router.get("/attendance/log", response_model=APIResponse[dict])
+def get_attendance_log(
+    year: Optional[int] = None,
+    month: Optional[int] = None,
+    db: Session = Depends(get_db),
+    student=Depends(get_current_student),
+):
+    now_utc = datetime.now(timezone.utc)
+    today = _local_attendance_date(now_utc)
+
+    if not year:
+        year = today.year
+    if not month:
+        month = today.month
+
+    _, last_day = calendar.monthrange(year, month)
+
+    start_date = date(year, month, 1)
+    end_date = date(year, month, last_day)
+
+    # Cap end_date at today if it's the current month/year
+    if year == today.year and month == today.month:
+        end_date = today
+    elif date(year, month, 1) > today:
+        # Future month, return empty
+        return success_response({"attended_days": [], "missed_days": []})
+
+    allocation = (
+        db.query(Allocation)
+        .filter(
+            Allocation.student_id == student.student_id,
+            Allocation.status == "assigned",
+        )
+        .first()
+    )
+
+    if not allocation:
+        return success_response({"attended_days": [], "missed_days": []})
+
+    records = (
+        db.query(AttendanceRecord)
+        .filter(
+            AttendanceRecord.student_id == student.student_id,
+            AttendanceRecord.status == "SUCCESS",
+            AttendanceRecord.attendance_date >= start_date,
+            AttendanceRecord.attendance_date <= end_date,
+        )
+        .all()
+    )
+
+    attended_dates = {r.attendance_date for r in records}
+
+    attended_days = []
+    missed_days = []
+
+    for d in range(1, end_date.day + 1):
+        current_date = date(year, month, d)
+        if allocation.assigned_at and allocation.assigned_at.date() > current_date:
+            continue
+
+        if current_date in attended_dates:
+            attended_days.append(d)
+        else:
+            missed_days.append(d)
+
+    return success_response({
+        "attended_days": attended_days,
+        "missed_days": missed_days
+    })
+
+
 @router.get("/attendance/score", response_model=APIResponse[dict])
 def attendance_score(db: Session = Depends(get_db), student=Depends(get_current_student)):
     success_count = (

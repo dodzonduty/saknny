@@ -82,8 +82,13 @@ def run_seed():
                 user = auth.create_user(email=email, password=PASSWORD, display_name=name)
                 uid = user.uid
             except Exception as e:
-                print(f"Failed to create {email} in Firebase: {e}")
-                continue
+                try:
+                    user = auth.get_user_by_email(email)
+                    uid = user.uid
+                    print(f"User {email} already exists in Firebase, using existing UID.")
+                except Exception as get_err:
+                    print(f"Failed to fetch existing user {email} from Firebase: {get_err}")
+                    continue
             
             global_faculty_id_counter += 1
             student = Student(
