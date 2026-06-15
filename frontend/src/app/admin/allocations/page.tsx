@@ -11,9 +11,22 @@ interface Allocation {
   student_name?: string;
   room_id: number;
   room_number?: string;
+  building_name?: string;
   plan: string;
   status: string;
   assigned_at: string;
+}
+
+interface Room {
+  room_id: number;
+  dorm_id: number;
+  room_number: string;
+  available_beds: number;
+}
+
+interface Building {
+  dorm_id: number;
+  building_name: string;
 }
 
 export default function AdminAllocationsPage() {
@@ -23,12 +36,42 @@ export default function AdminAllocationsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [allocations, setAllocations] = useState<Allocation[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [buildings, setBuildings] = useState<Building[]>([]);
   
   const [showManualForm, setShowManualForm] = useState(false);
   const [appId, setAppId] = useState("");
+  const [selectedAppDormId, setSelectedAppDormId] = useState<number | null>(null);
   const [roomId, setRoomId] = useState("");
   const [plan, setPlan] = useState("full_board");
   const [actionLoading, setActionLoading] = useState(false);
+
+  // AI Auto Assign State
+  const [showAutoAssign, setShowAutoAssign] = useState(false);
+  const [autoDormId, setAutoDormId] = useState("");
+  const [autoSessionId, setAutoSessionId] = useState<number | null>(null);
+  const [autoPreview, setAutoPreview] = useState<Record<string, number> | null>(null);
+  const [autoLoading, setAutoLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAppDetails = async () => {
+      if (!appId || isNaN(parseInt(appId))) {
+        setSelectedAppDormId(null);
+        return;
+      }
+      const res = await apiClient<any>(`/admin/applications/${appId}`);
+      if (res.success && res.data && res.data.application) {
+        setSelectedAppDormId(res.data.application.preferred_dorm_id);
+      } else {
+        setSelectedAppDormId(null);
+      }
+    };
+    
+    const timeoutId = setTimeout(() => {
+      fetchAppDetails();
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [appId]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -41,8 +84,17 @@ export default function AdminAllocationsPage() {
       router.push("/dashboard");
     } else {
       fetchAllocations();
+      fetchCatalog();
     }
   }, [router]);
+
+  const fetchCatalog = async () => {
+    const rRes = await apiClient<{items: Room[]}>("/catalog/rooms");
+    if (rRes.success && rRes.data) setRooms(rRes.data.items);
+    
+    const bRes = await apiClient<{items: Building[]}>("/catalog/buildings");
+    if (bRes.success && bRes.data) setBuildings(bRes.data.items);
+  };
 
   const fetchAllocations = async () => {
     setLoading(true);
@@ -81,6 +133,71 @@ export default function AdminAllocationsPage() {
     setActionLoading(false);
   };
 
+  const handleGenerateClusters = async () => {
+    if (!autoDormId) return alert("Please select a target dorm.");
+    setAutoLoading(true);
+    
+    // 1. Fetch active questionnaire implicitly
+    const qRes = await apiClient<{items: any[]}>("/admin/compatibility/questionnaires");
+    const activeQ = qRes.data?.items?.find((q: any) => q.is_active);
+    if (!activeQ) {
+      alert("No active compatibility questionnaire found.");
+      setAutoLoading(false);
+      return;
+    }
+    
+    // 2. Start clustering session
+    const clusterRes = await apiClient<{session_id: number}>("/admin/compatibility/cluster", {
+      method: "POST",
+      body: JSON.stringify({
+        questionnaire_id: activeQ.questionnaire_id,
+        dorm_id: parseInt(autoDormId)
+      })
+    });
+    
+    if (!clusterRes.success || !clusterRes.data) {
+      alert(clusterRes.error || "Clustering failed.");
+      setAutoLoading(false);
+      return;
+    }
+    
+    const sid = clusterRes.data.session_id;
+    setAutoSessionId(sid);
+    
+    // 3. Fetch preview
+    const previewRes = await apiClient<{suggested_assignments: Record<string, number>}>(`/admin/compatibility/sessions/${sid}/preview`);
+    if (previewRes.success && previewRes.data) {
+      setAutoPreview(previewRes.data.suggested_assignments);
+    } else {
+      alert("Failed to get preview: " + previewRes.error);
+    }
+    setAutoLoading(false);
+  };
+
+  const handleConfirmAutoAssign = async () => {
+    if (!autoSessionId || !autoPreview) return;
+    setAutoLoading(true);
+    
+    const res = await apiClient<{allocations_created: number}>(`/admin/compatibility/sessions/${autoSessionId}/auto-assign`, {
+      method: "POST",
+      body: JSON.stringify({
+        room_assignments: autoPreview,
+        plan: plan
+      })
+    });
+    
+    if (res.success) {
+      alert(`Success! Created ${res.data?.allocations_created} allocations.`);
+      setShowAutoAssign(false);
+      setAutoSessionId(null);
+      setAutoPreview(null);
+      fetchAllocations();
+    } else {
+      alert(res.error || "Failed to commit allocations.");
+    }
+    setAutoLoading(false);
+  };
+
   if (!isMounted) return null;
 
   return (
@@ -101,14 +218,101 @@ export default function AdminAllocationsPage() {
           </div>
         </div>
 
-        <button 
-          onClick={() => setShowManualForm(!showManualForm)}
-          className="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-soft"
-        >
-          <span className="material-symbols-outlined">add_task</span>
-          {showManualForm ? "Cancel Assignment" : t("allocations.manualAssign")}
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => { setShowAutoAssign(!showAutoAssign); setShowManualForm(false); }}
+            className="bg-secondary-container text-on-secondary-container px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-soft"
+          >
+            <span className="material-symbols-outlined">auto_awesome</span>
+            {showAutoAssign ? "Cancel AI" : "AI Auto Assign"}
+          </button>
+          <button 
+            onClick={() => { setShowManualForm(!showManualForm); setShowAutoAssign(false); }}
+            className="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-soft"
+          >
+            <span className="material-symbols-outlined">add_task</span>
+            {showManualForm ? "Cancel Assignment" : t("allocations.manualAssign")}
+          </button>
+        </div>
       </div>
+
+      {showAutoAssign && (
+        <div className="bg-gradient-to-br from-secondary-container/30 to-white rounded-2xl shadow-soft p-6 border-l-4 border-secondary-container">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="material-symbols-outlined text-secondary text-2xl">group_work</span>
+            <h3 className="text-lg font-bold text-on-surface">AI Roommate Auto-Assign</h3>
+          </div>
+          <p className="text-sm text-on-surface-variant mb-6">Automatically cluster compatible students based on their questionnaire responses and assign them to available rooms in the target dorm.</p>
+          
+          <div className="flex flex-wrap items-end gap-4 mb-6">
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Target Dorm</label>
+              <select 
+                value={autoDormId}
+                onChange={e => setAutoDormId(e.target.value)}
+                className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-2 text-sm focus:border-secondary focus:ring-1 focus:ring-secondary outline-none"
+              >
+                <option value="">Select Target Dorm...</option>
+                {buildings.map(b => (
+                  <option key={b.dorm_id} value={b.dorm_id}>{b.building_name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Meal Plan Default</label>
+              <select 
+                value={plan}
+                onChange={e => setPlan(e.target.value)}
+                className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-2 text-sm focus:border-secondary outline-none"
+              >
+                <option value="standard">Standard</option>
+                <option value="full_board">Full Board</option>
+              </select>
+            </div>
+            <button 
+              type="button"
+              disabled={autoLoading || !autoDormId}
+              onClick={handleGenerateClusters}
+              className="bg-secondary text-white px-6 py-2 h-[42px] rounded-xl font-bold transition-all hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+            >
+              {autoLoading && !autoPreview ? <span className="material-symbols-outlined animate-spin text-sm">refresh</span> : null}
+              Generate Clusters
+            </button>
+          </div>
+
+          {autoPreview && (
+            <div className="mt-6 border-t border-outline-variant pt-6">
+              <h4 className="font-bold text-on-surface mb-4">Preview Assignments</h4>
+              <div className="bg-surface-container-lowest rounded-xl p-4 max-h-60 overflow-y-auto border border-outline-variant mb-4">
+                {Object.keys(autoPreview).length === 0 ? (
+                  <p className="text-sm text-on-surface-variant">No compatible students or rooms available to assign.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {Object.entries(autoPreview).map(([clusterLabel, rId]) => {
+                      const roomName = rooms.find(r => r.room_id === rId)?.room_number || `Room ID ${rId}`;
+                      return (
+                        <li key={clusterLabel} className="text-sm flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                          Cluster {clusterLabel} &rarr; <span className="font-bold">{roomName}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+              <button 
+                type="button"
+                onClick={handleConfirmAutoAssign}
+                disabled={autoLoading || Object.keys(autoPreview).length === 0}
+                className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+              >
+                {autoLoading ? <span className="material-symbols-outlined animate-spin text-sm">refresh</span> : <span className="material-symbols-outlined text-sm">check_circle</span>}
+                Confirm & Allocate
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {showManualForm && (
         <div className="bg-white rounded-2xl shadow-soft p-6 border-l-4 border-primary">
@@ -126,15 +330,29 @@ export default function AdminAllocationsPage() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Room ID</label>
-              <input 
-                type="number" 
+              <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Room</label>
+              <select 
                 required
                 value={roomId}
                 onChange={e => setRoomId(e.target.value)}
                 className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                placeholder="e.g. 101"
-              />
+              >
+                <option value="">Select a room...</option>
+                {rooms
+                  .filter(room => {
+                    if (room.available_beds <= 0) return false;
+                    if (selectedAppDormId !== null && room.dorm_id !== selectedAppDormId) return false;
+                    return true;
+                  })
+                  .map(room => {
+                    const b = buildings.find(b => b.dorm_id === room.dorm_id);
+                    return (
+                      <option key={room.room_id} value={room.room_id}>
+                        {b ? b.building_name : "Building"} - Room {room.room_number} ({room.available_beds} beds available)
+                      </option>
+                    );
+                })}
+              </select>
             </div>
             <div className="flex-1 min-w-[200px]">
               <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Meal Plan</label>
@@ -199,8 +417,9 @@ export default function AdminAllocationsPage() {
                     <td className="px-6 py-4 font-semibold text-on-surface">
                       {alloc.room_number ? (
                         <div>
-                          <div className="font-bold text-on-surface">Room {alloc.room_number}</div>
-                          <div className="text-xs text-on-surface-variant font-medium">ID: {alloc.room_id}</div>
+                          <div className="font-bold text-on-surface">
+                            {alloc.building_name ? `${alloc.building_name} - ` : ""}Room {alloc.room_number}
+                          </div>
                         </div>
                       ) : (
                         alloc.room_id

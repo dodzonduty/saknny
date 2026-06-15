@@ -9,6 +9,7 @@ from backend.app.api.deps import get_current_admin, get_current_student
 from backend.app.core.database import get_db
 from backend.app.models.lease import Lease
 from backend.app.models.payment_intent import PaymentIntent
+from backend.app.models.student import Student
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 
@@ -138,17 +139,23 @@ def my_payments(db: Session = Depends(get_db), student=Depends(get_current_stude
 
 @router.get("/admin/billing/payments", response_model=APIResponse[dict])
 def admin_payments(db: Session = Depends(get_db), _=Depends(get_current_admin)):
-    rows = db.query(PaymentIntent).order_by(PaymentIntent.created_at.desc()).all()
+    rows = (
+        db.query(PaymentIntent, Student)
+        .outerjoin(Student, PaymentIntent.student_id == Student.student_id)
+        .order_by(PaymentIntent.created_at.desc())
+        .all()
+    )
     return success_response(
         {
             "items": [
                 {
-                    "payment_id": row.payment_id,
-                    "student_id": row.student_id,
-                    "status": row.status,
-                    "payment_type": row.payment_type,
-                    "amount": float(row.amount),
-                    "created_at": row.created_at,
+                    "payment_id": row.PaymentIntent.payment_id,
+                    "student_id": row.PaymentIntent.student_id,
+                    "student_name": row.Student.name if row.Student else None,
+                    "status": row.PaymentIntent.status,
+                    "payment_type": row.PaymentIntent.payment_type,
+                    "amount": float(row.PaymentIntent.amount),
+                    "created_at": row.PaymentIntent.created_at,
                 }
                 for row in rows
             ],

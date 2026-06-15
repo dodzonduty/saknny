@@ -11,6 +11,7 @@ from backend.app.models.application import Application
 from backend.app.models.application_review import ApplicationReview
 from backend.app.models.building import Building
 from backend.app.models.student import Student
+from backend.app.models.compatibility import CompatibilityResponse
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 
@@ -41,6 +42,22 @@ def submit_application(
 ):
     if not student.enroll_status:
         return error_response("Student must be enrollment-verified before applying")
+
+    # Enforce Questionnaire: Check if student has answered the active compatibility questionnaire,
+    # ONLY if there is an active questionnaire for this student's gender in the system.
+    from backend.app.models.compatibility import CompatibilityQuestionnaire
+    active_q = db.query(CompatibilityQuestionnaire).filter(
+        CompatibilityQuestionnaire.is_active == True,
+        (CompatibilityQuestionnaire.target_gender == None) | (CompatibilityQuestionnaire.target_gender == student.gender)
+    ).first()
+
+    if active_q:
+        response_exists = db.query(CompatibilityResponse).filter(
+            CompatibilityResponse.student_id == student.student_id,
+            CompatibilityResponse.questionnaire_id == active_q.questionnaire_id
+        ).first()
+        if not response_exists:
+            return error_response("You must complete the roommate compatibility questionnaire before applying.")
 
     active_count = db.query(Application).filter(
         Application.student_id == student.student_id,
@@ -80,8 +97,9 @@ def submit_application(
 
 @router.get("/applications/me", response_model=APIResponse[dict])
 def my_applications(db: Session = Depends(get_db), student=Depends(get_current_student)):
-    apps = (
-        db.query(Application)
+    items = (
+        db.query(Application, Building.building_name)
+        .outerjoin(Building, Building.dorm_id == Application.preferred_dorm_id)
         .filter(Application.student_id == student.student_id)
         .order_by(Application.submission_date.desc())
         .all()
@@ -92,6 +110,7 @@ def my_applications(db: Session = Depends(get_db), student=Depends(get_current_s
                 {
                     "app_id": app.app_id,
                     "preferred_dorm_id": app.preferred_dorm_id,
+                    "preferred_dorm_name": building_name,
                     "status": app.status,
                     "waitlist_position": app.waitlist_position,
                     "submission_date": app.submission_date,
@@ -99,9 +118,9 @@ def my_applications(db: Session = Depends(get_db), student=Depends(get_current_s
                     if app.status in {"submitted", "under_review"}
                     else "see_decision",
                 }
-                for app in apps
+                for app, building_name in items
             ],
-            "count": len(apps),
+            "count": len(items),
         }
     )
 
@@ -149,8 +168,9 @@ def list_admin_applications(
     _=Depends(get_current_admin),
 ):
     items = (
-        db.query(Application, Student.name)
+        db.query(Application, Student.name, Building.building_name)
         .join(Student, Student.student_id == Application.student_id)
+        .outerjoin(Building, Building.dorm_id == Application.preferred_dorm_id)
         .filter(Application.status == status)
         .order_by(Application.submission_date.asc())
         .all()
@@ -164,11 +184,44 @@ def list_admin_applications(
                     "student_name": student_name,
                     "status": app.status,
                     "preferred_dorm_id": app.preferred_dorm_id,
+                    "preferred_dorm_name": building_name,
                     "submission_date": app.submission_date,
                 }
-                for app, student_name in items
+                for app, student_name, building_name in items
             ],
             "count": len(items),
+        }
+    )
+
+
+@router.get("/admin/applications/{app_id}", response_model=APIResponse[dict])
+def get_admin_application(
+    app_id: int,
+    db: Session = Depends(get_db),
+    _=Depends(get_current_admin),
+):
+    item = (
+        db.query(Application, Student.name, Building.building_name)
+        .join(Student, Student.student_id == Application.student_id)
+        .outerjoin(Building, Building.dorm_id == Application.preferred_dorm_id)
+        .filter(Application.app_id == app_id)
+        .first()
+    )
+    if not item:
+        return error_response("Application not found")
+        
+    app, student_name, building_name = item
+    return success_response(
+        {
+            "application": {
+                "app_id": app.app_id,
+                "student_id": app.student_id,
+                "student_name": student_name,
+                "status": app.status,
+                "preferred_dorm_id": app.preferred_dorm_id,
+                "preferred_dorm_name": building_name,
+                "submission_date": app.submission_date,
+            }
         }
     )
 

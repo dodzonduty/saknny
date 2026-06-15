@@ -24,6 +24,10 @@ export default function ApplyPage() {
   const [selectedDormId, setSelectedDormId] = useState<string>("");
   const [notes, setNotes] = useState("");
   
+  const [questionnaire, setQuestionnaire] = useState<any>(null);
+  const [hasAnswered, setHasAnswered] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -62,6 +66,20 @@ export default function ApplyPage() {
       if (buildRes.success && buildRes.data) {
         setBuildings(buildRes.data.items);
       }
+      
+      // Fetch questionnaire
+      const qRes = await apiClient<any>("/compatibility/questionnaires/me");
+      if (qRes.success && qRes.data?.questionnaire) {
+        const q = qRes.data.questionnaire;
+        setQuestionnaire(q);
+        
+        // Check if already answered
+        const rRes = await apiClient<any>("/compatibility/responses/me");
+        if (rRes.success && rRes.data?.items?.length > 0) {
+          const alreadyAnswered = rRes.data.items.some((r: any) => r.questionnaire_id === q.questionnaire_id);
+          setHasAnswered(alreadyAnswered);
+        }
+      }
     }
     setLoading(false);
   };
@@ -70,6 +88,34 @@ export default function ApplyPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setApiError(null);
+
+    // Submit Questionnaire first if needed
+    if (questionnaire && !hasAnswered) {
+      for (const q of questionnaire.questions) {
+        if (!answers[q.code]) {
+          setApiError(`Please answer all compatibility questions (${q.text})`);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
+      const qPayload = {
+        questionnaire_id: questionnaire.questionnaire_id,
+        answers: answers
+      };
+      
+      const qSubRes = await apiClient<any>("/compatibility/responses", {
+        method: "POST",
+        body: JSON.stringify(qPayload)
+      });
+      
+      if (!qSubRes.success) {
+        setApiError(qSubRes.error || "Failed to submit compatibility questionnaire.");
+        setIsSubmitting(false);
+        return;
+      }
+      setHasAnswered(true);
+    }
 
     const payload = {
       preferred_dorm_id: selectedDormId ? parseInt(selectedDormId) : null,
@@ -137,6 +183,48 @@ export default function ApplyPage() {
                   <div className="mb-6 p-4 rounded-lg bg-error-container text-on-error-container text-sm font-semibold flex items-center gap-2">
                     <span className="material-symbols-outlined text-lg">error</span>
                     {apiError}
+                  </div>
+                )}
+                
+                {questionnaire && !hasAnswered && (
+                  <div className="mb-8 p-6 bg-secondary-container/20 border-2 border-secondary-container rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="material-symbols-outlined text-secondary text-2xl">psychology</span>
+                      <h3 className="text-xl font-bold text-on-surface">Roommate Compatibility</h3>
+                    </div>
+                    <p className="text-sm text-on-surface-variant mb-6">
+                      Please answer these questions honestly. Your answers will be used by our AI matching system to find your ideal roommate.
+                    </p>
+                    
+                    <div className="space-y-6">
+                      {questionnaire.questions.map((q: any, i: number) => (
+                        <div key={q.code} className="bg-white p-4 rounded-xl shadow-sm border border-outline-variant">
+                          <p className="font-bold text-on-surface mb-3">
+                            <span className="text-secondary mr-2">Q{i + 1}.</span>
+                            {q.text}
+                          </p>
+                          <div className="space-y-2">
+                            {q.choices.map((choice: any) => (
+                              <label key={choice.value} className="flex items-start gap-3 cursor-pointer group">
+                                <div className="mt-0.5">
+                                  <input 
+                                    type="radio" 
+                                    name={q.code} 
+                                    value={choice.value}
+                                    checked={answers[q.code] === choice.value}
+                                    onChange={(e) => setAnswers(prev => ({...prev, [q.code]: e.target.value}))}
+                                    className="w-4 h-4 text-secondary focus:ring-secondary border-outline"
+                                  />
+                                </div>
+                                <span className={`text-sm ${answers[q.code] === choice.value ? 'text-on-surface font-semibold' : 'text-on-surface-variant group-hover:text-on-surface'}`}>
+                                  {choice.label}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
                 

@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://saknny_admin:saknny_secret_2026@localhost:5433/saknny"
     AUTO_CREATE_TABLES: bool = True
     
+    # AI API Keys
+    GEMINI_API_KEY: str | None = None
+
     # Uploads
     UPLOAD_DIR: str = "uploads/verification_docs"
 

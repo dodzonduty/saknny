@@ -379,6 +379,69 @@ All submitted docs reviewed and at least one approved  →  Admin sets students.
 
 ---
 
+## Table: compatibility_questionnaires
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| questionnaire_id | INTEGER | PK, AUTO INCREMENT | |
+| title | VARCHAR(160) | NOT NULL | e.g. "Fall 2026 Roommate Compatibility" |
+| description | TEXT | NULLABLE | |
+| target_gender | CHAR(1) | NULLABLE | `M`, `F`, or NULL |
+| target_dorm_id | INTEGER | FK → buildings (SET NULL), NULLABLE | |
+| is_active | BOOLEAN | NOT NULL, DEFAULT TRUE | |
+| created_by | INTEGER | FK → admins (SET NULL), NULLABLE | |
+| created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+| updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+
+---
+
+## Table: compatibility_responses
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| response_id | INTEGER | PK, AUTO INCREMENT | |
+| questionnaire_id | INTEGER | FK → compatibility_questionnaires (CASCADE), NOT NULL | |
+| student_id | INTEGER | FK → students (CASCADE), NOT NULL | |
+| answers | JSON | NOT NULL | `{"q1":"night_owl","q2":"dim_light",...}` |
+| feature_vector | JSON | NULLABLE | Numeric array computed by Role D service |
+| status | VARCHAR(20) | NOT NULL, DEFAULT 'submitted' | `submitted`, `vectorized`, `clustered` |
+| submitted_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+| created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+| updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+
+---
+
+## Table: clustering_sessions
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| session_id | INTEGER | PK, AUTO INCREMENT | |
+| questionnaire_id | INTEGER | FK → compatibility_questionnaires (CASCADE), NOT NULL | |
+| dorm_id | INTEGER | FK → buildings (SET NULL), NULLABLE | Building scope |
+| algorithm | VARCHAR(30) | NOT NULL, DEFAULT 'kmeans' | Algorithm used |
+| k_value | INTEGER | NOT NULL | Number of clusters |
+| total_students | INTEGER | NOT NULL | Students included |
+| status | VARCHAR(20) | NOT NULL, DEFAULT 'completed' | `completed`, `assigned`, `discarded` |
+| parameters | JSON | NULLABLE | Hyperparameters snapshot |
+| run_by | INTEGER | FK → admins (SET NULL), NULLABLE | |
+| created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+
+---
+
+## Table: clustering_results
+
+| Column | Type | Constraints | Notes |
+|---|---|---|---|
+| result_id | INTEGER | PK, AUTO INCREMENT | |
+| session_id | INTEGER | FK → clustering_sessions (CASCADE), NOT NULL | |
+| student_id | INTEGER | FK → students (CASCADE), NOT NULL | |
+| cluster_label | INTEGER | NOT NULL | 0-indexed cluster |
+| distance_to_centroid | DECIMAL(8,4) | NULLABLE | Quality metric |
+| assigned_room_id | INTEGER | FK → rooms (SET NULL), NULLABLE | Set on auto-assign |
+| created_at | TIMESTAMPTZ | NOT NULL, DEFAULT NOW() | |
+
+---
+
 ## Version History
 
 | Date | Change | Author |

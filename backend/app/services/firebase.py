@@ -3,7 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import uuid
+import logging
+
 from backend.app.core.config import settings
+
+logger = logging.getLogger("firebase_service")
 
 
 class FirebaseServiceError(Exception):
@@ -149,6 +153,8 @@ def append_mobile_event(
         "pg_entity_type": None,
         "pg_entity_id": None,
     }
+    
+    logger.info(f"[FIREBASE WRITE] Pushing new event {event_id} (Type: {event_type}) to Firestore collection '{collection_name}' (Status: pending)")
     
     try:
         doc_ref.set(doc_data)

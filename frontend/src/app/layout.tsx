@@ -33,6 +33,7 @@ export default function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
+          crossOrigin="anonymous"
         />
       </head>
       <body suppressHydrationWarning className="bg-background text-on-background font-body antialiased flex flex-col min-h-screen">

@@ -4,7 +4,7 @@ export interface APIResponse<T = any> {
   error: string | null;
 }
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1").replace("localhost", "127.0.0.1");
 
 export async function apiClient<T>(
   endpoint: string,

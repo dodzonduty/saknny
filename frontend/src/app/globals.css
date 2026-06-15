@@ -38,6 +38,10 @@
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
   --color-on-error-container: #93000a;
+  --color-success: #166534;
+  --color-on-success: #ffffff;
+  --color-success-container: #dcfce7;
+  --color-on-success-container: #14532d;
   --color-secondary: #735c00;
   --color-secondary-container: #fed65b;
   --color-on-secondary: #ffffff;

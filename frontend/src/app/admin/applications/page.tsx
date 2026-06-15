@@ -11,6 +11,7 @@ interface Application {
   student_name: string;
   status: string;
   preferred_dorm_id: number | null;
+  preferred_dorm_name?: string | null;
   submission_date: string;
 }
 
@@ -149,7 +150,7 @@ export default function AdminApplicationsPage() {
                         <div className="text-xs text-on-surface-variant">ID: {app.student_id}</div>
                       </td>
                       <td className="px-6 py-4 font-semibold text-on-surface-variant">
-                        {app.preferred_dorm_id ? `Building ${app.preferred_dorm_id}` : "Any"}
+                        {app.preferred_dorm_name ? app.preferred_dorm_name : "Any"}
                       </td>
                       <td className="px-6 py-4 text-sm text-on-surface-variant">
                         {new Date(app.submission_date).toLocaleDateString()}

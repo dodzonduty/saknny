@@ -17,8 +17,10 @@ interface StudentDocument {
   student_id: number;
   doc_type: string;
   file_url: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "incomplete";
   rejection_reason?: string;
+  fields_to_edit?: string[];
+  fields_updated?: string[];
   is_flagged: boolean;
   created_at: string;
 }
@@ -93,10 +95,56 @@ export const DashboardPage: React.FC = () => {
             
             {/* Upload Document Section */}
             <section className="mb-8">
-              <UploadDocumentCard 
-                onUploadSuccess={handleUploadSuccess} 
-                isUploaded={documentPhase !== "upload" && documentPhase !== "rejected"} 
-              />
+              {(() => {
+                const incompleteDoc = documents.find(d => d.status === "incomplete");
+                const needsResubmit = incompleteDoc && 
+                  incompleteDoc.fields_to_edit?.includes("verification_document") && 
+                  incompleteDoc.fields_updated?.includes("verification_document");
+                
+                const needsUpload = incompleteDoc &&
+                  incompleteDoc.fields_to_edit?.includes("verification_document") &&
+                  !incompleteDoc.fields_updated?.includes("verification_document");
+
+                if (documentPhase === "upload" || documentPhase === "rejected") {
+                  if (needsResubmit) {
+                    return (
+                      <div className="bg-emerald-50 text-emerald-800 p-6 rounded-xl shadow-soft flex items-center gap-4">
+                        <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        <div>
+                          <p className="font-bold text-lg">Successfully Uploaded</p>
+                          <p className="text-sm mt-1">Please go to <a href="/dashboard/verification" className="underline font-bold">My Verifications</a> to Resubmit your application.</p>
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  if (incompleteDoc && !needsUpload) {
+                    return (
+                      <div className="bg-orange-50 text-orange-900 p-6 rounded-xl shadow-soft flex items-center gap-4 border border-orange-200">
+                        <span className="material-symbols-outlined text-3xl">warning</span>
+                        <div>
+                          <p className="font-bold text-lg">Action Required</p>
+                          <p className="text-sm mt-1">Please go to <a href="/dashboard/verification" className="underline font-bold">My Verifications</a> to see what needs to be fixed and Resubmit.</p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <UploadDocumentCard 
+                      onUploadSuccess={handleUploadSuccess} 
+                      isUploaded={false} 
+                    />
+                  );
+                }
+                
+                return (
+                  <UploadDocumentCard 
+                    onUploadSuccess={handleUploadSuccess} 
+                    isUploaded={true} 
+                  />
+                );
+              })()}
             </section>
             
             {/* Documents List */}

@@ -102,7 +102,8 @@ def on_snapshot(doc_snapshot, changes, read_time):
         if data.get("sync_status") != "pending":
             continue
 
-        logger.info(f"Processing event {event_id} of type {data.get('event_type')}")
+        logger.info(f"========== [SYNC WORKER FLOW START] ==========")
+        logger.info(f"[SYNC WORKER] Step 1: Detected pending event {event_id} of type {data.get('event_type')}")
         success, result = process_event(data)
         
         # Update Firestore
@@ -112,12 +113,14 @@ def on_snapshot(doc_snapshot, changes, read_time):
             doc_ref = firestore_db.collection(collection_name).document(event_id)
             
             if success:
+                logger.info(f"[SYNC WORKER] Step 2: Successfully wrote {result.get('entity_type')} to PostgreSQL (ID: {result.get('entity_id')})")
                 doc_ref.update({
                     "sync_status": "synced",
                     "synced_at": datetime.now(timezone.utc),
                     "pg_entity_type": result.get("entity_type"),
                     "pg_entity_id": result.get("entity_id")
                 })
+                logger.info(f"[SYNC WORKER] Step 3: Marked event {event_id} as 'synced' in Firestore.")
                 
                 # Update cursor
                 occurred_at = data.get("occurred_at")

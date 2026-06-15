@@ -559,6 +559,93 @@ Response:
 
 ---
 
+## 13) Compatibility & Auto-Assignment
+
+### `POST /admin/compatibility/questionnaires`
+Creates a questionnaire round.
+Request:
+```json
+{
+  "title": "Fall 2026 Male Compatibility",
+  "description": "Roommate matching for Male dorms",
+  "target_gender": "M",
+  "target_dorm_id": 1
+}
+```
+
+### `GET /admin/compatibility/questionnaires`
+Admin lists questionnaire rounds.
+
+### `GET /admin/compatibility/questionnaires/{id}`
+Admin gets round details + response stats.
+
+### `POST /admin/compatibility/questionnaires/{id}/dispatch`
+Admin marks questionnaire as dispatched.
+
+### `GET /compatibility/questionnaires/me`
+Student retrieves active questionnaire containing 11 fixed questions.
+
+### `POST /compatibility/responses`
+Student submits answers.
+Request:
+```json
+{
+  "questionnaire_id": 1,
+  "answers": {
+    "q1": "night_owl",
+    "q2": "dim_light",
+    "q3": "snooze_multiple",
+    "q4": "average",
+    "q5": "weekly",
+    "q6": "low_noise",
+    "q7": "daytime_only",
+    "q8": "ask_permission",
+    "q9": "moderate",
+    "q10": "doesnt_matter",
+    "q11": "credit_hours"
+  }
+}
+```
+
+### `GET /compatibility/responses/me`
+Student lists own submitted responses.
+
+### `POST /admin/compatibility/cluster`
+Admin triggers KMeans clustering.
+Request:
+```json
+{
+  "questionnaire_id": 1,
+  "dorm_id": 1,
+  "k": null
+}
+```
+
+### `GET /admin/compatibility/sessions`
+Admin lists clustering sessions.
+
+### `GET /admin/compatibility/sessions/{id}`
+Admin gets session details with clustered students.
+
+### `GET /admin/compatibility/sessions/{id}/preview`
+Admin previews suggested room assignments.
+
+### `POST /admin/compatibility/sessions/{id}/auto-assign`
+Admin auto-assigns clusters to rooms.
+Request:
+```json
+{
+  "room_assignments": {
+    "0": 5,
+    "1": 8,
+    "2": 12
+  },
+  "plan": "full_board"
+}
+```
+
+---
+
 ## Notes for Frontend integration
 - Keep request/response envelope exactly as defined.
 - IDs in route paths are numeric.

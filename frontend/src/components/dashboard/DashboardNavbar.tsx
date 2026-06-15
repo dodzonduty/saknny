@@ -15,6 +15,7 @@ interface NotificationCount {
   unread_messages: number;
   announcements: number;
   total: number;
+  new_applications?: number;
 }
 
 export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = false }) => {
@@ -22,9 +23,8 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
   const pathname = usePathname();
   const router = useRouter();
   const [userInitial, setUserInitial] = useState<string>("");
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [notifCount, setNotifCount] = useState<NotificationCount>({ unread_messages: 0, announcements: 0, total: 0 });
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Read cached name from localStorage first for instant render
@@ -32,15 +32,25 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
     if (cachedName) {
       setUserInitial(cachedName.trim().charAt(0).toUpperCase());
     }
+    const cachedAvatar = localStorage.getItem("user_avatar");
+    if (cachedAvatar) {
+      setUserAvatar(cachedAvatar);
+    }
 
     // Fetch fresh name from the API
     const userId = localStorage.getItem("user_id");
     if (userId) {
       apiClient<any>(`/students/${userId}`).then((res) => {
-        if (res.success && res.data && res.data.name) {
-          const firstLetter = res.data.name.trim().charAt(0).toUpperCase();
-          setUserInitial(firstLetter);
-          localStorage.setItem("user_name", res.data.name);
+        if (res.success && res.data) {
+          if (res.data.name) {
+            const firstLetter = res.data.name.trim().charAt(0).toUpperCase();
+            setUserInitial(firstLetter);
+            localStorage.setItem("user_name", res.data.name);
+          }
+          if (res.data.profile_picture_url) {
+            setUserAvatar(res.data.profile_picture_url);
+            localStorage.setItem("user_avatar", res.data.profile_picture_url);
+          }
         }
       });
     }
@@ -61,16 +71,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
     return () => clearInterval(interval);
   }, [fetchNotificationCount]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Removed dropdown click outside listener
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -104,7 +105,9 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
       : pathname === item.href
   ) || navItems[0];
 
-  const hasUnread = notifCount.total > 0;
+  const hasUnread = isAdmin 
+    ? (notifCount.new_applications ? notifCount.new_applications > 0 : false)
+    : notifCount.announcements > 0;
 
   return (
     <header className="fixed top-0 w-full z-50 glass-nav flex justify-between items-center px-8 h-20 max-w-full mx-auto border-none shadow-sm">
@@ -124,9 +127,9 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
       <div className="flex items-center gap-4">
         {/* Notification bell with unread indicator */}
         <Link
-          href={isAdmin ? "/admin/messages" : "/dashboard/messages"}
+          href={isAdmin ? "/admin/applications" : "/dashboard/announcements"}
           className="relative p-2 text-on-surface-variant hover:opacity-80 transition-opacity duration-200 active:scale-95"
-          title={hasUnread ? `${notifCount.total} unread notification${notifCount.total > 1 ? "s" : ""}` : "Notifications"}
+          title={hasUnread ? (isAdmin ? "New Applications" : "New Announcements") : "Notifications"}
         >
           <span className="material-symbols-outlined">notifications</span>
           {hasUnread && (
@@ -135,54 +138,32 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
               <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-emerald-400 opacity-75 animate-ping" />
               {/* Solid green dot */}
               <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
-              {/* Count badge */}
-              {notifCount.total > 0 && (
-                <span className="absolute -top-0.5 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-emerald-500 text-white text-[10px] font-bold px-1 shadow-md">
-                  {notifCount.total > 99 ? "99+" : notifCount.total}
-                </span>
-              )}
             </>
           )}
         </Link>
 
-        <button className="p-2 text-on-surface-variant hover:opacity-80 transition-opacity duration-200 active:scale-95">
-          <span className="material-symbols-outlined">settings</span>
+        <button onClick={handleLogout} title="Log Out" className="p-2 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors duration-200 active:scale-95 rounded-full">
+          <span className="material-symbols-outlined">logout</span>
         </button>
 
-        {/* Profile avatar with dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        {/* Profile avatar */}
+        <div className="relative">
           <button
-            onClick={() => setShowDropdown((prev) => !prev)}
-            className="w-10 h-10 rounded-full border-2 border-primary-container bg-primary flex items-center justify-center text-white font-bold text-sm relative cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => router.push(isAdmin ? "/admin" : "/dashboard/profile")}
+            className="w-10 h-10 rounded-full border-2 border-primary-container bg-primary flex items-center justify-center text-white font-bold text-sm relative cursor-pointer hover:opacity-90 transition-opacity overflow-hidden"
+            title={isAdmin ? "Admin Profile" : "My Profile"}
           >
-            {avatarLetter}
+            {!isAdmin && userAvatar ? (
+              <img src={userAvatar} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              avatarLetter
+            )}
             {isAdmin && (
-              <span className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[9px] font-bold px-1 rounded">
+              <span className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[9px] font-bold px-1 rounded z-10">
                 ADMIN
               </span>
             )}
           </button>
-
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-outline-variant/20 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-              <Link
-                href={isAdmin ? "/admin" : "/dashboard/profile"}
-                onClick={() => setShowDropdown(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-on-surface hover:bg-surface-container-high transition-colors"
-              >
-                <span className="material-symbols-outlined text-lg">person</span>
-                My Profile
-              </Link>
-              <div className="border-t border-outline-variant/20 my-1" />
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full text-left"
-              >
-                <span className="material-symbols-outlined text-lg">logout</span>
-                Log Out
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </header>

@@ -12,6 +12,7 @@ export default function AdminAnnouncementsPage() {
   const [content, setContent] = useState("");
   const [targetRole, setTargetRole] = useState("student");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [successResult, setSuccessResult] = useState<{ announcement_id: number; published_at: string } | null>(null);
 
   useEffect(() => {
@@ -43,6 +44,23 @@ export default function AdminAnnouncementsPage() {
     setIsSubmitting(false);
   };
 
+  const handleAIExpand = async () => {
+    if (!content.trim()) return;
+    setIsGenerating(true);
+    
+    const res = await apiClient<{ formal_text: string }>("/ai/generate-announcement", {
+      method: "POST",
+      body: JSON.stringify({ draft_text: content }),
+    });
+
+    if (res.success && res.data) {
+      setContent(res.data.formal_text);
+    } else {
+      alert(res.error || "Failed to generate announcement with AI.");
+    }
+    setIsGenerating(false);
+  };
+
   if (!isMounted) return null;
 
   return (
@@ -72,8 +90,20 @@ export default function AdminAnnouncementsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">Content</label>
-            <textarea required value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your announcement here..." rows={6} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none" />
+            <div className="flex justify-between items-end mb-2">
+              <label className="block text-sm font-bold text-on-surface">Content</label>
+              <button 
+                type="button" 
+                onClick={handleAIExpand}
+                disabled={isGenerating || !content.trim()}
+                className="text-sm font-bold text-primary hover:text-primary-container disabled:opacity-50 transition-colors flex items-center gap-1"
+                title="Write a short draft, then click to expand it into a formal announcement"
+              >
+                {isGenerating ? <span className="material-symbols-outlined animate-spin text-sm">refresh</span> : <span className="material-symbols-outlined text-sm">auto_awesome</span>}
+                AI Expand
+              </button>
+            </div>
+            <textarea required value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your announcement here or write a short draft and click AI Expand..." rows={6} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none" />
           </div>
 
           <div>

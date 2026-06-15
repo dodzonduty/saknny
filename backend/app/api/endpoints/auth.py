@@ -70,3 +70,4 @@ def firebase_login(request: FirebaseLoginRequest, db: Session = Depends(get_db))
         "name": student.name,
         "firebase_uid": student.firebase_uid,
     })
+    

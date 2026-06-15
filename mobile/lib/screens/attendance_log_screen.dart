@@ -18,10 +18,9 @@ class _AttendanceLogScreenState extends State<AttendanceLogScreen>
   late DateTime _displayedMonth;
   bool _isArabic = false;
 
-  // ── Mock data: days the student attended (green) and missed (red) ──
-  // These are day-of-month numbers for June 2026 as an example.
-  static const _mockAttendedDays = {1, 2, 3, 5, 7, 8, 9, 10, 11, 12};
-  static const _mockMissedDays = {4, 6};
+  Set<int> _attendedDays = {};
+  Set<int> _missedDays = {};
+  bool _isLoading = false;
 
   late final AnimationController _animCtrl;
 
@@ -35,6 +34,25 @@ class _AttendanceLogScreenState extends State<AttendanceLogScreen>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
+    _fetchLogData();
+  }
+
+  Future<void> _fetchLogData() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      final res = await widget.services.attendanceService.fetchAttendanceLog(_displayedMonth.year, _displayedMonth.month);
+      if (mounted) {
+        setState(() {
+          _attendedDays = Set<int>.from(res['attended_days'] ?? []);
+          _missedDays = Set<int>.from(res['missed_days'] ?? []);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching attendance log: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -48,6 +66,7 @@ class _AttendanceLogScreenState extends State<AttendanceLogScreen>
       _displayedMonth = DateTime(_displayedMonth.year, _displayedMonth.month - 1);
       _animCtrl.forward(from: 0);
     });
+    _fetchLogData();
   }
 
   void _goToNextMonth() {
@@ -58,6 +77,7 @@ class _AttendanceLogScreenState extends State<AttendanceLogScreen>
       _displayedMonth = nextMonth;
       _animCtrl.forward(from: 0);
     });
+    _fetchLogData();
   }
 
   bool _isCurrentMonth() {
@@ -85,11 +105,18 @@ class _AttendanceLogScreenState extends State<AttendanceLogScreen>
                   children: [
                     _buildMonthNavigator(),
                     const SizedBox(height: 20),
-                    _buildCalendarGrid(),
-                    const SizedBox(height: 24),
-                    _buildLegend(),
-                    const SizedBox(height: 24),
-                    _buildSummaryCards(),
+                    if (_isLoading)
+                      const Padding(
+                        padding: EdgeInsets.all(40.0),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else ...[
+                      _buildCalendarGrid(),
+                      const SizedBox(height: 24),
+                      _buildLegend(),
+                      const SizedBox(height: 24),
+                      _buildSummaryCards(),
+                    ],
                   ],
                 ),
               ),
@@ -248,10 +275,8 @@ class _AttendanceLogScreenState extends State<AttendanceLogScreen>
 
                   final isToday = _isCurrentMonth() &&
                       dayNumber == today.day;
-                  final isAttended = _isCurrentMonth() &&
-                      _mockAttendedDays.contains(dayNumber);
-                  final isMissed = _isCurrentMonth() &&
-                      _mockMissedDays.contains(dayNumber);
+                  final isAttended = _attendedDays.contains(dayNumber);
+                  final isMissed = _missedDays.contains(dayNumber);
 
                   return Expanded(
                     child: _CalendarCell(
@@ -284,8 +309,8 @@ class _AttendanceLogScreenState extends State<AttendanceLogScreen>
   }
 
   Widget _buildSummaryCards() {
-    final attended = _isCurrentMonth() ? _mockAttendedDays.length : 0;
-    final missed = _isCurrentMonth() ? _mockMissedDays.length : 0;
+    final attended = _attendedDays.length;
+    final missed = _missedDays.length;
     final total = attended + missed;
     final rate = total > 0 ? (attended / total * 100).round() : 0;
 
@@ -441,11 +466,9 @@ class _CalendarCell extends StatelessWidget {
     if (isAttended) {
       bgColor = AppColors.success;
       textColor = Colors.white;
-      badge = const Icon(Icons.check_rounded, size: 10, color: Colors.white);
     } else if (isMissed) {
       bgColor = AppColors.error;
       textColor = Colors.white;
-      badge = const Icon(Icons.close_rounded, size: 10, color: Colors.white);
     } else if (isToday) {
       bgColor = AppColors.accentYellow;
       textColor = AppColors.primary;
@@ -483,12 +506,6 @@ class _CalendarCell extends StatelessWidget {
                 color: textColor,
               ),
             ),
-            if (badge != null)
-              Positioned(
-                right: 2,
-                top: 2,
-                child: badge,
-              ),
           ],
         ),
       ),
