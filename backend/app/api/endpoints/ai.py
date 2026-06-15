@@ -38,6 +38,40 @@ async def list_available_models():
             "name": "Document Quality Checker",
             "description": "Checks document image quality (sharpness, brightness, focus)",
             "version": "1.0.0"
+        },
+        {
+            "id": "announcement-generator",
+            "name": "Announcement Generator",
+            "description": "Expands short notes into formal administrative announcements using Gemini",
+            "version": "1.0.0"
         }
     ]
     return success_response(models)
+
+
+class AnnouncementDraftRequest(BaseModel):
+    draft_text: str
+
+class AnnouncementGeneratedResponse(BaseModel):
+    formal_text: str
+
+@router.post("/generate-announcement", response_model=APIResponse[AnnouncementGeneratedResponse])
+async def generate_announcement(request: AnnouncementDraftRequest):
+    """
+    Expand a short draft note into a formal administrative announcement using Gemini AI.
+    """
+    from backend.app.services.ai.announcement import AnnouncementGenerator
+    
+    try:
+        generator = AnnouncementGenerator()
+        result = generator.process(request.draft_text)
+        
+        if not result.get("success"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=500, detail=result.get("error", "AI generation failed"))
+            
+        return success_response({"formal_text": result["formal_text"]})
+    except ValueError as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=501, detail=str(e))
+
