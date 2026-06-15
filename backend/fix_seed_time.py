@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-load_dotenv("d:/saknny/backend/.env")
+load_dotenv(r"C:\Users\ACER\Downloads\Sakkny\backend\.env")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:

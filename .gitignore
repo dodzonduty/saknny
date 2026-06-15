@@ -116,6 +116,6 @@ next-env.d.ts
 
 backend/venv
 backend/requirements.txt
-
-
+backend/fix_seed_time.py
 backend/alembic/versions/efd624cc5201_add_student_biometric_fields.py
+.gitignore
