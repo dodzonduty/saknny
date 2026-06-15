@@ -324,3 +324,41 @@ Action: CREATED
 Owner: Backend Engineer
 Notes: Added `GET /admin/reports/daily` and `GET /admin/reports/custom` to provide admin dashboard analytics for attendance. The APIs calculate total assigned vs attended rates dynamically with support for filtering by date range, student, building, and room.
 Date: 2026-06-14
+
+---
+
+[FEATURE]
+
+Entity: Service
+Name: DormChatbot (Intelligence Layer - Role D)
+Role: D
+Path: backend/app/services/ai/dorm_chatbot.py
+Status: REAL
+Action: CREATED
+Owner: AI (Role D)
+Notes: Created a stateless RAG chatbot service that reads datasets/regulations.txt at import time and injects it as the strict system context for every Gemini API call. Out-of-scope questions receive a fixed Arabic/English fallback response. Reuses the existing GEMINI_API_KEY from settings and follows the BaseAIModel interface. No database interaction.
+Date: 2026-06-15
+
+[API]
+
+Entity: API
+Name: POST /chatbot/chat
+Role: B
+Path: backend/app/api/endpoints/chatbot.py, backend/app/api/router.py
+Status: REAL
+Action: CREATED
+Owner: AI (Role B)
+Notes: Stateless POST endpoint at /api/v1/chatbot/chat. Accepts message and returns Standard Response Format with answer field. No chat history persisted. Router registered with prefix /chatbot and tag chatbot. Also added dorm-chatbot-rag entry to the /ai/models catalog endpoint.
+Date: 2026-06-15
+
+[COMPONENT]
+
+Entity: Component
+Name: ChatWidget (UI Layer - Role C)
+Role: C
+Path: frontend/src/components/ChatWidget.tsx, frontend/src/app/layout.tsx
+Status: REAL
+Action: CREATED
+Owner: AI (Role C)
+Notes: Created a floating toggleable chat widget mounted in the root layout (visible site-wide). Uses exclusively the existing design tokens: primary, accent-yellow, surface-container tokens, outline-variant, material-symbols-outlined, and the font-headline/font-body/font-label families. RTL-safe using CSS logical properties. Sends messages to POST /chatbot/chat via the existing apiClient utility. Includes bilingual AR/EN welcome message, typing-dots indicator, and unread-notification pulse badge.
+Date: 2026-06-15

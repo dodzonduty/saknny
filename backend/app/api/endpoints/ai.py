@@ -44,6 +44,12 @@ async def list_available_models():
             "name": "Announcement Generator",
             "description": "Expands short notes into formal administrative announcements using Gemini",
             "version": "1.0.0"
+        },
+        {
+            "id": "dorm-chatbot-rag",
+            "name": "Dorm Regulations Chatbot",
+            "description": "Stateless RAG chatbot that answers student questions about housing regulations using Gemini",
+            "version": "1.0.0"
         }
     ]
     return success_response(models)

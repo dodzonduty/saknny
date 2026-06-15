@@ -50,7 +50,7 @@ export const DashboardSidebar: React.FC = () => {
       
       <Link href="/dashboard/applications" className="mt-auto bg-primary text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
         <span className="material-symbols-outlined text-sm">add</span>
-        <span className="text-xs font-bold uppercase tracking-wider">{t("dashboardAdditions.newApplication")}</span>
+        <span className="text-xs font-bold uppercase tracking-wider">{t("applications.newApplication")}</span>
       </Link>
     </aside>
   );
