@@ -52,6 +52,10 @@ UPLOAD_DIR_ABS = os.path.join(BACKEND_DIR, settings.UPLOAD_DIR)
 os.makedirs(UPLOAD_DIR_ABS, exist_ok=True)
 app.mount(f"/api/v1/{settings.UPLOAD_DIR}", StaticFiles(directory=UPLOAD_DIR_ABS), name="uploads")
 
+PROFILES_DIR_ABS = os.path.join(BACKEND_DIR, "uploads", "profiles")
+os.makedirs(PROFILES_DIR_ABS, exist_ok=True)
+app.mount("/api/v1/uploads/profiles", StaticFiles(directory=PROFILES_DIR_ABS), name="profiles")
+
 app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/health")

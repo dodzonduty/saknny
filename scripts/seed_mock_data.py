@@ -23,7 +23,7 @@ RADIUS = 100
 PASSWORD = "abc134101"
 
 MALE_NAMES = ["Adham", "Mohamed", "Ziad", "Mahmoud", "Mostafa", "Hazem", "Saied", "Ahmed", "Omar", "Youssef", "Ali", "Tarek", "Khaled", "Amr", "Mazen", "Nour", "Seif", "Karim", "Yassin", "Hassan", "Ibrahim", "Tamer", "Hossam", "Rami", "Waleed"]
-FEMALE_NAMES = ["Zienab", "Mariem", "Salma", "Aya", "Nour", "Habiba", "Jana", "Menna", "Laila", "Hana", "Farah", "Yasmine", "Nada", "Rawan", "Dina", "Hadeer", "Maha", "Sarah", "Reem", "Nadine", "Malak", "May", "Noha", "Hoda", "Esraa"]
+FEMALE_NAMES = ["Zienab", "Mariem", "Salma", "Aya", "Noura", "Habiba", "Jana", "Menna", "Laila", "Hana", "Farah", "Yasmine", "Nada", "Rawan", "Dina", "Hadeer", "Maha", "Sarah", "Reem", "Nadine", "Malak", "May", "Noha", "Hoda", "Esraa"]
 
 def wipe_firebase_users():
     print("Wiping Firebase Auth Users...")
@@ -99,7 +99,12 @@ def run_seed():
                 home_city="Cairo",
                 password_hash="$2a$12$yWW9jrP7lZc.mZZWRTh1j.GLI8pl.3DDNdYz6xOj/lwpIivUXVaaO", 
                 enroll_status=True,
-                firebase_uid=uid
+                firebase_uid=uid,
+                nationality_id=str(random.randint(10000000000000, 99999999999999)),
+                faculty="Engineering",
+                profile_picture_url="uploads/profiles/male_profile.png" if gender == "M" else "uploads/profiles/female_profile.png",
+                nationality_id_photo_front="uploads/profiles/id_face.png",
+                nationality_id_photo_back="uploads/profiles/id_back.png"
             )
             db.add(student)
             db.flush()

@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { FormField } from "../ui/FormField";
 import { FormSelect } from "../ui/FormSelect";
 import { FormTextarea } from "../ui/FormTextarea";
 import { Button } from "../ui/Button";
 import { useTranslation } from "@/i18n/useTranslation";
-import { apiClient } from "@/services/api";
+import { apiUploadFile } from "@/services/api";
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -24,12 +24,30 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     password: "",
     confirm_password: "",
     preferences: "",
+    nationality_id: "",
+    faculty: "",
+  });
+
+  const [files, setFiles] = useState<{
+    profile_picture: File | null;
+    nationality_id_photo_front: File | null;
+    nationality_id_photo_back: File | null;
+  }>({
+    profile_picture: null,
+    nationality_id_photo_front: null,
+    nationality_id_photo_back: null,
   });
   
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const fileInputRefs = {
+    profile_picture: useRef<HTMLInputElement>(null),
+    nationality_id_photo_front: useRef<HTMLInputElement>(null),
+    nationality_id_photo_back: useRef<HTMLInputElement>(null),
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -43,6 +61,66 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
       });
     }
     if (apiError) setApiError(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files: selectedFiles } = e.target;
+    if (selectedFiles && selectedFiles.length > 0) {
+      setFiles((prev) => ({ ...prev, [name]: selectedFiles[0] }));
+      if (errors[name]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
+    }
+  };
+
+  const renderFileUpload = (
+    name: keyof typeof files,
+    label: string,
+    icon: string,
+    description: string,
+    ref: React.RefObject<HTMLInputElement>
+  ) => {
+    const file = files[name];
+    const error = errors[name];
+    return (
+      <div 
+        className={`flex flex-col gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+          error ? "border-red-400 bg-red-50/50" : file ? "border-emerald-400 bg-emerald-50/50" : "border-outline-variant/30 bg-surface-variant/10 hover:bg-surface-variant/20 hover:border-primary/50"
+        }`}
+        onClick={() => ref.current?.click()}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              file ? "bg-emerald-100 text-emerald-600" : "bg-primary-container text-white"
+            }`}>
+              <span className="material-symbols-outlined">{icon}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-on-surface">{label}</span>
+              <span className="text-xs text-on-surface-variant line-clamp-1">{file ? file.name : description}</span>
+            </div>
+          </div>
+          {file && (
+            <span className="material-symbols-outlined text-emerald-500">check_circle</span>
+          )}
+        </div>
+        <input
+          type="file"
+          name={name}
+          ref={ref}
+          onChange={handleFileChange}
+          accept="image/*"
+          disabled={isSubmitting}
+          className="hidden"
+        />
+        {error && <span className="text-xs text-red-500 font-semibold">{error}</span>}
+      </div>
+    );
   };
 
   const validate = () => {
@@ -61,6 +139,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
         newErrors.confirm_password = t("auth.errors.passwordMismatch");
     }
 
+    if (!formData.nationality_id || formData.nationality_id.length !== 14) {
+      newErrors.nationality_id = "Nationality ID must be exactly 14 digits";
+    }
+    if (!formData.faculty) newErrors.faculty = "Faculty is required";
+    
+    if (!files.profile_picture) newErrors.profile_picture = "Profile picture is required";
+    if (!files.nationality_id_photo_front) newErrors.nationality_id_photo_front = "National ID Front is required";
+    if (!files.nationality_id_photo_back) newErrors.nationality_id_photo_back = "National ID Back is required";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -72,19 +159,20 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
     setIsSubmitting(true);
     setApiError(null);
 
-    // Don't send confirm_password to API
-    const { confirm_password, ...apiData } = formData;
-    
-    // Convert empty preferences to null/undefined if needed, or just send empty string
-    const payload = {
-        ...apiData,
-        preferences: apiData.preferences || null
-    };
-
-    const response = await apiClient<any>("/students/register", {
-      method: "POST",
-      body: JSON.stringify(payload),
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key !== "confirm_password" && value) {
+        payload.append(key, value);
+      }
     });
+
+    Object.entries(files).forEach(([key, file]) => {
+      if (file) {
+        payload.append(key, file);
+      }
+    });
+
+    const response = await apiUploadFile<any>("/students/register", payload);
 
     setIsSubmitting(false);
 
@@ -187,6 +275,36 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
             disabled={isSubmitting}
             maxLength={50}
         />
+
+        <FormField
+            id="nationality_id"
+            name="nationality_id"
+            type="text"
+            label="Nationality ID"
+            icon="pin"
+            value={formData.nationality_id}
+            onChange={(e) => {
+              // Only allow numbers
+              const val = e.target.value.replace(/[^0-9]/g, '');
+              handleChange({ ...e, target: { ...e.target, name: e.target.name, value: val } } as any);
+            }}
+            error={errors.nationality_id}
+            disabled={isSubmitting}
+            maxLength={14}
+        />
+
+        <FormField
+            id="faculty"
+            name="faculty"
+            type="text"
+            label="Faculty Name"
+            icon="school"
+            value={formData.faculty}
+            onChange={handleChange}
+            error={errors.faculty}
+            disabled={isSubmitting}
+            maxLength={100}
+        />
         
         {/* Empty div for grid alignment on desktop if needed, or let preferences span */}
         <div className="hidden lg:block"></div>
@@ -214,6 +332,37 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSwitchToLogin }) =
             error={errors.confirm_password}
             disabled={isSubmitting}
         />
+      </div>
+
+      <div className="flex flex-col gap-4 mt-2">
+        <h3 className="text-lg font-bold text-primary font-headline border-b border-outline-variant/30 pb-2">Required Documents</h3>
+        <p className="text-xs text-on-surface-variant -mt-2 mb-2">Upload these images to verify your identity. Only images (JPG, PNG) are allowed.</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="md:col-span-2">
+            {renderFileUpload(
+              "profile_picture", 
+              "Profile Picture *", 
+              "face", 
+              "Upload a clear, recent photo of your face", 
+              fileInputRefs.profile_picture
+            )}
+          </div>
+          {renderFileUpload(
+            "nationality_id_photo_front", 
+            "National ID (Front) *", 
+            "badge", 
+            "Front side of your ID", 
+            fileInputRefs.nationality_id_photo_front
+          )}
+          {renderFileUpload(
+            "nationality_id_photo_back", 
+            "National ID (Back) *", 
+            "credit_card", 
+            "Back side of your ID", 
+            fileInputRefs.nationality_id_photo_back
+          )}
+        </div>
       </div>
 
       <FormTextarea

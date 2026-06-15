@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DashboardNavbar } from "@/components/dashboard/DashboardNavbar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { useTranslation } from "@/i18n/useTranslation";
-import { apiClient } from "@/services/api";
+import { apiClient, apiUploadFile } from "@/services/api";
+import { AllocationInfoTab } from "@/components/dashboard/AllocationInfoTab";
+import { ProfileLogTab } from "@/components/dashboard/ProfileLogTab";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -13,22 +15,41 @@ export default function ProfilePage() {
   
   const [isMounted, setIsMounted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"personal" | "allocation" | "log">("personal");
   
   const [name, setName] = useState("");
+  const [facultyId, setFacultyId] = useState("");
+  const [email, setEmail] = useState("");
+  const [gender, setGender] = useState("");
+  const [enrollStatus, setEnrollStatus] = useState<boolean | null>(null);
   const [homeCity, setHomeCity] = useState("");
   const [preferences, setPreferences] = useState("");
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [nationalityId, setNationalityId] = useState("");
+  const [faculty, setFaculty] = useState("");
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchProfile = async (id: string) => {
     const res = await apiClient<any>(`/students/${id}`);
     if (res.success && res.data) {
-      if (res.data.name) setName(res.data.name);
-      if (res.data.home_city) setHomeCity(res.data.home_city);
-      if (res.data.preferences) setPreferences(res.data.preferences);
+      setName(res.data.name || "");
+      setFacultyId(res.data.faculty_id || "");
+      setEmail(res.data.email || "");
+      setGender(res.data.gender || "");
+      setEnrollStatus(res.data.enroll_status);
+      setHomeCity(res.data.home_city || "");
+      setPreferences(res.data.preferences || "");
+      setProfilePictureUrl(res.data.profile_picture_url || null);
+      setNationalityId(res.data.nationality_id || "");
+      setFaculty(res.data.faculty || "");
       if (res.data.name) localStorage.setItem("user_name", res.data.name);
+      if (res.data.profile_picture_url) localStorage.setItem("user_avatar", res.data.profile_picture_url);
     }
   };
 
@@ -58,9 +79,8 @@ export default function ProfilePage() {
     setApiError(null);
     setSuccessMessage(null);
 
+    // Only sending preferences since other fields are read-only
     const payload = {
-      name: name.trim() || undefined,
-      home_city: homeCity.trim() || undefined,
       preferences: preferences.trim() || undefined,
     };
 
@@ -70,14 +90,53 @@ export default function ProfilePage() {
     });
 
     if (res.success && res.data) {
-      setSuccessMessage(t("profile.successMessage"));
-      // Update local storage just in case
-      if (res.data.name) localStorage.setItem("user_name", res.data.name);
+      setSuccessMessage(t("profile.successMessage") || "Profile updated successfully!");
     } else {
-      setApiError(res.error || t("profile.updateError"));
+      setApiError(res.error || t("profile.updateError") || "Error updating profile.");
     }
 
     setIsSubmitting(false);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !userId) return;
+    
+    const file = e.target.files[0];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setApiError("Only JPG, PNG, and WebP images are allowed.");
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setApiError("Image size must be less than 5MB.");
+      return;
+    }
+
+    setIsUploading(true);
+    setApiError(null);
+    setSuccessMessage(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await apiUploadFile<any>(`/students/${userId}/profile-picture`, formData);
+      if (res.success && res.data) {
+        setProfilePictureUrl(res.data.profile_picture_url);
+        localStorage.setItem("user_avatar", res.data.profile_picture_url);
+        setSuccessMessage("Profile picture updated successfully!");
+      } else {
+        setApiError(res.error || "Failed to upload image.");
+      }
+    } catch (err) {
+      setApiError("Network error while uploading image.");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   return (
@@ -88,21 +147,59 @@ export default function ProfilePage() {
       <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-3xl mx-auto space-y-8">
           
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center">
-              <span className="material-symbols-outlined text-2xl">person</span>
+          <div className="flex items-center gap-6 mb-8">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full bg-primary-container text-white flex items-center justify-center overflow-hidden border-4 border-surface shadow-md">
+                {profilePictureUrl ? (
+                  <img src={profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="material-symbols-outlined text-4xl">person</span>
+                )}
+              </div>
             </div>
+
             <div>
               <h1 className="text-3xl font-black tracking-tight text-primary font-headline">
-                {t("profile.title")}
+                {name || t("profile.title") || "My Profile"}
               </h1>
-              <p className="text-sm text-on-surface-variant">
-                {t("profile.subtitle")}
-              </p>
+              <div className="flex items-center gap-2 mt-2">
+                {enrollStatus === true ? (
+                  <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">verified</span> Verified Student
+                  </span>
+                ) : enrollStatus === false ? (
+                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold flex items-center gap-1">
+                    <span className="material-symbols-outlined text-sm">pending</span> Pending Verification
+                  </span>
+                ) : null}
+              </div>
             </div>
           </div>
 
-          <div className="bg-white shadow-soft rounded-2xl p-8 border border-transparent">
+          {/* Tabs Navigation */}
+          <div className="flex border-b border-outline-variant/50 mb-8 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("personal")}
+              className={`px-6 py-4 font-bold text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "personal" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30"}`}
+            >
+              Personal Info
+            </button>
+            <button
+              onClick={() => setActiveTab("allocation")}
+              className={`px-6 py-4 font-bold text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "allocation" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30"}`}
+            >
+              Allocation Info
+            </button>
+            <button
+              onClick={() => setActiveTab("log")}
+              className={`px-6 py-4 font-bold text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "log" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30"}`}
+            >
+              Student Log
+            </button>
+          </div>
+
+          {activeTab === "personal" && (
+            <div className="bg-white shadow-soft rounded-2xl p-8 border border-transparent">
             {apiError && (
               <div className="mb-6 p-4 rounded-lg bg-error-container text-on-error-container text-sm font-semibold flex items-center gap-2">
                 <span className="material-symbols-outlined text-lg">error</span>
@@ -118,45 +215,70 @@ export default function ProfilePage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="name" className="block text-sm font-bold text-on-surface">
-                  {t("profile.nameLabel")}
-                </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">
-                    person
-                  </span>
-                  <input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl py-3 pl-12 pr-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Read-Only Fields */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-on-surface">Full Name</label>
+                  <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3">
+                    <span className="material-symbols-outlined text-outline">person</span>
+                    <span className="font-medium">{name || "-"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-on-surface">Faculty ID</label>
+                  <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3">
+                    <span className="material-symbols-outlined text-outline">badge</span>
+                    <span className="font-medium">{facultyId || "-"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-on-surface">Email Address</label>
+                  <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3">
+                    <span className="material-symbols-outlined text-outline">email</span>
+                    <span className="font-medium">{email || "-"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-on-surface">Gender</label>
+                  <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3">
+                    <span className="material-symbols-outlined text-outline">wc</span>
+                    <span className="font-medium">{gender === "M" ? "Male" : gender === "F" ? "Female" : gender || "-"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-on-surface">Home City</label>
+                  <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3">
+                    <span className="material-symbols-outlined text-outline">location_city</span>
+                    <span className="font-medium">{homeCity || "-"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-on-surface">Nationality ID</label>
+                  <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3">
+                    <span className="material-symbols-outlined text-outline">pin</span>
+                    <span className="font-medium">{nationalityId || "-"}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-on-surface">Faculty</label>
+                  <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3">
+                    <span className="material-symbols-outlined text-outline">school</span>
+                    <span className="font-medium">{faculty || "-"}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="homeCity" className="block text-sm font-bold text-on-surface">
-                  {t("profile.homeCityLabel")}
-                </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">
-                    location_city
-                  </span>
-                  <input
-                    id="homeCity"
-                    type="text"
-                    value={homeCity}
-                    onChange={(e) => setHomeCity(e.target.value)}
-                    className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl py-3 pl-12 pr-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
+              {/* Editable Preferences Field */}
+              <div className="space-y-2 pt-4 border-t border-outline-variant/30">
                 <label htmlFor="preferences" className="block text-sm font-bold text-on-surface">
-                  {t("profile.preferencesLabel")}
+                  {t("profile.preferencesLabel") || "Housing & Roommate Preferences"}
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-4 text-outline">
@@ -166,11 +288,14 @@ export default function ProfilePage() {
                     id="preferences"
                     value={preferences}
                     onChange={(e) => setPreferences(e.target.value)}
-                    placeholder={t("profile.preferencesPlaceholder")}
+                    placeholder={t("profile.preferencesPlaceholder") || "Enter your study habits, sleep schedule, etc."}
                     rows={4}
                     className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl py-3 pl-12 pr-4 text-on-surface focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
                   />
                 </div>
+                <p className="text-xs text-on-surface-variant mt-1">
+                  These preferences are used by our AI matching system to suggest roommates.
+                </p>
               </div>
 
               <button
@@ -183,10 +308,19 @@ export default function ProfilePage() {
                 ) : (
                   <span className="material-symbols-outlined">save</span>
                 )}
-                {t("profile.submitButton")}
+                {t("profile.submitButton") || "Save Preferences"}
               </button>
             </form>
           </div>
+          )}
+
+          {activeTab === "allocation" && userId && (
+            <AllocationInfoTab userId={userId} enrollStatus={enrollStatus || false} />
+          )}
+
+          {activeTab === "log" && userId && (
+            <ProfileLogTab studentId={userId} />
+          )}
           
         </div>
       </main>

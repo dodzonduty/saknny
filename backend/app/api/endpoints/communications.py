@@ -150,11 +150,19 @@ def notification_count(db: Session = Depends(get_db), current_user=Depends(get_c
         Announcement.is_active.is_(True),
         Announcement.target_role.in_([role, "all"]),
     ).count()
-    return success_response({
+    response_data = {
         "unread_messages": unread_messages,
         "announcements": announcements,
         "total": unread_messages + announcements,
-    })
+    }
+    
+    if role == "admin":
+        from backend.app.models.application import Application
+        new_apps = db.query(Application).filter(Application.status == "submitted").count()
+        response_data["new_applications"] = new_apps
+        response_data["total"] += new_apps
+        
+    return success_response(response_data)
 
 
 @router.get("/announcements", response_model=APIResponse[dict])
