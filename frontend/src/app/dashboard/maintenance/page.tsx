@@ -27,7 +27,6 @@ export default function StudentMaintenancePage() {
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState("medium");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -69,7 +68,8 @@ export default function StudentMaintenancePage() {
 
     setIsSubmitting(true);
     
-    const payload = { title, description, priority };
+    // priority is no longer sent — it is determined by the AI on the backend
+    const payload = { title, description };
     const res = await apiClient<any>("/maintenance/tickets", {
       method: "POST",
       body: JSON.stringify(payload)
@@ -79,7 +79,6 @@ export default function StudentMaintenancePage() {
       setShowForm(false);
       setTitle("");
       setDescription("");
-      setPriority("medium");
       fetchTickets();
     } else {
       alert(res.error || "Failed to submit request.");
@@ -148,20 +147,8 @@ export default function StudentMaintenancePage() {
                         className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                       />
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-bold text-on-surface mb-2">{t("maintenance.priorityLabel")}</label>
-                      <select 
-                        value={priority}
-                        onChange={e => setPriority(e.target.value)}
-                        className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                      >
-                        <option value="low">Low (Cosmetic, Non-urgent)</option>
-                        <option value="medium">Medium (Annoying, but usable)</option>
-                        <option value="high">High (Broken appliance, usability issue)</option>
-                        <option value="urgent">Urgent (Safety hazard, severe leak)</option>
-                      </select>
-                    </div>
+
+                    {/* Priority dropdown removed — priority is now classified by AI */}
 
                     <div>
                       <label className="block text-sm font-bold text-on-surface mb-2">{t("maintenance.descLabel")}</label>
@@ -175,13 +162,30 @@ export default function StudentMaintenancePage() {
                       />
                     </div>
 
+                    {/* AI classification notice */}
+                    <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
+                      <span className="material-symbols-outlined text-primary text-[18px] flex-shrink-0">auto_awesome</span>
+                      <p className="text-xs text-primary font-medium leading-snug">
+                        Priority is automatically assigned by AI based on your description.
+                      </p>
+                    </div>
+
                     <button 
                       type="submit" 
                       disabled={isSubmitting}
-                      className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                      className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity disabled:opacity-60 flex items-center gap-2"
                     >
-                      {isSubmitting ? <span className="material-symbols-outlined animate-spin">refresh</span> : <span className="material-symbols-outlined">send</span>}
-                      {t("maintenance.submit")}
+                      {isSubmitting ? (
+                        <>
+                          <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+                          <span>AI is classifying priority…</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined">send</span>
+                          <span>{t("maintenance.submit")}</span>
+                        </>
+                      )}
                     </button>
                   </form>
                 </div>

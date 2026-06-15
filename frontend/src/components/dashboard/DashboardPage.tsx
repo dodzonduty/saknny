@@ -11,6 +11,7 @@ import { ActionCard } from "./ActionCard";
 import { DeadlinesSidepanel } from "./DeadlinesSidepanel";
 import { useTranslation } from "@/i18n/useTranslation";
 import { apiClient } from "@/services/api";
+import { ChatWidget } from "@/components/ChatWidget";
 
 interface StudentDocument {
   doc_id: number;
@@ -257,6 +258,8 @@ export const DashboardPage: React.FC = () => {
           
         </div>
       </main>
+      {/* Housing regulations chatbot — only available to authenticated students */}
+      <ChatWidget />
     </div>
   );
 };

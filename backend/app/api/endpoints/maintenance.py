@@ -13,6 +13,7 @@ from backend.app.models.room import Room
 from backend.app.models.student import Student
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
+from backend.app.services.ai.ticket_classifier import TicketPriorityClassifier
 
 router = APIRouter()
 
@@ -20,7 +21,7 @@ router = APIRouter()
 class CreateTicketRequest(BaseModel):
     title: str
     description: str
-    priority: str = "medium"
+    # priority is intentionally removed — it is now assigned by the AI classifier
 
 
 class AssignTicketRequest(BaseModel):
@@ -38,8 +39,17 @@ def create_ticket(
     db: Session = Depends(get_db),
     student=Depends(get_current_student),
 ):
-    if payload.priority not in {"low", "medium", "high", "urgent"}:
-        return error_response("Invalid ticket priority")
+    # -----------------------------------------------------------------------
+    # AI Priority Classification
+    # Call the classifier with the ticket title + description.
+    # If classification fails for any reason the service returns a safe
+    # fallback ("medium") so the ticket is always saved successfully.
+    # -----------------------------------------------------------------------
+    classifier = TicketPriorityClassifier()
+    ai_result = classifier.process(
+        {"title": payload.title, "description": payload.description}
+    )
+    ai_priority = ai_result.get("priority", "medium")
 
     allocation = db.query(Allocation).filter(Allocation.student_id == student.student_id).first()
     ticket = MaintenanceTicket(
@@ -47,7 +57,7 @@ def create_ticket(
         room_id=allocation.room_id if allocation else None,
         title=payload.title,
         description=payload.description,
-        priority=payload.priority,
+        priority=ai_priority,
         status="open",
     )
     db.add(ticket)
@@ -59,11 +69,11 @@ def create_ticket(
         action="maintenance_ticket_created",
         entity_type="maintenance_ticket",
         entity_id=ticket.ticket_id,
-        after_state={"status": ticket.status, "priority": ticket.priority},
+        after_state={"status": ticket.status, "priority": ticket.priority, "ai_classified": True},
     )
     db.commit()
     db.refresh(ticket)
-    return success_response({"ticket_id": ticket.ticket_id, "status": ticket.status})
+    return success_response({"ticket_id": ticket.ticket_id, "status": ticket.status, "priority": ticket.priority})
 
 
 @router.get("/maintenance/tickets/me", response_model=APIResponse[dict])
@@ -111,11 +121,12 @@ def admin_tickets(
             "items": [
                 {
                     "ticket_id": row.MaintenanceTicket.ticket_id,
+                    "title": row.MaintenanceTicket.title,
                     "student_id": row.MaintenanceTicket.student_id,
                     "student_name": row.Student.name if row.Student else None,
                     "room_id": row.MaintenanceTicket.room_id,
                     "room_number": row.Room.room_number if row.Room else None,
-                    "building_name": row.Building.name if row.Building else None,
+                    "building_name": row.Building.building_name if row.Building else None,
                     "status": row.MaintenanceTicket.status,
                     "priority": row.MaintenanceTicket.priority,
                 }

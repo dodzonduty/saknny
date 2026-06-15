@@ -8,6 +8,7 @@ from backend.app.api.endpoints import (
     auth,
     billing,
     catalog,
+    chatbot,
     communications,
     insights,
     leases,
@@ -40,3 +41,4 @@ api_router.include_router(surveys.router, tags=["surveys"])
 api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
 api_router.include_router(compatibility.router, tags=["compatibility"])
 api_router.include_router(reports.router, prefix="/admin/reports", tags=["admin", "reports"])
+api_router.include_router(chatbot.router, prefix="/chatbot", tags=["chatbot"])

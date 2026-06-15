@@ -25,7 +25,6 @@ backend/app/models/
 contracts/database/
 scripts/
 datasets/
-
 Responsibilities:
 
 - database schema design
