@@ -87,22 +87,22 @@ export default function AdminLeasesPage() {
 
         <form onSubmit={handleIssueLease} className="space-y-6 max-w-lg">
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">Allocation ID</label>
+            <label className="block text-sm font-bold text-on-surface mb-2">{t("admin.allocationIdLabel")}</label>
             <input 
               type="number" 
               required
               value={allocationId}
               onChange={e => setAllocationId(e.target.value)}
               className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-              placeholder="Enter allocation ID..."
+              placeholder={t("admin.allocationIdPlaceholder")}
             />
             <p className="text-xs text-on-surface-variant mt-2">
-              The student must have an 'assigned' allocation to receive a lease.
+              {t("admin.allocationIdHint")}
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">Expiration Date (Optional)</label>
+            <label className="block text-sm font-bold text-on-surface mb-2">{t("admin.expirationDateLabel")}</label>
             <input 
               type="date" 
               value={expiresAt}
@@ -126,7 +126,7 @@ export default function AdminLeasesPage() {
       <div className="bg-white rounded-2xl shadow-soft p-8 border border-transparent">
         <h3 className="text-lg font-bold text-on-surface mb-6 font-headline flex items-center gap-2">
           <span className="material-symbols-outlined text-error">timer_off</span>
-          Expire a Lease
+          {t("admin.expireLease")}
         </h3>
 
         {expireResult && (
@@ -138,12 +138,12 @@ export default function AdminLeasesPage() {
 
         <div className="flex items-end gap-4 max-w-lg">
           <div className="flex-grow">
-            <label className="block text-sm font-bold text-on-surface mb-2">Lease ID</label>
+            <label className="block text-sm font-bold text-on-surface mb-2">{t("admin.leaseIdLabel")}</label>
             <input
               type="number"
               value={expireLeaseId}
               onChange={(e) => setExpireLeaseId(e.target.value)}
-              placeholder="Enter lease ID to expire..."
+              placeholder={t("admin.leaseIdPlaceholder")}
               className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </div>
@@ -165,7 +165,7 @@ export default function AdminLeasesPage() {
             className="bg-error-container text-on-error-container px-6 py-3 rounded-xl font-bold hover:bg-error-container/80 transition-colors disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
           >
             {expireLoading ? <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span> : <span className="material-symbols-outlined text-[18px]">timer_off</span>}
-            Expire Lease
+            {t("admin.expireLeaseBtn")}
           </button>
         </div>
       </div>

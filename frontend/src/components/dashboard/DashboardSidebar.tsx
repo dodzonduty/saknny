@@ -15,7 +15,7 @@ export const DashboardSidebar: React.FC = () => {
     { href: "/dashboard/profile", icon: "person", label: t("dashboard.sidebarProfile") },
     { href: "/dashboard/catalog", icon: "apartment", label: t("dashboard.sidebarCatalog") },
     { href: "/dashboard/applications", icon: "assignment", label: t("dashboard.sidebarApplications") },
-    { href: "/dashboard/verification", icon: "verified_user", label: "My Verification" },
+    { href: "/dashboard/verification", icon: "verified_user", label: t("dashboard.sidebarVerification") },
     { href: "/dashboard/allocation", icon: "bed", label: t("dashboard.sidebarAllocation") },
     { href: "/dashboard/lease", icon: "description", label: t("dashboard.sidebarLease") },
     { href: "/dashboard/billing", icon: "payments", label: t("dashboard.sidebarBilling") },
@@ -25,7 +25,7 @@ export const DashboardSidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen hidden lg:flex flex-col p-6 w-64 bg-surface-container-low z-40 pt-24 border-none shadow-sm">
+    <aside className="fixed start-0 top-0 h-screen hidden lg:flex flex-col p-6 w-64 bg-surface-container-low z-40 pt-24 border-none shadow-sm">
       <nav className="flex flex-col gap-2 flex-grow mt-6 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
@@ -50,7 +50,7 @@ export const DashboardSidebar: React.FC = () => {
       
       <Link href="/dashboard/applications" className="mt-auto bg-primary text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
         <span className="material-symbols-outlined text-sm">add</span>
-        <span className="text-xs font-bold uppercase tracking-wider">New Application</span>
+        <span className="text-xs font-bold uppercase tracking-wider">{t("dashboardAdditions.newApplication")}</span>
       </Link>
     </aside>
   );

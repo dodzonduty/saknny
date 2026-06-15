@@ -54,7 +54,7 @@ export default function StudentAllocationPage() {
       <DashboardNavbar />
       <DashboardSidebar />
       
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-3xl mx-auto space-y-8">
           
           <div className="flex items-center gap-4 mb-8">
@@ -82,13 +82,13 @@ export default function StudentAllocationPage() {
               </div>
               <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("allocations.emptyState")}</h3>
               <p className="text-on-surface-variant mb-8 max-w-md mx-auto">
-                Once an administrator approves your application and assigns you a bed, your room details will appear here.
+                {t("allocations.emptyStateDesc")}
               </p>
               <Link 
                 href="/dashboard/applications" 
                 className="inline-flex items-center gap-2 bg-surface-container-high text-on-surface px-6 py-2.5 rounded-xl font-bold hover:bg-surface-container-highest transition-colors"
               >
-                View Applications
+                {t("allocations.viewApplications")}
               </Link>
             </div>
           ) : (
@@ -97,10 +97,10 @@ export default function StudentAllocationPage() {
                 <div>
                   <h3 className="text-xl font-bold text-on-surface font-headline flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary">key</span>
-                    Room Assignment #{allocation.allocation_id}
+                    {t("allocations.roomAssignment")}{allocation.allocation_id}
                   </h3>
                   <p className="text-sm text-on-surface-variant mt-1">
-                    Assigned on {new Date(allocation.assigned_at).toLocaleDateString()}
+                    {t("dashboardAdditions.assignedOn")} {new Date(allocation.assigned_at).toLocaleDateString()}
                   </p>
                 </div>
                 <span className="bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm">
@@ -118,7 +118,7 @@ export default function StudentAllocationPage() {
                       </div>
                       <div className="text-lg font-bold text-on-surface flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary">meeting_room</span>
-                        Room ID {allocation.room_id}
+                        {t("allocations.roomId")} {allocation.room_id}
                       </div>
                     </div>
                     
@@ -135,9 +135,9 @@ export default function StudentAllocationPage() {
                   
                   <div className="bg-surface-container-lowest rounded-xl p-6 border-2 border-outline-variant/30 flex flex-col justify-center items-center text-center">
                     <span className="material-symbols-outlined text-4xl text-emerald-500 mb-2">verified</span>
-                    <h4 className="font-bold text-on-surface">Allocation Confirmed</h4>
+                    <h4 className="font-bold text-on-surface">{t("allocations.allocationConfirmed")}</h4>
                     <p className="text-sm text-on-surface-variant mt-1">
-                      Your room has been successfully reserved. Next, you can proceed to view and sign your lease.
+                      {t("allocations.allocationConfirmedDesc")}
                     </p>
                   </div>
                 </div>

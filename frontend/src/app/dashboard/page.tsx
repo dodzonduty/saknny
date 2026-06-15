@@ -3,7 +3,7 @@ import { DashboardPage } from "@/components/dashboard/DashboardPage";
 
 export const metadata: Metadata = {
   title: "Sakny - Student Dashboard",
-  description: "Manage your housing application and track your document verification status.",
+  description: "Manage your university housing application.",
 };
 
 export default function DashboardRoute() {

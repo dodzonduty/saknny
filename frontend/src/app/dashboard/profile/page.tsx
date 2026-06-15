@@ -186,7 +186,7 @@ export default function ProfilePage() {
       <DashboardNavbar />
       <DashboardSidebar />
       
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-3xl mx-auto space-y-8">
           
           <div className="flex items-center gap-6 mb-8">
@@ -213,11 +213,11 @@ export default function ProfilePage() {
               <div className="flex items-center gap-2 mt-2">
                 {enrollStatus === true ? (
                   <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">verified</span> Verified Student
+                    <span className="material-symbols-outlined text-sm">verified</span> {t("profileAdditions.verifiedStudent")}
                   </span>
                 ) : enrollStatus === false ? (
                   <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">pending</span> Pending Verification
+                    <span className="material-symbols-outlined text-sm">pending</span> {t("profileAdditions.pendingVerification")}
                   </span>
                 ) : null}
               </div>
@@ -230,13 +230,13 @@ export default function ProfilePage() {
               onClick={() => setActiveTab("personal")}
               className={`px-6 py-4 font-bold text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "personal" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30"}`}
             >
-              Personal Info
+              {t("profileAdditions.personalInfo")}
             </button>
             <button
               onClick={() => setActiveTab("allocation")}
               className={`px-6 py-4 font-bold text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "allocation" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30"}`}
             >
-              Allocation Info
+              {t("profileAdditions.allocationInfo")}
             </button>
             <button
               onClick={() => setActiveTab("log")}
@@ -244,7 +244,7 @@ export default function ProfilePage() {
                 activeTab === "log" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant"
               }`}
             >
-              Profile Log
+              {t("profileAdditions.profileLog")}
             </button>
             <button
               onClick={() => setActiveTab("electronic_card")}
@@ -252,7 +252,7 @@ export default function ProfilePage() {
                 activeTab === "electronic_card" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant"
               }`}
             >
-              Electronic ID
+              {t("profileAdditions.electronicCard")}
             </button>
           </div>
 
@@ -277,7 +277,7 @@ export default function ProfilePage() {
                 
                 {/* Fields */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Full Name {isEditable("name") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
+                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.fullName")} {isEditable("name") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
                   {isEditable("name") ? (
                     <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border-2 border-primary rounded-xl py-3 px-4 outline-none focus:ring-1 focus:ring-primary" />
                   ) : (
@@ -286,7 +286,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Faculty ID {isEditable("faculty_id") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
+                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.facultyId")} {isEditable("faculty_id") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
                   {isEditable("faculty_id") ? (
                     <input type="text" value={facultyId} onChange={e => setFacultyId(e.target.value)} className="w-full border-2 border-primary rounded-xl py-3 px-4 outline-none focus:ring-1 focus:ring-primary" />
                   ) : (
@@ -295,7 +295,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Email Address {isEditable("email") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
+                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.emailAddress")} {isEditable("email") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
                   {isEditable("email") ? (
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border-2 border-primary rounded-xl py-3 px-4 outline-none focus:ring-1 focus:ring-primary" />
                   ) : (
@@ -304,19 +304,19 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Gender {isEditable("gender") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
+                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.gender")} {isEditable("gender") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
                   {isEditable("gender") ? (
                     <select value={gender} onChange={e => setGender(e.target.value)} className="w-full border-2 border-primary rounded-xl py-3 px-4 outline-none focus:ring-1 focus:ring-primary bg-white">
-                      <option value="M">Male</option>
-                      <option value="F">Female</option>
+                      <option value="M">{t("dashboardAdditions.male")}</option>
+                      <option value="F">{t("dashboardAdditions.female")}</option>
                     </select>
                   ) : (
-                    <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3"><span className="material-symbols-outlined text-outline">wc</span><span className="font-medium">{gender === "M" ? "Male" : gender === "F" ? "Female" : gender || "-"}</span></div>
+                    <div className="bg-surface-variant/30 border-2 border-outline-variant/50 rounded-xl py-3 px-4 text-on-surface flex items-center gap-3"><span className="material-symbols-outlined text-outline">wc</span><span className="font-medium">{gender === "M" ? t("dashboardAdditions.male") : gender === "F" ? t("dashboardAdditions.female") : gender || "-"}</span></div>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Home City {isEditable("home_city") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
+                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.homeCity")} {isEditable("home_city") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
                   {isEditable("home_city") ? (
                     <input type="text" value={homeCity} onChange={e => setHomeCity(e.target.value)} className="w-full border-2 border-primary rounded-xl py-3 px-4 outline-none focus:ring-1 focus:ring-primary" />
                   ) : (
@@ -325,7 +325,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Nationality ID {isEditable("nationality_id") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
+                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.nationalityId")} {isEditable("nationality_id") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
                   {isEditable("nationality_id") ? (
                     <input type="text" value={nationalityId} onChange={e => setNationalityId(e.target.value)} className="w-full border-2 border-primary rounded-xl py-3 px-4 outline-none focus:ring-1 focus:ring-primary" />
                   ) : (
@@ -334,7 +334,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Faculty {isEditable("faculty") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
+                  <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.facultyLabel")} {isEditable("faculty") && <span className="material-symbols-outlined text-[14px] text-primary">edit</span>}</label>
                   {isEditable("faculty") ? (
                     <input type="text" value={faculty} onChange={e => setFaculty(e.target.value)} className="w-full border-2 border-primary rounded-xl py-3 px-4 outline-none focus:ring-1 focus:ring-primary" />
                   ) : (
@@ -348,20 +348,20 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-outline-variant/30">
                   {isEditable("nationality_id_photo_front") && (
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Nationality ID (Front) <span className="material-symbols-outlined text-[14px] text-primary">edit</span></label>
+                      <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.nationalityIdFront")} <span className="material-symbols-outlined text-[14px] text-primary">edit</span></label>
                       <label className="w-full border-2 border-dashed border-primary rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-colors">
                         <span className="material-symbols-outlined text-3xl text-primary mb-2">upload_file</span>
-                        <span className="text-sm font-semibold text-primary">Upload Front Photo</span>
+                        <span className="text-sm font-semibold text-primary">{t("dashboardAdditions.uploadFrontPhoto")}</span>
                         <input type="file" ref={frontIdRef} className="hidden" accept="image/jpeg,image/png,image/webp" onChange={e => handlePhotoUpload(e, "id_front")} disabled={isUploading} />
                       </label>
                     </div>
                   )}
                   {isEditable("nationality_id_photo_back") && (
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Nationality ID (Back) <span className="material-symbols-outlined text-[14px] text-primary">edit</span></label>
+                      <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.nationalityIdBack")} <span className="material-symbols-outlined text-[14px] text-primary">edit</span></label>
                       <label className="w-full border-2 border-dashed border-primary rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/5 transition-colors">
                         <span className="material-symbols-outlined text-3xl text-primary mb-2">upload_file</span>
-                        <span className="text-sm font-semibold text-primary">Upload Back Photo</span>
+                        <span className="text-sm font-semibold text-primary">{t("dashboardAdditions.uploadBackPhoto")}</span>
                         <input type="file" ref={backIdRef} className="hidden" accept="image/jpeg,image/png,image/webp" onChange={e => handlePhotoUpload(e, "id_back")} disabled={isUploading} />
                       </label>
                     </div>
@@ -372,7 +372,7 @@ export default function ProfilePage() {
               {/* Editable Preferences Field */}
               <div className="space-y-2 pt-4 border-t border-outline-variant/30">
                 <label htmlFor="preferences" className="block text-sm font-bold text-on-surface">
-                  {t("profile.preferencesLabel") || "Housing & Roommate Preferences"}
+                  {t("dashboardAdditions.housingPreferences")}
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-4 text-outline">
@@ -402,7 +402,7 @@ export default function ProfilePage() {
                 ) : (
                   <span className="material-symbols-outlined">save</span>
                 )}
-                {t("profile.submitButton") || "Save Preferences"}
+                {t("profileAdditions.saveChanges")}
               </button>
             </form>
           </div>

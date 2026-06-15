@@ -63,8 +63,8 @@ export default function AdminRoomChangesPage() {
           <span className="material-symbols-outlined text-2xl">swap_horiz</span>
         </div>
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-primary font-headline">Room Change Requests</h1>
-          <p className="text-sm text-on-surface-variant">Review and approve student room transfer requests.</p>
+          <h1 className="text-3xl font-black tracking-tight text-primary font-headline">{t("admin.roomChangesTitle")}</h1>
+          <p className="text-sm text-on-surface-variant">{t("admin.roomChangesSubtitle")}</p>
         </div>
       </div>
 
@@ -73,8 +73,8 @@ export default function AdminRoomChangesPage() {
       ) : requests.length === 0 ? (
         <div className="bg-white shadow-soft rounded-2xl p-12 text-center">
           <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">compare_arrows</span>
-          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">No Requests</h3>
-          <p className="text-on-surface-variant">There are no room change requests at this time.</p>
+          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("admin.noRequestsTitle")}</h3>
+          <p className="text-on-surface-variant">{t("admin.noRequestsDesc")}</p>
         </div>
       ) : (
         <div className="bg-white shadow-soft rounded-2xl border border-transparent overflow-hidden">
@@ -83,12 +83,12 @@ export default function AdminRoomChangesPage() {
               <thead className="bg-surface-container-lowest border-b-2 border-outline-variant/30">
                 <tr>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">ID</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Current Room</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Target Building</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Reason</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.studentCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.currentRoomCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.targetBuildingCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.reasonCol")}</th>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Status</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">{t("admin.actionsCol")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
@@ -116,7 +116,7 @@ export default function AdminRoomChangesPage() {
                           req.current_room_id
                         )
                       ) : (
-                        "N/A"
+                        t("admin.naText")
                       )}
                     </td>
                     <td className="px-6 py-4 text-on-surface-variant">
@@ -130,7 +130,7 @@ export default function AdminRoomChangesPage() {
                           req.target_building_id
                         )
                       ) : (
-                        "Any"
+                        t("admin.anyText")
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-on-surface-variant max-w-[200px] truncate">{req.reason}</td>
@@ -144,8 +144,8 @@ export default function AdminRoomChangesPage() {
                     <td className="px-6 py-4 text-right">
                       {req.status === "pending_review" && (
                         <div className="flex justify-end gap-2">
-                          <button onClick={() => handleReview(req.request_id, "approved")} disabled={actionLoadingId === req.request_id} className="text-xs font-bold bg-emerald-500 text-white px-3 py-1.5 rounded hover:bg-emerald-600 disabled:opacity-50">Approve</button>
-                          <button onClick={() => handleReview(req.request_id, "rejected")} disabled={actionLoadingId === req.request_id} className="text-xs font-bold bg-error-container text-on-error-container px-3 py-1.5 rounded hover:bg-error-container/80 disabled:opacity-50">Reject</button>
+                          <button onClick={() => handleReview(req.request_id, "approved")} disabled={actionLoadingId === req.request_id} className="text-xs font-bold bg-emerald-500 text-white px-3 py-1.5 rounded hover:bg-emerald-600 disabled:opacity-50">{t("admin.approveBtn")}</button>
+                          <button onClick={() => handleReview(req.request_id, "rejected")} disabled={actionLoadingId === req.request_id} className="text-xs font-bold bg-error-container text-on-error-container px-3 py-1.5 rounded hover:bg-error-container/80 disabled:opacity-50">{t("admin.rejectBtn")}</button>
                         </div>
                       )}
                     </td>

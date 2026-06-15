@@ -48,7 +48,7 @@ export default function AdminBillingPage() {
   };
 
   const handleRefund = async (paymentId: number) => {
-    if (!confirm("Are you sure you want to refund this payment?")) return;
+    if (!confirm(t("admin.refundConfirm"))) return;
     
     setActionLoading(paymentId);
     const res = await apiClient<any>(`/admin/billing/payments/${paymentId}/refund`, {
@@ -92,8 +92,8 @@ export default function AdminBillingPage() {
       ) : payments.length === 0 ? (
         <div className="bg-white shadow-soft rounded-2xl p-12 text-center">
           <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">receipt_long</span>
-          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">No Payments Found</h3>
-          <p className="text-on-surface-variant">There are currently no recorded payments.</p>
+          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("admin.noPaymentsFound")}</h3>
+          <p className="text-on-surface-variant">{t("admin.noRecordedPayments")}</p>
         </div>
       ) : (
         <div className="bg-white shadow-soft rounded-2xl border border-transparent overflow-hidden">
@@ -102,12 +102,12 @@ export default function AdminBillingPage() {
               <thead className="bg-surface-container-lowest border-b-2 border-outline-variant/30">
                 <tr>
                   <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">ID</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Type</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Amount</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Status</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Date</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.studentCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.typeCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.amountCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.statusCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.dateCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">{t("admin.actionsCol")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
@@ -145,7 +145,7 @@ export default function AdminBillingPage() {
                           disabled={actionLoading === payment.payment_id}
                           className="text-xs font-bold bg-error-container text-on-error-container px-3 py-1.5 rounded hover:bg-error-container/80 transition-colors disabled:opacity-50"
                         >
-                          {actionLoading === payment.payment_id ? "..." : "Refund"}
+                          {actionLoading === payment.payment_id ? "..." : t("admin.refundBtn")}
                         </button>
                       )}
                     </td>

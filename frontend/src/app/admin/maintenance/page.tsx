@@ -65,7 +65,7 @@ export default function AdminMaintenancePage() {
   };
 
   const handleEscalate = async (ticketId: number) => {
-    const reason = prompt("Reason for escalation?");
+    const reason = prompt(t("admin.reasonPrompt"));
     if (!reason) return;
 
     setActionLoadingId(ticketId);
@@ -85,11 +85,11 @@ export default function AdminMaintenancePage() {
   if (!isMounted) return null;
 
   const getStatusTabs = () => [
-    { id: "open", label: "Open" },
-    { id: "assigned", label: "Assigned" },
-    { id: "in_progress", label: "In Progress" },
-    { id: "escalated", label: "Escalated" },
-    { id: "resolved", label: "Resolved" },
+    { id: "open", label: t("admin.tabOpen") },
+    { id: "assigned", label: t("admin.tabAssigned") },
+    { id: "in_progress", label: t("admin.tabInProgress") },
+    { id: "escalated", label: t("admin.tabEscalated") },
+    { id: "resolved", label: t("admin.tabResolved") },
   ];
 
   return (
@@ -136,8 +136,8 @@ export default function AdminMaintenancePage() {
       ) : tickets.length === 0 ? (
         <div className="bg-white shadow-soft rounded-2xl p-12 text-center">
           <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">task_alt</span>
-          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">No Tickets Found</h3>
-          <p className="text-on-surface-variant">There are currently no tickets in "{statusFilter}" status.</p>
+          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("admin.noTicketsFound")}</h3>
+          <p className="text-on-surface-variant">{t("admin.noTicketsInStatus")} "{statusFilter}" {t("admin.statusStatus")}</p>
         </div>
       ) : (
         <div className="bg-white shadow-soft rounded-2xl border border-transparent overflow-hidden">
@@ -145,11 +145,11 @@ export default function AdminMaintenancePage() {
             <table className="w-full text-left">
               <thead className="bg-surface-container-lowest border-b-2 border-outline-variant/30">
                 <tr>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Ticket ID</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Priority</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Room</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Student</th>
-                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">Actions</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.ticketIdCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.priorityCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.roomCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">{t("admin.studentCol")}</th>
+                  <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">{t("admin.actionsCol")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/20">
@@ -176,7 +176,7 @@ export default function AdminMaintenancePage() {
                           ticket.room_id
                         )
                       ) : (
-                        "Unassigned"
+                        t("admin.unassigned")
                       )}
                     </td>
                     <td className="px-6 py-4 font-semibold text-on-surface-variant">
@@ -198,10 +198,10 @@ export default function AdminMaintenancePage() {
                             value=""
                             className="bg-surface-container-low text-xs font-bold px-3 py-2 rounded-lg outline-none cursor-pointer hover:bg-surface-container-high"
                           >
-                            <option value="" disabled>Change Status...</option>
-                            {statusFilter !== 'assigned' && <option value="assigned">Mark Assigned</option>}
-                            {statusFilter !== 'in_progress' && <option value="in_progress">Mark In Progress</option>}
-                            <option value="resolved">Mark Resolved</option>
+                            <option value="" disabled>{t("admin.changeStatus")}</option>
+                            {statusFilter !== 'assigned' && <option value="assigned">{t("admin.markAssigned")}</option>}
+                            {statusFilter !== 'in_progress' && <option value="in_progress">{t("admin.markInProgress")}</option>}
+                            <option value="resolved">{t("admin.markResolved")}</option>
                           </select>
                         )}
                         
@@ -211,7 +211,7 @@ export default function AdminMaintenancePage() {
                             disabled={actionLoadingId === ticket.ticket_id}
                             className="text-xs font-bold bg-error-container text-on-error-container px-3 py-2 rounded-lg hover:bg-error-container/80 transition-colors disabled:opacity-50"
                           >
-                            Escalate
+                            {t("admin.escalateBtn")}
                           </button>
                         )}
                       </div>

@@ -93,7 +93,7 @@ export default function CatalogPage() {
       <DashboardNavbar />
       <DashboardSidebar />
       
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-6xl mx-auto space-y-8">
           
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">

@@ -66,31 +66,31 @@ export const AllocationInfoTab: React.FC<AllocationInfoTabProps> = ({ userId, en
             <span className="material-symbols-outlined">key</span>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-on-surface">Your Housing Allocation</h3>
-            <p className="text-sm text-on-surface-variant">Assigned on {new Date(allocation.assigned_at).toLocaleDateString()}</p>
+            <h3 className="text-xl font-bold text-on-surface">{t("dashboardAdditions.housingAllocation")}</h3>
+            <p className="text-sm text-on-surface-variant">{t("dashboardAdditions.assignedOn")} {new Date(allocation.assigned_at).toLocaleDateString()}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/50">
-            <div className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">Building</div>
+            <div className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">{t("dashboardAdditions.building")}</div>
             <div className="text-lg font-bold text-on-surface flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-[20px]">apartment</span>
               {allocation.building_name || "N/A"}
             </div>
           </div>
           <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/50">
-            <div className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">Room Number</div>
+            <div className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">{t("dashboardAdditions.roomNumber")}</div>
             <div className="text-lg font-bold text-on-surface flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-[20px]">meeting_room</span>
               {allocation.room_number || "N/A"}
             </div>
           </div>
           <div className="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/50">
-            <div className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">Meal Plan</div>
+            <div className="text-xs font-bold uppercase tracking-widest text-outline-variant mb-1">{t("dashboardAdditions.mealPlan")}</div>
             <div className="text-lg font-bold text-on-surface flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-[20px]">restaurant</span>
-              {allocation.plan === "full_board" ? "Full Board" : "Breakfast Only"}
+              {allocation.plan === "full_board" ? t("dashboardAdditions.fullBoard") : t("dashboardAdditions.breakfastOnly")}
             </div>
           </div>
         </div>
@@ -102,13 +102,13 @@ export const AllocationInfoTab: React.FC<AllocationInfoTabProps> = ({ userId, en
     return (
       <div className="bg-surface rounded-2xl p-8 shadow-sm border border-outline-variant text-center space-y-4">
         <span className="material-symbols-outlined text-6xl text-primary/50">home_work</span>
-        <h3 className="text-xl font-bold text-on-surface">No Allocation Found</h3>
+        <h3 className="text-xl font-bold text-on-surface">{t("dashboardAdditions.noAllocation")}</h3>
         <p className="text-on-surface-variant max-w-md mx-auto">
-          Your account is verified, but you have not been allocated a room yet. Please submit a housing application.
+          {t("dashboardAdditions.noAllocationDesc")}
         </p>
-        <Link href="/dashboard/apply" className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-xl font-bold hover:bg-primary/90 transition-colors mt-4">
+        <Link href="/dashboard/applications" className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-xl font-bold hover:bg-primary/90 transition-colors mt-4">
           <span className="material-symbols-outlined text-sm">post_add</span>
-          Apply for Housing
+          {t("dashboardAdditions.applyForHousing")}
         </Link>
       </div>
     );
@@ -118,9 +118,9 @@ export const AllocationInfoTab: React.FC<AllocationInfoTabProps> = ({ userId, en
     return (
       <div className="bg-surface rounded-2xl p-8 shadow-sm border border-outline-variant text-center space-y-4">
         <span className="material-symbols-outlined text-6xl text-primary/50">hourglass_top</span>
-        <h3 className="text-xl font-bold text-on-surface">Documents Under Review</h3>
+        <h3 className="text-xl font-bold text-on-surface">{t("dashboardAdditions.docsUnderReview")}</h3>
         <p className="text-on-surface-variant max-w-md mx-auto">
-          We have received your verification documents and they are currently under review by our admin team. You will be able to apply for housing once verified.
+          {t("dashboardAdditions.docsUnderReviewDesc")}
         </p>
       </div>
     );
@@ -129,13 +129,13 @@ export const AllocationInfoTab: React.FC<AllocationInfoTabProps> = ({ userId, en
   return (
     <div className="bg-surface rounded-2xl p-8 shadow-sm border border-outline-variant text-center space-y-4">
       <span className="material-symbols-outlined text-6xl text-error/50">gpp_maybe</span>
-      <h3 className="text-xl font-bold text-on-surface">Account Not Verified</h3>
+      <h3 className="text-xl font-bold text-on-surface">{t("dashboardAdditions.accountNotVerified")}</h3>
       <p className="text-on-surface-variant max-w-md mx-auto">
-        You must verify your account with supporting documents before you can apply for housing or receive an allocation.
+        {t("dashboardAdditions.accountNotVerifiedDesc")}
       </p>
-      <Link href="/dashboard" className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-xl font-bold hover:bg-primary/90 transition-colors mt-4">
+      <Link href="/dashboard/verification" className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-xl font-bold hover:bg-primary/90 transition-colors mt-4">
         <span className="material-symbols-outlined text-sm">upload_file</span>
-        Upload Verification Documents
+        {t("dashboardAdditions.uploadDocs")}
       </Link>
     </div>
   );

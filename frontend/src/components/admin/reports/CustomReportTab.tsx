@@ -35,8 +35,11 @@ interface CustomReportResponse {
   }[];
 }
 
+import { useTranslation } from "@/i18n/useTranslation";
+
 export const CustomReportTab: React.FC = () => {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
@@ -192,11 +195,11 @@ export const CustomReportTab: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
-        <h3 className="text-lg font-bold text-on-surface mb-4">Custom Filters</h3>
+        <h3 className="text-lg font-bold text-on-surface mb-4">{t("customReport.filtersTitle")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="flex gap-4">
             <div className="w-1/2">
-              <label className="block text-sm font-semibold text-on-surface mb-1">Start Date</label>
+              <label className="block text-sm font-semibold text-on-surface mb-1">{t("customReport.startDate")}</label>
               <input
                 type="date"
                 value={startDate}
@@ -205,7 +208,7 @@ export const CustomReportTab: React.FC = () => {
               />
             </div>
             <div className="w-1/2">
-              <label className="block text-sm font-semibold text-on-surface mb-1">End Date</label>
+              <label className="block text-sm font-semibold text-on-surface mb-1">{t("customReport.endDate")}</label>
               <input
                 type="date"
                 value={endDate}
@@ -216,17 +219,17 @@ export const CustomReportTab: React.FC = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-on-surface mb-1">Student Search</label>
+            <label className="block text-sm font-semibold text-on-surface mb-1">{t("customReport.studentSearch")}</label>
             <MultiSelectTags 
               selected={selectedStudents}
               onChange={setSelectedStudents}
               onSearch={searchStudents}
-              placeholder="Type to search by name or ID..."
+              placeholder={t("customReport.studentSearchPlaceholder")}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-on-surface mb-1">Buildings</label>
+            <label className="block text-sm font-semibold text-on-surface mb-1">{t("customReport.buildings")}</label>
             <MultiSelectTags 
               selected={selectedBuildings}
               onChange={(vals) => {
@@ -235,17 +238,17 @@ export const CustomReportTab: React.FC = () => {
                 if (vals.length === 0) setSelectedRooms([]);
               }}
               options={buildingOptions}
-              placeholder="Select buildings..."
+              placeholder={t("customReport.buildingsPlaceholder")}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-on-surface mb-1">Room Numbers</label>
+            <label className="block text-sm font-semibold text-on-surface mb-1">{t("customReport.rooms")}</label>
             <MultiSelectTags 
               selected={selectedRooms}
               onChange={setSelectedRooms}
               options={roomOptions}
-              placeholder={selectedBuildings.length === 0 ? "Select a building first" : "Select rooms..."}
+              placeholder={selectedBuildings.length === 0 ? t("customReport.roomsPlaceholderEmpty") : t("customReport.roomsPlaceholder")}
               disabled={selectedBuildings.length === 0}
             />
           </div>
@@ -262,8 +265,8 @@ export const CustomReportTab: React.FC = () => {
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant h-[400px] flex flex-col">
-              <h3 className="text-lg font-bold text-on-surface mb-2">Daily Attendance Trend</h3>
-              <p className="text-sm text-on-surface-variant mb-4">Overall attendance across all filtered students day-by-day.</p>
+              <h3 className="text-lg font-bold text-on-surface mb-2">{t("customReport.trendTitle")}</h3>
+              <p className="text-sm text-on-surface-variant mb-4">{t("customReport.trendDesc")}</p>
               <div className="flex-grow min-h-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart 
@@ -303,19 +306,19 @@ export const CustomReportTab: React.FC = () => {
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
                     <Legend />
-                    <Area type="monotone" dataKey="attended" name="Attended" stroke="#10b981" fillOpacity={1} fill="url(#colorAttended)" />
-                    <Area type="monotone" dataKey="missed" name="Missed" stroke="#ef4444" fillOpacity={1} fill="url(#colorMissed)" />
+                    <Area type="monotone" dataKey="attended" name={t("dailyReport.attended")} stroke="#10b981" fillOpacity={1} fill="url(#colorAttended)" />
+                    <Area type="monotone" dataKey="missed" name={t("dailyReport.missed")} stroke="#ef4444" fillOpacity={1} fill="url(#colorMissed)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant h-[400px] flex flex-col">
-              <h3 className="text-lg font-bold text-on-surface mb-2">Top Students by Missed Days</h3>
-              <p className="text-sm text-on-surface-variant mb-4">Highlights the students with the most absences in the selected period.</p>
+              <h3 className="text-lg font-bold text-on-surface mb-2">{t("customReport.topMissedTitle")}</h3>
+              <p className="text-sm text-on-surface-variant mb-4">{t("customReport.topMissedDesc")}</p>
               <div className="flex-grow min-h-0">
                 {topMissedStudents.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-outline-variant">No data to display</div>
+                  <div className="h-full flex items-center justify-center text-outline-variant">{t("customReport.noData")}</div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={topMissedStudents} layout="vertical" margin={{ left: 20 }}>
@@ -331,8 +334,8 @@ export const CustomReportTab: React.FC = () => {
                       />
                       <Tooltip cursor={{fill: '#f3f4f6'}} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                       <Legend />
-                      <Bar dataKey="attended_days" name="Attended" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} barSize={20} />
-                      <Bar dataKey="missed_days" name="Missed" stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                      <Bar dataKey="attended_days" name={t("dailyReport.attended")} stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} barSize={20} />
+                      <Bar dataKey="missed_days" name={t("dailyReport.missed")} stackId="a" fill="#ef4444" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -343,17 +346,17 @@ export const CustomReportTab: React.FC = () => {
           <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden mt-6">
             <div className="p-6 border-b border-outline-variant flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-on-surface">Student Summaries</h3>
+                <h3 className="text-lg font-bold text-on-surface">{t("customReport.summariesTitle")}</h3>
                 <div className="text-sm text-on-surface-variant font-medium mt-1">
-                  Overall Rate: <span className="text-primary font-bold">{data.summary.overall_rate}%</span>
+                  {t("customReport.overallRate")} <span className="text-primary font-bold">{data.summary.overall_rate}%</span>
                 </div>
               </div>
               <div className="flex gap-2">
                 <button onClick={handleExportCSV} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
-                  <span className="material-symbols-outlined text-sm">table_view</span> Excel
+                  <span className="material-symbols-outlined text-sm">table_view</span> {t("dailyReport.excel")}
                 </button>
                 <button onClick={handleExportPDF} className="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-sm font-semibold rounded-lg border border-outline-variant transition-colors flex items-center gap-1 text-on-surface">
-                  <span className="material-symbols-outlined text-sm">picture_as_pdf</span> PDF
+                  <span className="material-symbols-outlined text-sm">picture_as_pdf</span> {t("dailyReport.pdf")}
                 </button>
               </div>
             </div>
@@ -361,18 +364,18 @@ export const CustomReportTab: React.FC = () => {
               <table className="w-full text-left">
                 <thead className="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
                   <tr>
-                    <th className="px-6 py-4 font-semibold">Student Name</th>
-                    <th className="px-6 py-4 font-semibold">Building</th>
-                    <th className="px-6 py-4 font-semibold">Room</th>
-                    <th className="px-6 py-4 font-semibold text-center">Attended Days</th>
-                    <th className="px-6 py-4 font-semibold text-center">Missed Days</th>
+                    <th className="px-6 py-4 font-semibold">{t("customReport.colStudentName")}</th>
+                    <th className="px-6 py-4 font-semibold">{t("dailyReport.colBuilding")}</th>
+                    <th className="px-6 py-4 font-semibold">{t("dailyReport.colRoom")}</th>
+                    <th className="px-6 py-4 font-semibold text-center">{t("customReport.colAttendedDays")}</th>
+                    <th className="px-6 py-4 font-semibold text-center">{t("customReport.colMissedDays")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant text-sm">
                   {data.students.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-6 py-8 text-center text-outline-variant">
-                        No students match the selected filters.
+                        {t("customReport.noMatch")}
                       </td>
                     </tr>
                   ) : (
