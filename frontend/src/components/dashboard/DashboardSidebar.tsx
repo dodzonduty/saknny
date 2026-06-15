@@ -15,6 +15,7 @@ export const DashboardSidebar: React.FC = () => {
     { href: "/dashboard/profile", icon: "person", label: t("dashboard.sidebarProfile") },
     { href: "/dashboard/catalog", icon: "apartment", label: t("dashboard.sidebarCatalog") },
     { href: "/dashboard/applications", icon: "assignment", label: t("dashboard.sidebarApplications") },
+    { href: "/dashboard/verification", icon: "verified_user", label: "My Verification" },
     { href: "/dashboard/allocation", icon: "bed", label: t("dashboard.sidebarAllocation") },
     { href: "/dashboard/lease", icon: "description", label: t("dashboard.sidebarLease") },
     { href: "/dashboard/billing", icon: "payments", label: t("dashboard.sidebarBilling") },

@@ -35,7 +35,7 @@ export const AllocationInfoTab: React.FC<AllocationInfoTabProps> = ({ userId, en
 
   const fetchAllocation = async () => {
     setLoading(true);
-    const res = await apiClient<AllocationResponse>("/allocations/me");
+    const res = await apiClient<AllocationResponse>(`/students/${userId}/allocation`);
     if (res.success && res.data) {
       setAllocation(res.data.allocation);
     }

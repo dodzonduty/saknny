@@ -18,11 +18,11 @@ from backend.app.models.verification_document import VerificationDocument
 from backend.app.schemas.response import APIResponse, success_response, error_response
 from backend.app.schemas.student import StudentCreate, StudentResponse
 from backend.app.schemas.verification import VerificationDocumentResponse
+from backend.app.services.audit import get_actor_identity, write_audit_log
 from backend.app.models.allocation import Allocation
 from backend.app.models.room import Room
 from backend.app.models.building import Building
 from backend.app.models.attendance_record import AttendanceRecord
-from backend.app.services.audit import get_actor_identity, write_audit_log
 from backend.app.services.firebase import (
     FirebaseServiceError,
     FirebaseUserPayload,
@@ -37,6 +37,11 @@ class StudentProfileUpdate(BaseModel):
     name: str | None = None
     home_city: str | None = None
     preferences: str | None = None
+    email: str | None = None
+    faculty_id: str | None = None
+    gender: str | None = None
+    nationality_id: str | None = None
+    faculty: str | None = None
 
 
 @router.post("/register", response_model=APIResponse[StudentResponse], status_code=201)
@@ -187,27 +192,95 @@ def update_profile(
     student_id: int,
     profile_in: StudentProfileUpdate,
     db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student),
+    current_user=Depends(get_current_user),
 ):
-    if current_student.student_id != student_id:
+    role = getattr(current_user, "role_type", None)
+    if role == "student" and current_user.student_id != student_id:
         raise HTTPException(status_code=403, detail="Not authorized to update this profile")
 
     student = db.query(Student).filter(Student.student_id == student_id).first()
     if not student:
         return error_response("Student not found")
 
+    doc = db.query(VerificationDocument).filter(VerificationDocument.student_id == student_id).order_by(VerificationDocument.created_at.desc()).first()
+    
+    is_approved = student.enroll_status is True
+    is_rejected = doc and doc.status == "rejected"
+    is_pending = doc and doc.status == "pending"
+    is_incomplete = doc and doc.status == "incomplete"
+    
+    # What fields is the student allowed to edit?
+    allowed_fields = set(["preferences"]) # Always allowed
+    if not doc:
+        # Before any upload, they can edit anything
+        allowed_fields.update(["name", "home_city", "email", "faculty_id", "gender", "nationality_id", "faculty"])
+    elif is_incomplete and doc.fields_to_edit:
+        # If incomplete, they can edit whatever admin requested
+        allowed_fields.update(doc.fields_to_edit)
+        # Add related fields for ease if admin just said "basic_info" or something, but we assume exact field names
+    
+    # Extract attempted updates
+    attempted_updates = {k: v for k, v in profile_in.model_dump(exclude_unset=True).items() if v is not None}
+    
+    # Ensure they aren't updating restricted fields
+    if role != "admin":
+        for field in attempted_updates.keys():
+            if field not in allowed_fields:
+                return error_response(f"You do not have permission to edit {field} at this time.")
+
     before_state = {
         "name": student.name,
         "home_city": student.home_city,
         "preferences": student.preferences,
+        "email": student.email,
+        "faculty_id": student.faculty_id,
+        "gender": student.gender,
+        "nationality_id": student.nationality_id,
+        "faculty": student.faculty,
     }
-    if profile_in.name is not None:
+    
+    fields_updated_now = []
+
+    if profile_in.name is not None and profile_in.name != student.name:
         student.name = profile_in.name
-    if profile_in.home_city is not None:
+        fields_updated_now.append("name")
+    if profile_in.home_city is not None and profile_in.home_city != student.home_city:
         student.home_city = profile_in.home_city
-    if profile_in.preferences is not None:
+        fields_updated_now.append("home_city")
+    if profile_in.preferences is not None and profile_in.preferences != student.preferences:
         student.preferences = profile_in.preferences
+        fields_updated_now.append("preferences")
+    if profile_in.email is not None and profile_in.email != student.email:
+        if db.query(Student).filter(Student.email == profile_in.email).first():
+            return error_response("Email already registered")
+        student.email = profile_in.email
+        fields_updated_now.append("email")
+    if profile_in.faculty_id is not None and profile_in.faculty_id != student.faculty_id:
+        if db.query(Student).filter(Student.faculty_id == profile_in.faculty_id).first():
+            return error_response("Faculty ID already registered")
+        student.faculty_id = profile_in.faculty_id
+        fields_updated_now.append("faculty_id")
+    if profile_in.gender is not None and profile_in.gender != student.gender:
+        student.gender = profile_in.gender
+        fields_updated_now.append("gender")
+    if profile_in.nationality_id is not None and profile_in.nationality_id != student.nationality_id:
+        if db.query(Student).filter(Student.nationality_id == profile_in.nationality_id).first():
+            return error_response("Nationality ID already registered")
+        student.nationality_id = profile_in.nationality_id
+        fields_updated_now.append("nationality_id")
+    if profile_in.faculty is not None and profile_in.faculty != student.faculty:
+        student.faculty = profile_in.faculty
+        fields_updated_now.append("faculty")
+
     student.updated_at = datetime.now(timezone.utc)
+    
+    # If the student edited fields that the admin requested, track them
+    if is_incomplete and fields_updated_now:
+        current_updated = doc.fields_updated or []
+        for f in fields_updated_now:
+            if f in (doc.fields_to_edit or []) and f not in current_updated:
+                current_updated.append(f)
+        doc.fields_updated = current_updated
 
     actor_role, actor_id = get_actor_identity(current_student)
     write_audit_log(
@@ -222,6 +295,11 @@ def update_profile(
             "name": student.name,
             "home_city": student.home_city,
             "preferences": student.preferences,
+            "email": student.email,
+            "faculty_id": student.faculty_id,
+            "gender": student.gender,
+            "nationality_id": student.nationality_id,
+            "faculty": student.faculty,
         },
     )
     db.commit()
@@ -283,6 +361,13 @@ def upload_profile_picture(
     student.profile_picture_url = file_path_relative
     student.updated_at = datetime.now(timezone.utc)
     
+    doc = db.query(VerificationDocument).filter(VerificationDocument.student_id == student_id).order_by(VerificationDocument.created_at.desc()).first()
+    if doc and doc.status == "incomplete" and "profile_picture" in (doc.fields_to_edit or []):
+        current_updated = doc.fields_updated or []
+        if "profile_picture" not in current_updated:
+            current_updated.append("profile_picture")
+            doc.fields_updated = current_updated
+    
     db.commit()
 
     return success_response(
@@ -290,6 +375,86 @@ def upload_profile_picture(
             "profile_picture_url": f"http://127.0.0.1:8000/api/v1/{file_path_relative}"
         }
     )
+
+@router.post("/{student_id}/nationality-photo-front", response_model=APIResponse[dict])
+def upload_nationality_photo_front(
+    student_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student),
+):
+    if current_student.student_id != student_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    allowed_content_types = ["image/jpeg", "image/png", "image/webp"]
+    if file.content_type not in allowed_content_types:
+        return error_response("Invalid file type")
+
+    file_bytes = file.file.read()
+    if len(file_bytes) > 5 * 1024 * 1024:
+        return error_response("File too large")
+
+    from backend.app.core.config import BACKEND_DIR
+    filename = f"id_front_{student_id}_{uuid.uuid4()}{os.path.splitext(file.filename)[1]}"
+    student_dir = os.path.join(BACKEND_DIR, "uploads", "profiles", str(student_id))
+    os.makedirs(student_dir, exist_ok=True)
+    file_path_relative = f"uploads/profiles/{student_id}/{filename}"
+    
+    with open(os.path.join(student_dir, filename), "wb") as f:
+        f.write(file_bytes)
+
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    student.nationality_id_photo_front = file_path_relative
+    student.updated_at = datetime.now(timezone.utc)
+    
+    doc = db.query(VerificationDocument).filter(VerificationDocument.student_id == student_id).order_by(VerificationDocument.created_at.desc()).first()
+    if doc and doc.status == "incomplete" and "nationality_id_photo_front" in (doc.fields_to_edit or []):
+        current_updated = doc.fields_updated or []
+        if "nationality_id_photo_front" not in current_updated:
+            current_updated.append("nationality_id_photo_front")
+            doc.fields_updated = current_updated
+    db.commit()
+    return success_response({"nationality_id_photo_front": f"http://127.0.0.1:8000/api/v1/{file_path_relative}"})
+
+@router.post("/{student_id}/nationality-photo-back", response_model=APIResponse[dict])
+def upload_nationality_photo_back(
+    student_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student),
+):
+    if current_student.student_id != student_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    allowed_content_types = ["image/jpeg", "image/png", "image/webp"]
+    if file.content_type not in allowed_content_types:
+        return error_response("Invalid file type")
+
+    file_bytes = file.file.read()
+    if len(file_bytes) > 5 * 1024 * 1024:
+        return error_response("File too large")
+
+    from backend.app.core.config import BACKEND_DIR
+    filename = f"id_back_{student_id}_{uuid.uuid4()}{os.path.splitext(file.filename)[1]}"
+    student_dir = os.path.join(BACKEND_DIR, "uploads", "profiles", str(student_id))
+    os.makedirs(student_dir, exist_ok=True)
+    file_path_relative = f"uploads/profiles/{student_id}/{filename}"
+    
+    with open(os.path.join(student_dir, filename), "wb") as f:
+        f.write(file_bytes)
+
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    student.nationality_id_photo_back = file_path_relative
+    student.updated_at = datetime.now(timezone.utc)
+    
+    doc = db.query(VerificationDocument).filter(VerificationDocument.student_id == student_id).order_by(VerificationDocument.created_at.desc()).first()
+    if doc and doc.status == "incomplete" and "nationality_id_photo_back" in (doc.fields_to_edit or []):
+        current_updated = doc.fields_updated or []
+        if "nationality_id_photo_back" not in current_updated:
+            current_updated.append("nationality_id_photo_back")
+            doc.fields_updated = current_updated
+    db.commit()
+    return success_response({"nationality_id_photo_back": f"http://127.0.0.1:8000/api/v1/{file_path_relative}"})
 
 
 @router.post("/{student_id}/documents", response_model=APIResponse[VerificationDocumentResponse], status_code=201)
@@ -323,15 +488,34 @@ def upload_document(
     with open(file_path_absolute, "wb") as f:
         f.write(file_bytes)
 
-    db_doc = VerificationDocument(
-        student_id=student_id,
-        doc_type=doc_type,
-        file_path=file_path_relative,
-        original_filename=file.filename,
-        status="pending"
-    )
-    
-    db.add(db_doc)
+    # Find the latest document
+    latest_doc = db.query(VerificationDocument).filter(
+        VerificationDocument.student_id == student_id
+    ).order_by(VerificationDocument.created_at.desc()).first()
+
+    if latest_doc and latest_doc.status == "incomplete":
+        # Update existing incomplete document
+        latest_doc.file_path = file_path_relative
+        latest_doc.original_filename = file.filename
+        
+        current_updated = latest_doc.fields_updated or []
+        if "verification_document" not in current_updated:
+            current_updated.append("verification_document")
+        latest_doc.fields_updated = current_updated
+        latest_doc.updated_at = datetime.now(timezone.utc)
+        
+        db_doc = latest_doc
+    else:
+        # Create new document
+        db_doc = VerificationDocument(
+            student_id=student_id,
+            doc_type=doc_type,
+            file_path=file_path_relative,
+            original_filename=file.filename,
+            status="pending"
+        )
+        db.add(db_doc)
+
     db.commit()
     db.refresh(db_doc)
     
@@ -345,7 +529,6 @@ def upload_document(
         entity_id=db_doc.doc_id,
         after_state={"status": db_doc.status, "doc_type": db_doc.doc_type},
     )
-    db.commit()
 
     return success_response(
         {
@@ -384,10 +567,87 @@ def list_documents(
                     "file_url": f"http://127.0.0.1:8000/api/v1/{doc.file_path}",
                     "is_flagged": doc.is_flagged,
                     "rejection_reason": doc.rejection_reason,
+                    "fields_to_edit": doc.fields_to_edit,
+                    "fields_updated": doc.fields_updated,
                     "created_at": doc.created_at,
                 }
                 for doc in docs
             ]
+        }
+    )
+
+@router.post("/{student_id}/verification-resubmit", response_model=APIResponse[dict])
+def resubmit_verification(
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_student: Student = Depends(get_current_student),
+):
+    if current_student.student_id != student_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    doc = db.query(VerificationDocument).filter(
+        VerificationDocument.student_id == student_id,
+        VerificationDocument.status == "incomplete"
+    ).order_by(VerificationDocument.created_at.desc()).first()
+    
+    if not doc:
+        return error_response("No incomplete verification document found to resubmit.")
+
+    if "verification_document" in (doc.fields_to_edit or []) and "verification_document" not in (doc.fields_updated or []):
+        return error_response("You must upload a new verification document from your Home dashboard before resubmitting.")
+
+    doc.status = "pending"
+    doc.updated_at = datetime.now(timezone.utc)
+    
+    history_record = VerificationHistory(
+        doc_id=doc.doc_id,
+        actor_role="student",
+        actor_id=current_student.student_id,
+        action="resubmitted",
+        comment="Student has updated the requested fields and resubmitted the profile.",
+        fields_updated=doc.fields_updated
+    )
+    db.add(history_record)
+    db.commit()
+
+    return success_response({"message": "Verification resubmitted successfully"})
+
+
+@router.get("/{student_id}/allocation", response_model=APIResponse[dict])
+def get_student_allocation(
+    student_id: int, 
+    db: Session = Depends(get_db), 
+    current_user=Depends(get_current_user)
+):
+    role = getattr(current_user, "role_type", None)
+    if role == "student" and current_user.student_id != student_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this allocation")
+
+    row = (
+        db.query(Allocation, Room, Building)
+        .outerjoin(Room, Allocation.room_id == Room.room_id)
+        .outerjoin(Building, Room.dorm_id == Building.dorm_id)
+        .filter(Allocation.student_id == student_id, Allocation.status == "assigned")
+        .first()
+    )
+    if not row:
+        return success_response({"allocation": None})
+    alloc, room, building = row.Allocation, row.Room, row.Building
+    return success_response(
+        {
+            "allocation": {
+                "allocation_id": alloc.allocation_id,
+                "room_id": alloc.room_id,
+                "plan": alloc.plan,
+                "status": alloc.status,
+                "assigned_at": alloc.assigned_at,
+                "room_number": room.room_number if room else None,
+                "building_name": building.building_name if building else None,
+                "dorm_id": room.dorm_id if room else None,
+                "latitude": float(room.latitude) if room and room.latitude is not None else None,
+                "longitude": float(room.longitude) if room and room.longitude is not None else None,
+                "allowed_radius_meters": room.allowed_radius_meters if room else None,
+            }
         }
     )
 
@@ -398,9 +658,10 @@ def get_student_attendance_log(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     db: Session = Depends(get_db),
-    current_student: Student = Depends(get_current_student),
+    current_user = Depends(get_current_user),
 ):
-    if current_student.student_id != student_id:
+    role = getattr(current_user, "role_type", None)
+    if role == "student" and current_user.student_id != student_id:
         raise HTTPException(status_code=403, detail="Not authorized to access this log")
 
     today = datetime.now().date()

@@ -46,15 +46,26 @@ async def general_exception_handler(_request, exc):
         content=error_response(f"Internal server error: {str(exc)}").model_dump()
     )
 
-# Static file serving for uploads
+# Static file serving for uploads with CORS headers
 from backend.app.core.config import BACKEND_DIR
+
+class CORSStaticFiles(StaticFiles):
+    async def __call__(self, scope, receive, send):
+        async def respond(message):
+            if message["type"] == "http.response.start":
+                headers = dict(message.setdefault("headers", []))
+                # Add CORS header
+                message["headers"].append((b"access-control-allow-origin", b"*"))
+            await send(message)
+        await super().__call__(scope, receive, respond)
+
 UPLOAD_DIR_ABS = os.path.join(BACKEND_DIR, settings.UPLOAD_DIR)
 os.makedirs(UPLOAD_DIR_ABS, exist_ok=True)
-app.mount(f"/api/v1/{settings.UPLOAD_DIR}", StaticFiles(directory=UPLOAD_DIR_ABS), name="uploads")
+app.mount(f"/api/v1/{settings.UPLOAD_DIR}", CORSStaticFiles(directory=UPLOAD_DIR_ABS), name="uploads")
 
 PROFILES_DIR_ABS = os.path.join(BACKEND_DIR, "uploads", "profiles")
 os.makedirs(PROFILES_DIR_ABS, exist_ok=True)
-app.mount("/api/v1/uploads/profiles", StaticFiles(directory=PROFILES_DIR_ABS), name="profiles")
+app.mount("/api/v1/uploads/profiles", CORSStaticFiles(directory=PROFILES_DIR_ABS), name="profiles")
 
 app.include_router(api_router, prefix="/api/v1")
 

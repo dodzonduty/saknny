@@ -20,6 +20,7 @@ from backend.app.models.lease import Lease  # noqa: F401
 from backend.app.models.payment_intent import PaymentIntent  # noqa: F401
 from backend.app.models.checkin import CheckIn  # noqa: F401
 from backend.app.models.maintenance_ticket import MaintenanceTicket  # noqa: F401
+from backend.app.models.verification_history import VerificationHistory  # noqa: F401
 from backend.app.models.room_change_request import RoomChangeRequest  # noqa: F401
 from backend.app.models.communication import Announcement, Message  # noqa: F401
 from backend.app.models.audit_log import AuditLog  # noqa: F401
