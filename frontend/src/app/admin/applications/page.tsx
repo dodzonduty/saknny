@@ -89,10 +89,10 @@ export default function AdminApplicationsPage() {
           </div>
           <div>
             <h1 className="text-3xl font-black tracking-tight text-primary font-headline">
-              Application Queue
+              {t("admin.applicationQueue")}
             </h1>
             <p className="text-sm text-on-surface-variant">
-              Review and process student housing applications.
+              {t("admin.reviewQueue")}
             </p>
           </div>
         </div>
@@ -124,8 +124,8 @@ export default function AdminApplicationsPage() {
       ) : applications.length === 0 ? (
         <div className="bg-white shadow-soft rounded-2xl p-12 text-center">
           <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">inbox</span>
-          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">Queue Empty</h3>
-          <p className="text-on-surface-variant">No applications currently in "{statusFilter}" status.</p>
+          <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("admin.queueEmpty")}</h3>
+          <p className="text-on-surface-variant">{t("admin.noAppsInStatus")} "{statusFilter}" {t("admin.statusStatus")}</p>
         </div>
       ) : (
         <div className="bg-white shadow-soft rounded-2xl border border-transparent overflow-hidden">
@@ -172,7 +172,7 @@ export default function AdminApplicationsPage() {
                           <div className="max-w-3xl space-y-4">
                             <h4 className="font-bold text-on-surface flex items-center gap-2">
                               <span className="material-symbols-outlined text-[18px]">gavel</span>
-                              Review Actions
+                              {t("admin.reviewActions")}
                             </h4>
                             
                             <textarea
@@ -190,7 +190,7 @@ export default function AdminApplicationsPage() {
                                   disabled={actionLoadingId === app.app_id}
                                   className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-200 transition-colors"
                                 >
-                                  Mark Under Review
+                                  {t("admin.markUnderReview")}
                                 </button>
                               )}
                               
@@ -200,7 +200,7 @@ export default function AdminApplicationsPage() {
                                   disabled={actionLoadingId === app.app_id}
                                   className="bg-orange-100 text-orange-800 px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-200 transition-colors"
                                 >
-                                  Move to Waitlist
+                                  {t("admin.moveToWaitlist")}
                                 </button>
                               )}
 
@@ -209,7 +209,7 @@ export default function AdminApplicationsPage() {
                                 disabled={actionLoadingId === app.app_id}
                                 className="bg-emerald-500 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-emerald-600 transition-colors flex items-center gap-1 ml-auto"
                               >
-                                <span className="material-symbols-outlined text-[16px]">check_circle</span> Approve
+                                <span className="material-symbols-outlined text-[16px]">check_circle</span> {t("admin.approve")}
                               </button>
                               
                               <button
@@ -220,7 +220,7 @@ export default function AdminApplicationsPage() {
                                 disabled={actionLoadingId === app.app_id}
                                 className="bg-error-container text-on-error-container px-6 py-2 rounded-lg text-sm font-bold hover:bg-error-container/80 transition-colors flex items-center gap-1"
                               >
-                                <span className="material-symbols-outlined text-[16px]">cancel</span> Reject
+                                <span className="material-symbols-outlined text-[16px]">cancel</span> {t("admin.reject")}
                               </button>
                             </div>
                           </div>

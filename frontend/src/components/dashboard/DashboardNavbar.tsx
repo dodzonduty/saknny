@@ -19,7 +19,7 @@ interface NotificationCount {
 }
 
 export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = false }) => {
-  const { t } = useTranslation();
+  const { t, locale, setLocale } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const [userInitial, setUserInitial] = useState<string>("");
@@ -125,6 +125,16 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ isAdmin = fals
         )}
       </div>
       <div className="flex items-center gap-4">
+        {/* Language Switcher */}
+        <button
+          onClick={() => setLocale(locale === "en" ? "ar" : "en")}
+          className="flex items-center gap-1 p-2 text-on-surface-variant hover:opacity-80 transition-opacity duration-200 active:scale-95 bg-surface rounded-full shadow-sm"
+          title={locale === "en" ? "Switch to Arabic" : "Switch to English"}
+        >
+          <span className="material-symbols-outlined text-sm">language</span>
+          <span className="text-xs font-bold">{locale === "en" ? "AR" : "EN"}</span>
+        </button>
+
         {/* Notification bell with unread indicator */}
         <Link
           href={isAdmin ? "/admin/applications" : "/dashboard/announcements"}

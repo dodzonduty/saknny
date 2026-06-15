@@ -17,7 +17,7 @@ export default function AdminLayout({
     <div className="bg-background text-on-background min-h-screen flex flex-col">
       <DashboardNavbar isAdmin />
       <AdminSidebar />
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         {children}
       </main>
     </div>

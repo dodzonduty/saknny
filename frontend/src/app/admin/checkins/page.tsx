@@ -49,29 +49,29 @@ export default function AdminCheckinsPage() {
           <span className="material-symbols-outlined text-2xl">key</span>
         </div>
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-primary font-headline">Check-in Management</h1>
-          <p className="text-sm text-on-surface-variant">Issue room keys to students who have initiated check-in.</p>
+          <h1 className="text-3xl font-black tracking-tight text-primary font-headline">{t("admin.checkinsTitle")}</h1>
+          <p className="text-sm text-on-surface-variant">{t("admin.checkinsSubtitle")}</p>
         </div>
       </div>
 
       <div className="bg-white shadow-soft rounded-2xl p-8 border border-transparent">
         <h3 className="text-lg font-bold text-on-surface mb-6 font-headline flex items-center gap-2">
           <span className="material-symbols-outlined text-primary">vpn_key</span>
-          Issue Room Key
+          {t("admin.issueRoomKey")}
         </h3>
 
         <div className="space-y-6 max-w-md">
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">Check-in ID</label>
+            <label className="block text-sm font-bold text-on-surface mb-2">{t("admin.checkinIdLabel")}</label>
             <input
               type="number"
               value={checkinId}
               onChange={(e) => setCheckinId(e.target.value)}
-              placeholder="Enter the check-in request ID..."
+              placeholder={t("admin.checkinIdPlaceholder")}
               className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
             <p className="text-xs text-on-surface-variant mt-2">
-              The student must have an active allocation and an initiated check-in request.
+              {t("admin.checkinIdHint")}
             </p>
           </div>
 
@@ -81,7 +81,7 @@ export default function AdminCheckinsPage() {
             className="w-full bg-primary text-white py-4 rounded-xl font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 shadow-soft"
           >
             {loading ? <span className="material-symbols-outlined animate-spin">refresh</span> : <span className="material-symbols-outlined">lock_open</span>}
-            Issue Key
+            {t("admin.issueKeyBtn")}
           </button>
 
           {apiError && (

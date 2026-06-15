@@ -68,7 +68,7 @@ export default function StudentLeasePage() {
       <DashboardNavbar />
       <DashboardSidebar />
       
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow">
         <div className="max-w-4xl mx-auto space-y-8">
           
           <div className="flex items-center gap-4 mb-8">
@@ -96,7 +96,7 @@ export default function StudentLeasePage() {
               </div>
               <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("leases.emptyState")}</h3>
               <p className="text-on-surface-variant max-w-md mx-auto">
-                Once an administrator issues your housing contract, it will appear here for you to review and sign.
+                {t("leases.emptyStateDesc")}
               </p>
             </div>
           ) : (
@@ -106,7 +106,7 @@ export default function StudentLeasePage() {
                   <div className="flex justify-between items-start border-b-2 border-outline-variant/20 pb-6 mb-6">
                     <div>
                       <h3 className="text-xl font-bold text-on-surface font-headline mb-2 flex items-center gap-2">
-                        Lease Agreement #{lease.lease_id}
+                        {t("leases.leaseAgreement")}{lease.lease_id}
                         <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded shadow-sm ${
                           lease.status === 'signed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                         }`}>
@@ -114,7 +114,7 @@ export default function StudentLeasePage() {
                         </span>
                       </h3>
                       <p className="text-sm text-on-surface-variant">
-                        Issued on {new Date(lease.issued_at).toLocaleDateString()}
+                        {t("leases.issuedOn")} {new Date(lease.issued_at).toLocaleDateString()}
                       </p>
                     </div>
                     
@@ -124,15 +124,15 @@ export default function StudentLeasePage() {
                   </div>
                   
                   <div className="prose prose-sm max-w-none text-on-surface-variant bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/30 h-64 overflow-y-auto mb-6">
-                    <h4 className="font-bold text-on-surface text-lg">Terms and Conditions</h4>
-                    <p>By signing this lease agreement, you ("The Student") agree to the following conditions regarding your occupancy at Sakny University Housing:</p>
+                    <h4 className="font-bold text-on-surface text-lg">{t("leases.termsTitle")}</h4>
+                    <p>{t("leases.termsIntro")}</p>
                     <ul>
-                      <li>The Student shall pay all housing fees and meal plan charges on or before the specified due dates.</li>
-                      <li>The Student agrees to abide by all university housing rules, including noise ordinances and guest policies.</li>
-                      <li>Sakny Housing reserves the right to terminate this lease in the event of disciplinary action or failure to pay dues.</li>
-                      <li>The Student is responsible for maintaining the room in good condition. Damages will be billed to the Student's account.</li>
+                      <li>{t("leases.term1")}</li>
+                      <li>{t("leases.term2")}</li>
+                      <li>{t("leases.term3")}</li>
+                      <li>{t("leases.term4")}</li>
                     </ul>
-                    <p><em>Note: This is a digital representation of the contract. The official document can be downloaded via the icon above.</em></p>
+                    <p><em>{t("leases.termsNote")}</em></p>
                   </div>
 
                   {lease.status === "pending_signature" ? (
@@ -151,7 +151,7 @@ export default function StudentLeasePage() {
                   ) : (
                     <div className="w-full bg-emerald-50 text-emerald-800 border-2 border-emerald-200 rounded-xl py-4 font-bold tracking-wide flex justify-center items-center gap-2">
                       <span className="material-symbols-outlined">verified</span>
-                      {t("leases.signed")} on {lease.signed_at ? new Date(lease.signed_at).toLocaleDateString() : 'Unknown'}
+                      {t("leases.signed")} {lease.signed_at ? new Date(lease.signed_at).toLocaleDateString() : t("dashboardAdditions.unknown")}
                     </div>
                   )}
                 </div>

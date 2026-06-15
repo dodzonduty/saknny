@@ -183,10 +183,10 @@ export default function AdminStudentsPage() {
           <div className="bg-gradient-to-r from-blue-700 to-blue-900 rounded-2xl p-8 text-white shadow-soft relative overflow-hidden">
             <div className="relative z-10">
               <h1 className="text-3xl font-black tracking-tight mb-2 font-headline">
-                Student Directory
+                {t("admin.directoryTitle")}
               </h1>
               <p className="text-blue-100 max-w-xl">
-                Search for any student to view or edit their profile, allocation, and electronic ID.
+                {t("admin.directorySubtitle")}
               </p>
             </div>
             <span className="material-symbols-outlined absolute -right-4 -bottom-10 text-[180px] text-white/5 pointer-events-none transform -rotate-12">
@@ -198,7 +198,7 @@ export default function AdminStudentsPage() {
           <div className="bg-surface rounded-2xl p-6 shadow-sm border border-outline-variant">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-on-surface mb-1">Search by Student ID</label>
+                <label className="block text-sm font-semibold text-on-surface mb-1">{t("admin.searchById")}</label>
                 <input
                   type="number"
                   placeholder="e.g. 1001"
@@ -211,7 +211,7 @@ export default function AdminStudentsPage() {
                 />
               </div>
               <div className="relative">
-                <label className="block text-sm font-semibold text-on-surface mb-1">Search by Name</label>
+                <label className="block text-sm font-semibold text-on-surface mb-1">{t("admin.searchByName")}</label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-3 top-3.5 text-outline-variant">search</span>
                   <input
@@ -230,7 +230,7 @@ export default function AdminStudentsPage() {
                 {showDropdown && (searchStudentName.length >= 2) && (
                   <div className="absolute z-50 w-full mt-1 bg-surface border-2 border-outline-variant rounded-xl shadow-lg max-h-60 overflow-y-auto">
                     {isSearching ? (
-                      <div className="p-3 text-sm text-on-surface-variant text-center">Searching...</div>
+                      <div className="p-3 text-sm text-on-surface-variant text-center">{t("dashboardAdditions.searching")}</div>
                     ) : searchResults.length > 0 ? (
                       searchResults.map(s => (
                         <div 
@@ -247,7 +247,7 @@ export default function AdminStudentsPage() {
                         </div>
                       ))
                     ) : (
-                      <div className="p-3 text-sm text-on-surface-variant text-center">No students found</div>
+                      <div className="p-3 text-sm text-on-surface-variant text-center">{t("dashboardAdditions.noStudentsFound")}</div>
                     )}
                   </div>
                 )}
@@ -286,50 +286,46 @@ export default function AdminStudentsPage() {
 
                 <div>
                   <h2 className="text-3xl font-black tracking-tight text-primary font-headline">
-                    {name || "Student Profile"}
+                    {name || t("dashboardAdditions.studentProfileTitle")}
                   </h2>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="text-sm font-semibold text-on-surface-variant">ID: {userId}</span>
                     <span className="text-outline-variant px-1">•</span>
-                    {enrollStatus === true ? (
-                      <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm">verified</span> Verified Student
-                      </span>
-                    ) : enrollStatus === false ? (
-                      <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm">pending</span> Pending Verification
-                      </span>
-                    ) : null}
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${enrollStatus ? 'bg-emerald-100 text-emerald-800' : 'bg-error-container text-on-error-container'}`}>
+                      {enrollStatus ? t("dashboard.stepApproved") : t("admin.notEnrolled")}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Tabs Navigation */}
               <div className="flex border-b border-outline-variant/50 overflow-x-auto">
-                <button
-                  onClick={() => setActiveTab("personal")}
-                  className={`px-6 py-4 font-bold text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "personal" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30"}`}
-                >
-                  Personal Info
-                </button>
-                <button
-                  onClick={() => setActiveTab("allocation")}
-                  className={`px-6 py-4 font-bold text-sm whitespace-nowrap border-b-2 transition-colors ${activeTab === "allocation" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/30"}`}
-                >
-                  Allocation Info
-                </button>
-                <button
-                  onClick={() => setActiveTab("log")}
-                  className={`py-4 px-6 font-bold text-sm border-b-2 whitespace-nowrap transition-colors ${activeTab === "log" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant"}`}
-                >
-                  Profile Log
-                </button>
-                <button
-                  onClick={() => setActiveTab("electronic_card")}
-                  className={`py-4 px-6 font-bold text-sm border-b-2 whitespace-nowrap transition-colors ${activeTab === "electronic_card" ? "border-primary text-primary" : "border-transparent text-on-surface-variant hover:text-on-surface hover:border-outline-variant"}`}
-                >
-                  Electronic ID
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setActiveTab("personal")}
+                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'personal' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                  >
+                    {t("admin.tabPersonal")}
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("allocation")}
+                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'allocation' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                  >
+                    {t("admin.tabAllocation")}
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("log")}
+                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'log' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                  >
+                    {t("admin.tabAttendance")}
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("electronic_card")}
+                    className={`px-4 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'electronic_card' ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                  >
+                    {t("admin.tabId")}
+                  </button>
+                </div>
               </div>
 
               {/* Tab Contents */}
@@ -352,46 +348,46 @@ export default function AdminStudentsPage() {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Full Name</label>
+                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.fullName")}</label>
                         <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full border-2 border-outline-variant rounded-xl py-3 px-4 outline-none focus:border-primary transition-colors bg-surface text-on-surface" />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Faculty ID</label>
+                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.facultyId")}</label>
                         <input type="text" value={facultyId} onChange={e => setFacultyId(e.target.value)} className="w-full border-2 border-outline-variant rounded-xl py-3 px-4 outline-none focus:border-primary transition-colors bg-surface text-on-surface" />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Email Address</label>
+                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.emailAddress")}</label>
                         <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border-2 border-outline-variant rounded-xl py-3 px-4 outline-none focus:border-primary transition-colors bg-surface text-on-surface" />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Gender</label>
+                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.gender")}</label>
                         <select value={gender} onChange={e => setGender(e.target.value)} className="w-full border-2 border-outline-variant rounded-xl py-3 px-4 outline-none focus:border-primary transition-colors bg-surface text-on-surface">
-                          <option value="M">Male</option>
-                          <option value="F">Female</option>
+                          <option value="M">{t("dashboardAdditions.male")}</option>
+                          <option value="F">{t("dashboardAdditions.female")}</option>
                         </select>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Home City</label>
+                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.homeCity")}</label>
                         <input type="text" value={homeCity} onChange={e => setHomeCity(e.target.value)} className="w-full border-2 border-outline-variant rounded-xl py-3 px-4 outline-none focus:border-primary transition-colors bg-surface text-on-surface" />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Nationality ID</label>
+                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.nationalityId")}</label>
                         <input type="text" value={nationalityId} onChange={e => setNationalityId(e.target.value)} className="w-full border-2 border-outline-variant rounded-xl py-3 px-4 outline-none focus:border-primary transition-colors bg-surface text-on-surface" />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">Faculty</label>
+                        <label className="block text-sm font-bold text-on-surface flex items-center gap-2">{t("dashboardAdditions.facultyLabel")}</label>
                         <input type="text" value={faculty} onChange={e => setFaculty(e.target.value)} className="w-full border-2 border-outline-variant rounded-xl py-3 px-4 outline-none focus:border-primary transition-colors bg-surface text-on-surface" />
                       </div>
                     </div>
 
                     <div className="space-y-2 pt-4 border-t border-outline-variant/30">
-                      <label htmlFor="preferences" className="block text-sm font-bold text-on-surface">Housing & Roommate Preferences</label>
+                      <label htmlFor="preferences" className="block text-sm font-bold text-on-surface">{t("dashboardAdditions.housingPreferences")}</label>
                       <textarea
                         id="preferences"
                         value={preferences}

@@ -70,8 +70,8 @@ export default function AdminAnnouncementsPage() {
           <span className="material-symbols-outlined text-2xl">campaign</span>
         </div>
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-primary font-headline">Publish Announcement</h1>
-          <p className="text-sm text-on-surface-variant">Broadcast important updates to students and staff.</p>
+          <h1 className="text-3xl font-black tracking-tight text-primary font-headline">{t("admin.publishAnnouncement")}</h1>
+          <p className="text-sm text-on-surface-variant">{t("admin.broadcastUpdates")}</p>
         </div>
       </div>
 
@@ -85,13 +85,13 @@ export default function AdminAnnouncementsPage() {
 
         <form onSubmit={handlePublish} className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">Title</label>
-            <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Announcement title..." className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+            <label className="block text-sm font-bold text-on-surface mb-2">{t("admin.titleLabel")}</label>
+            <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="..." className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
           </div>
 
           <div>
             <div className="flex justify-between items-end mb-2">
-              <label className="block text-sm font-bold text-on-surface">Content</label>
+              <label className="block text-sm font-bold text-on-surface">{t("admin.contentLabel")}</label>
               <button 
                 type="button" 
                 onClick={handleAIExpand}
@@ -100,24 +100,24 @@ export default function AdminAnnouncementsPage() {
                 title="Write a short draft, then click to expand it into a formal announcement"
               >
                 {isGenerating ? <span className="material-symbols-outlined animate-spin text-sm">refresh</span> : <span className="material-symbols-outlined text-sm">auto_awesome</span>}
-                AI Expand
+                {t("admin.aiExpand")}
               </button>
             </div>
-            <textarea required value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write your announcement here or write a short draft and click AI Expand..." rows={6} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none" />
+            <textarea required value={content} onChange={(e) => setContent(e.target.value)} placeholder={t("admin.draftPlaceholder")} rows={6} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none" />
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-on-surface mb-2">Target Audience</label>
+            <label className="block text-sm font-bold text-on-surface mb-2">{t("admin.targetAudience")}</label>
             <select value={targetRole} onChange={(e) => setTargetRole(e.target.value)} className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all">
-              <option value="student">Students Only</option>
-              <option value="admin">Admins Only</option>
-              <option value="all">Everyone</option>
+              <option value="student">{t("admin.studentsOnly")}</option>
+              <option value="admin">{t("admin.adminsOnly")}</option>
+              <option value="all">{t("admin.everyone")}</option>
             </select>
           </div>
 
           <button type="submit" disabled={isSubmitting} className="w-full bg-primary text-white rounded-xl py-4 font-bold tracking-wide hover:opacity-90 transition-opacity disabled:opacity-70 flex justify-center items-center gap-2 shadow-soft">
             {isSubmitting ? <span className="material-symbols-outlined animate-spin">refresh</span> : <span className="material-symbols-outlined">send</span>}
-            Publish Announcement
+            {t("admin.publishAnnouncement")}
           </button>
         </form>
       </div>

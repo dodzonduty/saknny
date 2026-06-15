@@ -101,7 +101,7 @@ export default function StudentBillingPage() {
       <DashboardNavbar />
       <DashboardSidebar />
       
-      <main className="lg:ml-64 pt-24 pb-12 px-8 flex-grow relative">
+      <main className="lg:ms-64 pt-24 pb-12 px-8 flex-grow relative">
         <div className="max-w-4xl mx-auto space-y-8">
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -124,7 +124,7 @@ export default function StudentBillingPage() {
               className="bg-primary text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-soft"
             >
               <span className="material-symbols-outlined">add_card</span>
-              Make a Payment
+              {t("billing.makePayment")}
             </button>
           </div>
 
@@ -134,23 +134,23 @@ export default function StudentBillingPage() {
                 <button onClick={() => setShowPayModal(false)} className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface">
                   <span className="material-symbols-outlined">close</span>
                 </button>
-                <h3 className="text-2xl font-black text-on-surface mb-6 font-headline">New Payment</h3>
+                <h3 className="text-2xl font-black text-on-surface mb-6 font-headline">{t("billing.newPayment")}</h3>
                 
                 <form onSubmit={handleMakePayment} className="space-y-6">
                   <div>
-                    <label className="block text-sm font-bold text-on-surface mb-2">Payment Type</label>
+                    <label className="block text-sm font-bold text-on-surface mb-2">{t("billing.paymentTypeLabel")}</label>
                     <select 
                       value={payType}
                       onChange={(e) => setPayType(e.target.value)}
                       className="w-full bg-surface-container-lowest border-2 border-outline-variant rounded-xl px-4 py-3 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                     >
-                      <option value="rent">Rent Payment</option>
-                      <option value="deposit">Housing Deposit</option>
+                      <option value="rent">{t("billing.rentPayment")}</option>
+                      <option value="deposit">{t("billing.housingDeposit")}</option>
                     </select>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-bold text-on-surface mb-2">Amount (USD)</label>
+                    <label className="block text-sm font-bold text-on-surface mb-2">{t("billing.amountUsd")}</label>
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold">$</span>
                       <input 
@@ -169,7 +169,7 @@ export default function StudentBillingPage() {
                   <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-4 flex gap-3 items-center">
                     <span className="material-symbols-outlined text-primary text-3xl">credit_card</span>
                     <div className="text-sm text-on-surface-variant">
-                      This is a simulated payment gateway. Clicking "Pay Now" will mock a successful transaction.
+                      {t("billing.simulatedGatewayDesc")}
                     </div>
                   </div>
 
@@ -183,7 +183,7 @@ export default function StudentBillingPage() {
                     ) : (
                       <span className="material-symbols-outlined">lock</span>
                     )}
-                    {isPaying ? "Processing..." : t("billing.payNow")}
+                    {isPaying ? t("billing.processing") : t("billing.payNow")}
                   </button>
                 </form>
               </div>
@@ -201,7 +201,7 @@ export default function StudentBillingPage() {
               </div>
               <h3 className="text-xl font-bold text-on-surface mb-2 font-headline">{t("billing.emptyState")}</h3>
               <p className="text-on-surface-variant max-w-md mx-auto">
-                You have not made any payments yet. When you pay a deposit or rent, the receipt will appear here.
+                {t("billing.emptyStateDesc")}
               </p>
             </div>
           ) : (
@@ -220,10 +220,10 @@ export default function StudentBillingPage() {
                     </div>
                     <div>
                       <h4 className="font-bold text-on-surface capitalize">
-                        {payment.payment_type} Payment
+                        {payment.payment_type} {t("billing.paymentLabel")}
                       </h4>
                       <div className="text-xs text-on-surface-variant">
-                        Transaction #{payment.payment_id} • {new Date(payment.created_at).toLocaleString()}
+                        {t("billing.transactionHash")}{payment.payment_id} • {new Date(payment.created_at).toLocaleString()}
                       </div>
                     </div>
                   </div>
