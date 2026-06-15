@@ -63,6 +63,10 @@ class AttendanceService {
     return _apiClient.get('/attendance/score');
   }
 
+  Future<Map<String, dynamic>> fetchAttendanceLog(int year, int month) {
+    return _apiClient.get('/attendance/log?year=$year&month=$month');
+  }
+
   /// Get the current GPS position with permission handling.
   /// Exposed publicly so the attendance screen can use it for proximity checks.
   Future<Position> getCurrentPosition() => _getCurrentPosition();
