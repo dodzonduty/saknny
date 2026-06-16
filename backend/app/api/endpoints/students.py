@@ -15,6 +15,7 @@ from backend.app.core.database import get_db
 from backend.app.core.security import get_password_hash
 from backend.app.models.student import Student
 from backend.app.models.verification_document import VerificationDocument
+from backend.app.models.verification_history import VerificationHistory
 from backend.app.schemas.response import APIResponse, success_response, error_response
 from backend.app.schemas.student import StudentCreate, StudentResponse
 from backend.app.schemas.verification import VerificationDocumentResponse
@@ -276,13 +277,13 @@ def update_profile(
     
     # If the student edited fields that the admin requested, track them
     if is_incomplete and fields_updated_now:
-        current_updated = doc.fields_updated or []
+        current_updated = list(doc.fields_updated or [])
         for f in fields_updated_now:
             if f in (doc.fields_to_edit or []) and f not in current_updated:
                 current_updated.append(f)
         doc.fields_updated = current_updated
 
-    actor_role, actor_id = get_actor_identity(current_student)
+    actor_role, actor_id = get_actor_identity(current_user)
     write_audit_log(
         db=db,
         actor_role=actor_role,
@@ -498,7 +499,7 @@ def upload_document(
         latest_doc.file_path = file_path_relative
         latest_doc.original_filename = file.filename
         
-        current_updated = latest_doc.fields_updated or []
+        current_updated = list(latest_doc.fields_updated or [])
         if "verification_document" not in current_updated:
             current_updated.append("verification_document")
         latest_doc.fields_updated = current_updated

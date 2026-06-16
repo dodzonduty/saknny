@@ -84,15 +84,22 @@ def assign_bed(
 
 
 @router.get("/admin/allocations", response_model=APIResponse[dict])
-def admin_allocations(db: Session = Depends(get_db), _=Depends(get_current_admin)):
-    items = (
+def admin_allocations(
+    student_id: int | None = None,
+    db: Session = Depends(get_db), 
+    _=Depends(get_current_admin)
+):
+    query = (
         db.query(Allocation, Student, Room, Building)
         .outerjoin(Student, Allocation.student_id == Student.student_id)
         .outerjoin(Room, Allocation.room_id == Room.room_id)
         .outerjoin(Building, Room.dorm_id == Building.dorm_id)
-        .order_by(Allocation.assigned_at.desc())
-        .all()
     )
+    
+    if student_id:
+        query = query.filter(Allocation.student_id == student_id)
+        
+    items = query.order_by(Allocation.assigned_at.desc()).all()
     return success_response(
         {
             "items": [

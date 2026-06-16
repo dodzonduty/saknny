@@ -30,17 +30,17 @@ class BiometricService {
   Future<BiometricType?> getPreferredBiometricType() async {
     try {
       final availableBiometrics = await _auth.getAvailableBiometrics();
-      debugPrint('Available biometrics: $availableBiometrics');
+      debugPrint('BiometricService: available=$availableBiometrics');
       
       if (availableBiometrics.contains(BiometricType.face)) {
         return BiometricType.face;
       }
-      if (availableBiometrics.contains(BiometricType.fingerprint)) {
-        return BiometricType.fingerprint;
-      }
       // On Android, Face Unlock is often classified as 'weak'
       if (availableBiometrics.contains(BiometricType.weak)) {
         return BiometricType.face;
+      }
+      if (availableBiometrics.contains(BiometricType.fingerprint)) {
+        return BiometricType.fingerprint;
       }
       // Fallback for 'strong' as requested (usually fingerprint on Android)
       if (availableBiometrics.contains(BiometricType.strong)) {
@@ -57,10 +57,10 @@ class BiometricService {
     try {
       return await _auth.authenticate(
         localizedReason: reason,
-        biometricOnly: false, // Set false to allow Weak biometrics (Face Unlock) on Android
-        persistAcrossBackgrounding: true,
+        biometricOnly: true, // Force biometric-only (no PIN fallback) to maximize face unlock chance
+        persistAcrossBackgrounding: true, // Keep auth alive across backgrounding
       );
-    } on PlatformException catch (e) {
+    } catch (e) {
       debugPrint('Auth error: $e');
       return false;
     }

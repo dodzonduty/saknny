@@ -12,6 +12,8 @@ from backend.app.models.application_review import ApplicationReview
 from backend.app.models.building import Building
 from backend.app.models.student import Student
 from backend.app.models.compatibility import CompatibilityResponse
+from backend.app.models.verification_document import VerificationDocument
+from sqlalchemy import select
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 
@@ -167,8 +169,16 @@ def list_admin_applications(
     db: Session = Depends(get_db),
     _=Depends(get_current_admin),
 ):
+    subq = (
+        select(VerificationDocument.doc_id)
+        .where(VerificationDocument.student_id == Application.student_id)
+        .order_by(VerificationDocument.created_at.desc())
+        .limit(1)
+        .scalar_subquery()
+    )
+
     items = (
-        db.query(Application, Student.name, Building.building_name)
+        db.query(Application, Student.name, Building.building_name, subq.label("latest_doc_id"))
         .join(Student, Student.student_id == Application.student_id)
         .outerjoin(Building, Building.dorm_id == Application.preferred_dorm_id)
         .filter(Application.status == status)
@@ -186,8 +196,9 @@ def list_admin_applications(
                     "preferred_dorm_id": app.preferred_dorm_id,
                     "preferred_dorm_name": building_name,
                     "submission_date": app.submission_date,
+                    "latest_doc_id": latest_doc_id,
                 }
-                for app, student_name, building_name in items
+                for app, student_name, building_name, latest_doc_id in items
             ],
             "count": len(items),
         }

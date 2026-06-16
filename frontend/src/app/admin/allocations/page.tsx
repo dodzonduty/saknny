@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/i18n/useTranslation";
-import { apiClient } from "@/services/api";
+import { apiClient, API_BASE_URL } from "@/services/api";
 
 interface Allocation {
   allocation_id: number;
@@ -51,6 +51,9 @@ export default function AdminAllocationsPage() {
   const [autoDormId, setAutoDormId] = useState("");
   const [autoSessionId, setAutoSessionId] = useState<number | null>(null);
   const [autoPreview, setAutoPreview] = useState<Record<string, number> | null>(null);
+  const [autoSessionData, setAutoSessionData] = useState<any>(null);
+  const [expandedCluster, setExpandedCluster] = useState<string | null>(null);
+  const [studentToRemove, setStudentToRemove] = useState<number | null>(null);
   const [autoLoading, setAutoLoading] = useState(false);
 
   useEffect(() => {
@@ -171,6 +174,34 @@ export default function AdminAllocationsPage() {
     } else {
       alert("Failed to get preview: " + previewRes.error);
     }
+    
+    const sessionDataRes = await apiClient<any>(`/admin/compatibility/sessions/${sid}`);
+    if (sessionDataRes.success && sessionDataRes.data) {
+      setAutoSessionData(sessionDataRes.data);
+    }
+    
+    setAutoLoading(false);
+  };
+
+  const handleRemoveStudentFromCluster = async (studentId: number) => {
+    if (!autoSessionId) return;
+    
+    setAutoLoading(true);
+    const res = await apiClient<any>(`/admin/compatibility/sessions/${autoSessionId}/students/${studentId}`, {
+      method: "DELETE"
+    });
+    
+    if (res.success) {
+      const previewRes = await apiClient<{suggested_assignments: Record<string, number>}>(`/admin/compatibility/sessions/${autoSessionId}/preview`);
+      if (previewRes.success && previewRes.data) setAutoPreview(previewRes.data.suggested_assignments);
+      
+      const sessionDataRes = await apiClient<any>(`/admin/compatibility/sessions/${autoSessionId}`);
+      if (sessionDataRes.success && sessionDataRes.data) setAutoSessionData(sessionDataRes.data);
+      
+      setStudentToRemove(null);
+    } else {
+      alert("Failed to remove student: " + res.error);
+    }
     setAutoLoading(false);
   };
 
@@ -284,20 +315,98 @@ export default function AdminAllocationsPage() {
             <div className="mt-6 border-t border-outline-variant pt-6">
               <h4 className="font-bold text-on-surface mb-4">{t("admin.previewAssignments")}</h4>
               <div className="bg-surface-container-lowest rounded-xl p-4 max-h-60 overflow-y-auto border border-outline-variant mb-4">
-                {Object.keys(autoPreview).length === 0 ? (
+                {(!autoSessionData || !autoSessionData.clusters || autoSessionData.clusters.length === 0) ? (
                   <p className="text-sm text-on-surface-variant">{t("admin.noCompatible")}</p>
                 ) : (
-                  <ul className="space-y-2">
-                    {Object.entries(autoPreview).map(([clusterLabel, rId]) => {
-                      const roomName = rooms.find(r => r.room_id === rId)?.room_number || `Room ID ${rId}`;
-                      return (
-                        <li key={clusterLabel} className="text-sm flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                          {t("admin.cluster")} {clusterLabel} &rarr; <span className="font-bold">{roomName}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                  <div className="bg-white rounded-xl border border-outline-variant/30 overflow-hidden shadow-sm">
+                    <table className="w-full text-left">
+                      <thead className="bg-surface-container-lowest border-b-2 border-outline-variant/30">
+                        <tr>
+                          <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Cluster</th>
+                          <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Size</th>
+                          <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant">Assigned Room</th>
+                          <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-outline-variant/20">
+                        {autoSessionData.clusters.map((clusterData: any) => {
+                          const clusterLabel = clusterData.cluster_label.toString();
+                          const rId = autoPreview ? autoPreview[clusterLabel] : null;
+                          const roomName = rId ? (rooms.find(r => r.room_id === rId)?.room_number || `Room ID ${rId}`) : "Not Assigned";
+                          const isExpanded = expandedCluster === clusterLabel;
+                          
+                          return (
+                            <React.Fragment key={clusterLabel}>
+                              <tr className="hover:bg-surface-container-lowest/50 cursor-pointer" onClick={() => setExpandedCluster(isExpanded ? null : clusterLabel)}>
+                                <td className="px-6 py-4 font-bold text-on-surface">
+                                  <div className="flex items-center gap-2">
+                                    <span className={`w-2.5 h-2.5 rounded-full shadow-sm ${rId ? 'bg-emerald-500' : 'bg-outline-variant'}`}></span>
+                                    {t("admin.cluster")} {clusterLabel}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 font-semibold text-on-surface">{clusterData.size}</td>
+                                <td className="px-6 py-4">
+                                  {rId ? (
+                                    <span className="bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">{roomName}</span>
+                                  ) : (
+                                    <span className="bg-surface-container-high text-outline px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">{roomName}</span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 text-right flex items-center justify-end gap-3">
+                                  <button onClick={(e) => { e.stopPropagation(); setExpandedCluster(isExpanded ? null : clusterLabel); }} className="text-xs font-bold text-on-surface-variant hover:text-primary flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[16px]">{isExpanded ? "expand_less" : "expand_more"}</span>
+                                    Students
+                                  </button>
+                                </td>
+                              </tr>
+                              {isExpanded && clusterData.students && (
+                                <tr>
+                                  <td colSpan={4} className="px-6 py-4 bg-surface-container-lowest border-b border-outline-variant/20">
+                                    <div className="text-sm font-bold text-on-surface mb-3">Students in Cluster {clusterLabel}:</div>
+                                    {clusterData.students.length > 0 ? (
+                                      <div className="flex flex-col gap-2">
+                                        {clusterData.students.map((st: any) => (
+                                          <div key={st.student_id} className="w-full bg-white border border-outline-variant/30 px-4 py-3 rounded-xl flex items-center gap-4 hover:bg-surface-container-high hover:border-primary/50 transition-all shadow-sm">
+                                            <div 
+                                              className="flex items-center gap-4 cursor-pointer group flex-1"
+                                              onClick={() => router.push(`/admin/students?id=${st.student_id}`)}
+                                            >
+                                              <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden shrink-0">
+                                                {st.profile_picture_url ? (
+                                                  <img src={st.profile_picture_url} alt="Profile" className="w-full h-full object-cover" />
+                                                ) : (
+                                                  <span className="material-symbols-outlined text-outline-variant text-[20px]">person</span>
+                                                )}
+                                              </div>
+                                              <div className="flex-1 min-w-0 flex flex-col items-start">
+                                                <div className="font-bold text-on-surface group-hover:text-primary transition-colors truncate w-full text-left">{st.name}</div>
+                                                <div className="text-xs text-on-surface-variant">ID: {st.student_id}</div>
+                                              </div>
+                                            </div>
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); setStudentToRemove(st.student_id); }}
+                                              className="text-error bg-error/5 hover:bg-error/10 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"
+                                            >
+                                              <span className="material-symbols-outlined text-[14px]">person_remove</span>
+                                              Remove
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-sm text-on-surface-variant font-medium p-4 bg-white rounded-xl border border-outline-variant/30 text-center">
+                                        No students in this cluster.
+                                      </div>
+                                    )}
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
               <button 
@@ -440,6 +549,36 @@ export default function AdminAllocationsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {studentToRemove !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+            <div className="w-16 h-16 bg-error-container text-on-error-container rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="material-symbols-outlined text-3xl">person_remove</span>
+            </div>
+            <h3 className="text-xl font-bold mb-2 text-on-surface">Remove Student?</h3>
+            <p className="text-sm text-on-surface-variant mb-8">
+              Are you sure you want to remove this student from the cluster? They will not be automatically assigned a room.
+            </p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setStudentToRemove(null)}
+                className="flex-1 py-3 rounded-xl font-bold bg-surface-variant text-on-surface hover:bg-surface-container-highest transition-colors"
+                disabled={autoLoading}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => handleRemoveStudentFromCluster(studentToRemove)}
+                className="flex-1 py-3 rounded-xl font-bold bg-error text-white hover:bg-error/90 transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
+                disabled={autoLoading}
+              >
+                {autoLoading ? <span className="material-symbols-outlined animate-spin text-sm">refresh</span> : "Remove"}
+              </button>
+            </div>
           </div>
         </div>
       )}

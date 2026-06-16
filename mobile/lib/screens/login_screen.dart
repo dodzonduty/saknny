@@ -209,10 +209,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (success) {
                         await widget.services.biometricService
                             .enrollCredentials(email, password);
-                      }
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        _navigateToHome();
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          _navigateToHome();
+                        }
                       }
                     },
                     child: Text(s.enable),

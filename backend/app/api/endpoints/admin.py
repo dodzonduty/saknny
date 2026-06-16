@@ -54,6 +54,9 @@ def list_verifications(status: str = "pending", db: Session = Depends(get_db), c
             "status": doc.status,
             "file_url": f"http://127.0.0.1:8000/api/v1/{doc.file_path}",
             "is_flagged": doc.is_flagged,
+            "rejection_reason": doc.rejection_reason,
+            "fields_to_edit": doc.fields_to_edit,
+            "fields_updated": doc.fields_updated,
             "created_at": doc.created_at
         })
         

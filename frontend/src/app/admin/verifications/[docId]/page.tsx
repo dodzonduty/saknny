@@ -36,17 +36,17 @@ export default function AdminVerificationReviewPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const FIELD_OPTIONS = [
-    { id: "verification_document", label: "Verification Document" },
-    { id: "profile_picture", label: "Profile Picture" },
-    { id: "nationality_id_photo_front", label: "Nationality ID (Front)" },
-    { id: "nationality_id_photo_back", label: "Nationality ID (Back)" },
-    { id: "name", label: "Full Name" },
-    { id: "faculty_id", label: "Faculty ID" },
-    { id: "nationality_id", label: "Nationality ID" },
-    { id: "email", label: "Email Address" },
-    { id: "faculty", label: "Faculty" },
-    { id: "home_city", label: "Home City" },
-    { id: "gender", label: "Gender" },
+    { id: "verification_document", label: "Verification Document", tKey: "verificationDocLabel" },
+    { id: "profile_picture", label: "Profile Picture", tKey: "profilePictureTitle" },
+    { id: "nationality_id_photo_front", label: "Nationality ID (Front)", tKey: "nationalIdFrontTitle" },
+    { id: "nationality_id_photo_back", label: "Nationality ID (Back)", tKey: "nationalIdBackTitle" },
+    { id: "name", label: "Full Name", tKey: "fullNameLabel" },
+    { id: "faculty_id", label: "Faculty ID", tKey: "facultyIdLabel" },
+    { id: "nationality_id", label: "Nationality ID", tKey: "nationalityIdLabel" },
+    { id: "email", label: "Email Address", tKey: "emailLabel" },
+    { id: "faculty", label: "Faculty", tKey: "facultyLabel" },
+    { id: "home_city", label: "Home City", tKey: "homeCityLabel" },
+    { id: "gender", label: "Gender", tKey: "genderLabel" },
   ];
 
   useEffect(() => {
@@ -263,6 +263,22 @@ export default function AdminVerificationReviewPage() {
             
             {fieldsUpdated.includes("verification_document") && <div className="text-xs text-primary font-bold mt-3 text-center">{t("admin.studentUploadedNewDoc")}</div>}
             
+            {doc.status === "incomplete" && (
+              <div className="mt-8 bg-orange-50 text-orange-900 p-6 rounded-xl border border-orange-200 shadow-sm">
+                <h3 className="font-bold mb-3 flex items-center gap-2 text-orange-800"><span className="material-symbols-outlined text-xl">warning</span> Pending Student Action</h3>
+                <p className="text-sm font-medium mb-4">{doc.rejection_reason || "Document was marked incomplete."}</p>
+                <div className="bg-white/60 p-4 rounded-lg border border-orange-100">
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-3 text-orange-800 border-b border-orange-200/50 pb-2">Fields Requested</p>
+                  <ul className="list-disc list-inside text-sm space-y-1.5">
+                    {(doc.fields_to_edit || []).map((field: string) => {
+                      const opt = FIELD_OPTIONS.find(o => o.id === field);
+                      return <li key={field} className="font-bold text-orange-900">{opt ? (t(`admin.${opt.tKey}`) || opt.label) : field.replace(/_/g, " ")}</li>;
+                    })}
+                  </ul>
+                </div>
+              </div>
+            )}
+            
             {doc.status === "pending" && (
               <div className="mt-8 space-y-3">
                 <button 
@@ -305,7 +321,26 @@ export default function AdminVerificationReviewPage() {
                     {h.comment && <div className="text-sm mt-2 bg-surface-container-lowest p-2 rounded-lg border border-outline-variant/30">"{h.comment}"</div>}
                     {h.fields_requested && h.fields_requested.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {h.fields_requested.map(f => <span key={f} className="text-[9px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">{f}</span>)}
+                        {h.fields_requested.map(f => {
+                          const opt = FIELD_OPTIONS.find(o => o.id === f);
+                          return (
+                            <span key={f} className="text-[9px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded uppercase font-bold">
+                              {opt ? (t(`admin.${opt.tKey}`) || opt.label) : f.replace(/_/g, " ")}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {h.fields_updated && h.fields_updated.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {h.fields_updated.map(f => {
+                          const opt = FIELD_OPTIONS.find(o => o.id === f);
+                          return (
+                            <span key={f} className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded uppercase font-bold">
+                              {opt ? (t(`admin.${opt.tKey}`) || opt.label) : f.replace(/_/g, " ")}
+                            </span>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -358,7 +393,7 @@ export default function AdminVerificationReviewPage() {
                           checked={selectedFields.includes(opt.id)}
                           onChange={() => toggleField(opt.id)}
                         />
-                        <span className="text-xs font-medium">{t(`admin.${opt.id}Label`) || opt.label}</span>
+                        <span className="text-xs font-medium">{t(`admin.${opt.tKey}`) || opt.label}</span>
                       </label>
                     ))}
                   </div>
