@@ -4,7 +4,7 @@ import os
 # Ensure the project root is on the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from backend.app.core.config import settings
@@ -20,6 +20,30 @@ if settings.AUTO_CREATE_TABLES:
     Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
+# ---------------------------------------------------------------------------
+# Active Defense: in-memory store of permanently banned attacker IPs
+# ---------------------------------------------------------------------------
+banned_ips: set = set()
+
+
+@app.middleware("http")
+async def ip_ban_middleware(request: Request, call_next):
+    """Block any request whose origin IP is in the banned_ips set."""
+    client_ip = request.client.host
+    if client_ip in banned_ips:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": "SECURITY ALERT",
+                "message": (
+                    "Your IP has been permanently banned due to suspicious activity. "
+                    "Incident reported."
+                ),
+            },
+        )
+    return await call_next(request)
+
 
 # CORS configuration
 app.add_middleware(
@@ -72,3 +96,18 @@ app.include_router(api_router, prefix="/api/v1")
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# Honeytoken Trap Endpoint — intentionally hidden from all frontend features.
+# Any client that probes this path is immediately banned.
+# ---------------------------------------------------------------------------
+@app.get("/api/v1/system/config/db-backup", include_in_schema=False)
+async def honeytoken_trap(request: Request):
+    """Hidden trap endpoint. Accessing it triggers an automatic IP ban."""
+    attacker_ip = request.client.host
+    banned_ips.add(attacker_ip)
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "Trap triggered. You have been blocked."},
+    )
