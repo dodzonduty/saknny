@@ -70,11 +70,16 @@ class S {
   String get signingIn => isArabic ? 'جارٍ الدخول...' : 'Signing in...';
   String get biometricPrompt =>
       isArabic ? 'تحقق من هويتك' : 'Verify your identity';
-  String get enableBiometric =>
-      isArabic ? 'تفعيل الدخول بالبصمة؟' : 'Enable fingerprint login?';
-  String get biometricEnrollDesc => isArabic
-      ? 'استخدم بصمتك للدخول السريع والتحقق من الحضور'
-      : 'Use your fingerprint for quick login and attendance verification';
+  String enableBiometric(bool isFace) => isArabic
+      ? (isFace ? 'تفعيل الدخول بالوجه؟' : 'تفعيل الدخول بالبصمة؟')
+      : (isFace ? 'Enable Face ID login?' : 'Enable fingerprint login?');
+  String biometricEnrollDesc(bool isFace) => isArabic
+      ? (isFace
+          ? 'استخدم التعرف على وجهك للدخول السريع والتحقق من الحضور'
+          : 'استخدم بصمتك للدخول السريع والتحقق من الحضور')
+      : (isFace
+          ? 'Use Face ID for quick login and attendance verification'
+          : 'Use your fingerprint for quick login and attendance verification');
   String get enable => isArabic ? 'تفعيل' : 'Enable';
   String get skip => isArabic ? 'تخطي' : 'Skip';
   String welcome(String name) => isArabic ? 'مرحباً، $name' : 'Welcome, $name';

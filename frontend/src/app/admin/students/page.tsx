@@ -51,6 +51,12 @@ export default function AdminStudentsPage() {
     const role = localStorage.getItem("user_role");
     if (!token || role !== "admin") {
       router.push("/auth");
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      const idParam = params.get("id");
+      const nameParam = params.get("name");
+      if (idParam) setSearchStudentId(idParam);
+      if (nameParam) setSearchStudentName(nameParam);
     }
   }, [router]);
 

@@ -26,6 +26,8 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Saknny uses your location to verify dorm attendance geofence eligibility.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Saknny uses Face ID for secure login and attendance verification.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../l10n/strings.dart';
 import '../saknny_mobile_app.dart';
@@ -48,6 +49,7 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   double? _roomLng;
   int? _allowedRadius;
   double? _distanceMeters;
+  BiometricType? _preferredBioType;
 
   late final AnimationController _pulseCtrl;
   late final AnimationController _scanCtrl;
@@ -56,6 +58,10 @@ class _AttendanceScreenState extends State<AttendanceScreen>
   late Timer _refreshTimer;
 
   S get s => S(_isArabic);
+
+  bool get _isFace => _preferredBioType == BiometricType.face;
+  IconData get _biometricIcon =>
+      _isFace ? Icons.face_rounded : Icons.fingerprint_rounded;
 
   @override
   void initState() {
@@ -104,9 +110,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
 
   Future<void> _loadData() async {
     final name = await widget.services.sessionStore.getUserName();
+    final preferredType =
+        await widget.services.biometricService.getPreferredBiometricType();
     if (mounted) {
       setState(() {
         _userName = name ?? '';
+        _preferredBioType = preferredType;
       });
     }
 
@@ -410,12 +419,12 @@ class _AttendanceScreenState extends State<AttendanceScreen>
     if (_state == AttendanceState.authenticating) {
       return _StatusCard(
         key: const ValueKey('auth'),
-        icon: Icons.fingerprint_rounded,
+        icon: _biometricIcon,
         iconColor: AppColors.accentYellow,
         iconBg: AppColors.accentYellow.withValues(alpha: 0.15),
         title: s.authenticating,
         subtitle: '',
-        customIcon: _ScanningFingerprint(controller: _scanCtrl),
+        customIcon: _ScanningBiometric(controller: _scanCtrl, icon: _biometricIcon),
       );
     }
     return _CheckedInCard(key: const ValueKey('done'), s: s);
@@ -462,13 +471,14 @@ class _AttendanceScreenState extends State<AttendanceScreen>
               ),
               child: Center(
                 child: isAuthenticating
-                    ? _ScanningFingerprint(
+                    ? _ScanningBiometric(
                         controller: _scanCtrl,
                         size: 56,
                         color: AppColors.primary,
+                        icon: _biometricIcon,
                       )
                     : Icon(
-                        Icons.fingerprint_rounded,
+                        _biometricIcon,
                         size: 56,
                         color: isActive
                             ? AppColors.primary
@@ -973,13 +983,15 @@ class _CountdownChipState extends State<_CountdownChip> {
   }
 }
 
-class _ScanningFingerprint extends StatelessWidget {
-  const _ScanningFingerprint({
+class _ScanningBiometric extends StatelessWidget {
+  const _ScanningBiometric({
     required this.controller,
+    required this.icon,
     this.size = 36,
     this.color,
   });
   final AnimationController controller;
+  final IconData icon;
   final double size;
   final Color? color;
 
@@ -992,7 +1004,7 @@ class _ScanningFingerprint extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Icon(
-            Icons.fingerprint_rounded,
+            icon,
             size: size,
             color: color ?? AppColors.accentYellow,
           ),

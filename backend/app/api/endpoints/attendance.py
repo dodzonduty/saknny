@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 import logging
 
 logger = logging.getLogger("attendance_api")
@@ -41,9 +40,7 @@ class DeviceRegisterRequest(BaseModel):
 
 
 def _local_attendance_date(now_utc: datetime) -> datetime.date:
-    timezone_name = settings.UNIVERSITY_TIMEZONE
-    local_dt = now_utc.astimezone(ZoneInfo(timezone_name))
-    return local_dt.date()
+    return now_utc.date()
 
 
 def _record_rejection(

@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'saknny_mobile_app.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
+import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -20,50 +21,16 @@ void main() async {
 
   final services = SaknnyMobileServices.create();
 
-  // Determine initial route
-  Widget initialScreen = LoginScreen(services: services);
-
-  // 1. Check for biometric auto-login
-  final bioEnrolled = await services.biometricService.isEnrolled();
-  if (bioEnrolled) {
-    final success = await services.biometricService.authenticateForAppUnlock();
-    if (success) {
-      if (await services.authService.tryRestoreSession()) {
-        initialScreen = HomeScreen(services: services);
-      } else {
-        final creds = await services.biometricService.getStoredCredentials();
-        if (creds != null) {
-          try {
-            await services.authService.loginWithStoredCredentials(
-              creds['email']!,
-              creds['password']!,
-            );
-            initialScreen = HomeScreen(services: services);
-          } catch (_) {
-            // If auto-login fails, stay on LoginScreen
-          }
-        }
-      }
-    }
-  } else {
-    // 2. Check for saved JWT token
-    if (await services.authService.tryRestoreSession()) {
-      initialScreen = HomeScreen(services: services);
-    }
-  }
-
-  runApp(SaknnyApp(services: services, initialScreen: initialScreen));
+  runApp(SaknnyApp(services: services));
 }
 
 class SaknnyApp extends StatelessWidget {
   const SaknnyApp({
     super.key,
     required this.services,
-    required this.initialScreen,
   });
 
   final SaknnyMobileServices services;
-  final Widget initialScreen;
 
   @override
   Widget build(BuildContext context) {
@@ -74,8 +41,71 @@ class SaknnyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Saknny',
       theme: AppTheme.light(isArabic: isArabic),
-      home: initialScreen,
+      home: SplashScreen(services: services),
       debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key, required this.services});
+  final SaknnyMobileServices services;
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initApp();
+    });
+  }
+
+  Future<void> _initApp() async {
+    final bioEnrolled = await widget.services.biometricService.isEnrolled();
+    Widget nextScreen = LoginScreen(services: widget.services);
+
+    if (bioEnrolled) {
+      final success = await widget.services.biometricService.authenticateForAppUnlock();
+      if (success) {
+        if (await widget.services.authService.tryRestoreSession()) {
+          nextScreen = HomeScreen(services: widget.services);
+        } else {
+          final creds = await widget.services.biometricService.getStoredCredentials();
+          if (creds != null) {
+            try {
+              await widget.services.authService.loginWithStoredCredentials(
+                creds['email']!,
+                creds['password']!,
+              );
+              nextScreen = HomeScreen(services: widget.services);
+            } catch (_) {}
+          }
+        }
+      }
+    } else {
+      if (await widget.services.authService.tryRestoreSession()) {
+        nextScreen = HomeScreen(services: widget.services);
+      }
+    }
+
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(builder: (_) => nextScreen),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: AppColors.primary,
+      body: Center(
+        child: CircularProgressIndicator(color: AppColors.onPrimary),
+      ),
     );
   }
 }

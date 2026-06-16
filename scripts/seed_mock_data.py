@@ -160,7 +160,9 @@ def run_seed():
                 
             room = db.query(Room).filter(Room.room_id == alloc.room_id).first()
             
-            occurred_at = datetime.combine(target_date, datetime.min.time()) + timedelta(hours=22, minutes=random.randint(0, 59))
+            # Generate time between 9:45 PM (21:45) and 10:15 PM (22:15) UTC
+            minutes_offset = random.randint(0, 30)
+            occurred_at = datetime.combine(target_date, datetime.min.time()) + timedelta(hours=21, minutes=45 + minutes_offset)
             
             record = AttendanceRecord(
                 student_id=student.student_id,

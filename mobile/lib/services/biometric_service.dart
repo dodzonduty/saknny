@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
@@ -26,14 +27,41 @@ class BiometricService {
     }
   }
 
+  Future<BiometricType?> getPreferredBiometricType() async {
+    try {
+      final availableBiometrics = await _auth.getAvailableBiometrics();
+      debugPrint('Available biometrics: $availableBiometrics');
+      
+      if (availableBiometrics.contains(BiometricType.face)) {
+        return BiometricType.face;
+      }
+      if (availableBiometrics.contains(BiometricType.fingerprint)) {
+        return BiometricType.fingerprint;
+      }
+      // On Android, Face Unlock is often classified as 'weak'
+      if (availableBiometrics.contains(BiometricType.weak)) {
+        return BiometricType.face;
+      }
+      // Fallback for 'strong' as requested (usually fingerprint on Android)
+      if (availableBiometrics.contains(BiometricType.strong)) {
+        return BiometricType.fingerprint;
+      }
+      return null;
+    } on PlatformException catch (e) {
+      debugPrint('Biometric error: $e');
+      return null;
+    }
+  }
+
   Future<bool> authenticate(String reason) async {
     try {
       return await _auth.authenticate(
         localizedReason: reason,
-        biometricOnly: true,
+        biometricOnly: false, // Set false to allow Weak biometrics (Face Unlock) on Android
         persistAcrossBackgrounding: true,
       );
-    } on PlatformException {
+    } on PlatformException catch (e) {
+      debugPrint('Auth error: $e');
       return false;
     }
   }

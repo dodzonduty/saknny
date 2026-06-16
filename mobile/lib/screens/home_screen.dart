@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../saknny_mobile_app.dart';
 import '../l10n/strings.dart';
@@ -19,11 +20,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  BiometricType? _preferredBioType;
 
   @override
   void initState() {
     super.initState();
     _initPostLogin();
+    _loadBiometricType();
+  }
+
+  Future<void> _loadBiometricType() async {
+    final type = await widget.services.biometricService.getPreferredBiometricType();
+    if (mounted) {
+      setState(() {
+        _preferredBioType = type;
+      });
+    }
   }
 
   Future<void> _initPostLogin() async {
@@ -57,6 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final langCode = View.of(context).platformDispatcher.locale.languageCode;
     final isArabic = langCode == 'ar';
     final s = S(isArabic);
+    final isFace = _preferredBioType == BiometricType.face;
+    final bioIcon = isFace ? Icons.face_rounded : Icons.fingerprint_rounded;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -93,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
         indicatorColor: AppColors.accentYellow.withValues(alpha: 0.3),
         destinations: [
           NavigationDestination(
-            icon: const Icon(Icons.fingerprint_rounded),
+            icon: Icon(bioIcon),
             label: s.tabAttendance,
           ),
           NavigationDestination(
