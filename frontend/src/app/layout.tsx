@@ -17,6 +17,8 @@ const publicSans = Public_Sans({
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { ClientLayoutContext } from "@/components/ClientLayoutContext";
 
+import { GlobalAlertProvider } from "@/components/GlobalAlertProvider";
+
 export const metadata: Metadata = {
   title: "Sakny - Your Dream University Home",
   description: "Official University Housing Platform - Secure & Verified",
@@ -37,6 +39,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="bg-background text-on-background font-body antialiased flex flex-col min-h-screen">
+        <GlobalAlertProvider />
         <LanguageProvider>
           <ClientLayoutContext>
             {children}

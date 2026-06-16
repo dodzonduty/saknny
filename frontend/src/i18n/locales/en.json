@@ -782,5 +782,12 @@
     "colAttendedDays": "Attended Days",
     "colMissedDays": "Missed Days",
     "noMatch": "No students match the selected filters."
+  },
+  "reportsPage": {
+    "title": "Attendance Reports",
+    "description": "View daily attendance rates across buildings and rooms, or generate custom analytical reports.",
+    "tabDaily": "Daily Report",
+    "tabStudentLog": "Student Log Report",
+    "tabCustom": "Custom Report"
   }
 }

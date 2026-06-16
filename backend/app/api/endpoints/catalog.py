@@ -8,6 +8,8 @@ from backend.app.api.deps import get_current_admin, get_current_user
 from backend.app.core.database import get_db
 from backend.app.models.building import Building
 from backend.app.models.room import Room
+from backend.app.models.allocation import Allocation
+from backend.app.models.student import Student
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 
@@ -344,3 +346,27 @@ def update_room(
     )
     db.commit()
     return success_response({"room_id": room.room_id, **_room_geofence_payload(room)})
+
+@router.get("/admin/catalog/rooms/{room_id}/students", response_model=APIResponse[dict])
+def get_room_students(
+    room_id: int,
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    allocations = (
+        db.query(Allocation, Student)
+        .join(Student, Allocation.student_id == Student.student_id)
+        .filter(Allocation.room_id == room_id, Allocation.status == "assigned")
+        .all()
+    )
+    return success_response({
+        "students": [
+            {
+                "student_id": student.student_id,
+                "name": student.name,
+                "allocation_id": alloc.allocation_id,
+                "profile_picture_url": student.profile_picture_url,
+            }
+            for alloc, student in allocations
+        ]
+    })

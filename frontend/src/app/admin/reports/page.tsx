@@ -5,10 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { DailyReportTab } from "@/components/admin/reports/DailyReportTab";
 import { StudentLogReportTab } from "@/components/admin/reports/StudentLogReportTab";
 import { CustomReportTab } from "@/components/admin/reports/CustomReportTab";
+import { useTranslation } from "@/i18n/useTranslation";
 
 export default function AdminReportsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t } = useTranslation();
   
   const [activeTab, setActiveTab] = useState<"daily" | "student-log" | "custom">("daily");
 
@@ -29,10 +31,10 @@ export default function AdminReportsPage() {
       <div className="bg-gradient-to-r from-primary to-blue-800 rounded-2xl p-8 text-white shadow-soft relative overflow-hidden">
         <div className="relative z-10">
           <h1 className="text-3xl font-black tracking-tight mb-2 font-headline">
-            Attendance Reports
+            {t("reportsPage.title")}
           </h1>
           <p className="text-blue-100 max-w-xl">
-            View daily attendance rates across buildings and rooms, or generate custom analytical reports.
+            {t("reportsPage.description")}
           </p>
         </div>
         <span className="material-symbols-outlined absolute -right-4 -bottom-10 text-[180px] text-white/5 pointer-events-none transform -rotate-12">
@@ -47,7 +49,7 @@ export default function AdminReportsPage() {
             activeTab === "daily" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
           }`}
         >
-          Daily Report
+          {t("reportsPage.tabDaily")}
           {activeTab === "daily" && (
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />
           )}
@@ -58,7 +60,7 @@ export default function AdminReportsPage() {
             activeTab === "student-log" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
           }`}
         >
-          Student Log Report
+          {t("reportsPage.tabStudentLog")}
           {activeTab === "student-log" && (
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />
           )}
@@ -69,7 +71,7 @@ export default function AdminReportsPage() {
             activeTab === "custom" ? "text-primary" : "text-on-surface-variant hover:bg-surface-container"
           }`}
         >
-          Custom Report
+          {t("reportsPage.tabCustom")}
           {activeTab === "custom" && (
             <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full" />
           )}

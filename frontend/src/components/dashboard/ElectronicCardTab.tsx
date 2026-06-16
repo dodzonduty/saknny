@@ -69,14 +69,16 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
         skipFonts: false,
       });
 
-      // Standard ID card size: CR80 (3.375" x 2.125") -> 85.6mm x 53.98mm
+      // Standard ID card size: CR80 (85.6mm x 54mm)
+      // Scale up the physical dimensions by 3.5x so it opens large on screen at 100% zoom
+      const scale = 3.5;
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "mm",
-        format: [85.6, 54]
+        format: [85.6 * scale, 54 * scale]
       });
 
-      pdf.addImage(dataUrl, "PNG", 0, 0, 85.6, 54);
+      pdf.addImage(dataUrl, "PNG", 0, 0, 85.6 * scale, 54 * scale);
       pdf.save(`Saknny_ID_${userId}.pdf`);
     } catch (error) {
       console.error("Failed to generate PDF", error);
@@ -132,25 +134,25 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
           ref={cardRef}
           className="relative w-[400px] h-[252px] rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-between p-1 select-none"
           style={{
-            background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #7dd3fc 100%)',
+            background: '#fafafa',
             fontFamily: "'Inter', sans-serif"
           }}
         >
           {/* Background Watermark/Pattern */}
           <div className="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
-             <svg viewBox="0 0 100 100" className="w-64 h-64 text-primary" fill="currentColor">
+             <svg viewBox="0 0 100 100" className="w-64 h-64 text-gray-400" fill="currentColor">
                <polygon points="50,10 90,90 10,90" />
                <circle cx="50" cy="65" r="10" fill="white" />
              </svg>
           </div>
 
           <div className="absolute inset-0 opacity-20 pointer-events-none" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, #0369a1 1px, transparent 0)`,
+            backgroundImage: `radial-gradient(circle at 2px 2px, #d1d5db 1px, transparent 0)`,
             backgroundSize: '16px 16px'
           }}></div>
 
           {/* Header */}
-          <div className="relative z-10 flex items-center justify-between bg-primary text-white p-3 rounded-t-xl">
+          <div className="relative z-10 flex items-center justify-between bg-[#800020] text-white p-3 rounded-t-xl">
             <div className="flex items-center gap-3">
               <img src="/images/logo.png" alt="University Logo" className="h-8 w-8 object-contain bg-white rounded-full p-1" />
               <div>
@@ -159,7 +161,7 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
               </div>
             </div>
             <div className="text-right">
-              <h2 className="text-[10px] font-bold text-blue-100 mb-0.5">بطاقة سكن (Dorm ID)</h2>
+              <h2 className="text-[10px] font-bold text-gray-200 mb-0.5">بطاقة سكن (Dorm ID)</h2>
               <div className="text-[10px] font-mono bg-black/20 px-2 py-0.5 rounded backdrop-blur-sm">
                 {cardNumber}
               </div>
@@ -170,11 +172,11 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
           <div className="relative z-10 flex gap-4 p-4 flex-grow">
             {/* Photo */}
             <div className="flex-shrink-0 flex flex-col gap-2">
-              <div className="w-24 h-28 bg-white p-1 rounded-lg shadow-sm border border-blue-200/50">
+              <div className="w-24 h-28 bg-white p-1 rounded-lg shadow-sm border border-[#800020]/30">
                 {profilePictureUrl ? (
                   <img src={profilePictureUrl} alt="Student" className="w-full h-full object-cover rounded bg-surface-variant" />
                 ) : (
-                  <div className="w-full h-full rounded bg-surface-variant flex items-center justify-center text-outline-variant">
+                  <div className="w-full h-full rounded bg-gray-100 flex items-center justify-center text-gray-400">
                     <span className="material-symbols-outlined text-4xl">person</span>
                   </div>
                 )}
@@ -182,34 +184,34 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
             </div>
 
             {/* Details */}
-            <div className="flex-grow flex flex-col justify-center space-y-0.5">
+            <div className="flex-grow flex flex-col justify-center space-y-0.5 text-gray-800">
               
               <div className="flex flex-col">
-                <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">رقم التسجيل / Reg. Number</span>
-                <span className="text-xs font-black text-on-surface font-mono">{userId.padStart(8, '0')}</span>
+                <span className="text-[8px] font-bold uppercase text-[#800020]/80 tracking-wider">رقم التسجيل / Reg. Number</span>
+                <span className="text-xs font-black font-mono">{userId.padStart(8, '0')}</span>
               </div>
 
               <div className="flex flex-col">
-                <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">اسم الطالب / Student Name</span>
-                <span className="text-xs font-bold text-on-surface leading-tight">{name || t("dashboardAdditions.unknown")}</span>
+                <span className="text-[8px] font-bold uppercase text-[#800020]/80 tracking-wider">اسم الطالب / Student Name</span>
+                <span className="text-xs font-bold leading-tight">{name || t("dashboardAdditions.unknown")}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-0.5">
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">الكلية / Faculty</span>
-                  <span className="text-[10px] font-bold text-on-surface truncate">{faculty || t("dashboardAdditions.na")}</span>
+                  <span className="text-[8px] font-bold uppercase text-[#800020]/80 tracking-wider">الكلية / Faculty</span>
+                  <span className="text-[10px] font-bold truncate">{faculty || t("dashboardAdditions.na")}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">الرقم الجامعي / Faculty ID</span>
-                  <span className="text-[10px] font-bold text-on-surface truncate font-mono">{facultyId || t("dashboardAdditions.na")}</span>
+                  <span className="text-[8px] font-bold uppercase text-[#800020]/80 tracking-wider">الرقم الجامعي / Faculty ID</span>
+                  <span className="text-[10px] font-bold truncate font-mono">{facultyId || t("dashboardAdditions.na")}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">الرقم القومي / National ID</span>
-                  <span className="text-[10px] font-bold text-on-surface truncate font-mono">{nationalityId || t("dashboardAdditions.na")}</span>
+                  <span className="text-[8px] font-bold uppercase text-[#800020]/80 tracking-wider">الرقم القومي / National ID</span>
+                  <span className="text-[10px] font-bold truncate font-mono">{nationalityId || t("dashboardAdditions.na")}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[8px] font-bold uppercase text-primary/70 tracking-wider">العنوان / Address</span>
-                  <span className="text-[10px] font-bold text-on-surface truncate">{homeCity || t("dashboardAdditions.na")}</span>
+                  <span className="text-[8px] font-bold uppercase text-[#800020]/80 tracking-wider">العنوان / Address</span>
+                  <span className="text-[10px] font-bold truncate">{homeCity || t("dashboardAdditions.na")}</span>
                 </div>
               </div>
 
@@ -217,21 +219,21 @@ export const ElectronicCardTab: React.FC<ElectronicCardTabProps> = ({
           </div>
 
           {/* Footer (Room & Building) */}
-          <div className="relative z-10 bg-white/60 backdrop-blur-md border-t border-blue-200/50 p-2.5 rounded-b-xl flex items-center justify-between">
+          <div className="relative z-10 bg-white/60 backdrop-blur-md border-t border-[#800020]/30 p-2.5 rounded-b-xl flex items-center justify-between">
              <div className="flex items-center gap-4">
-                <div className="flex flex-col">
-                  <span className="text-[8px] font-bold uppercase text-primary tracking-wider">المبنى / Building</span>
-                  <span className="text-xs font-black text-on-surface">{allocation.building_name || t("dashboardAdditions.na")}</span>
+                <div className="flex flex-col text-gray-800">
+                  <span className="text-[8px] font-bold uppercase text-[#800020] tracking-wider">المبنى / Building</span>
+                  <span className="text-xs font-black">{allocation.building_name || t("dashboardAdditions.na")}</span>
                 </div>
-                <div className="w-px h-6 bg-blue-200/50"></div>
-                <div className="flex flex-col">
-                  <span className="text-[8px] font-bold uppercase text-primary tracking-wider">رقم الغرفة / Room No.</span>
-                  <span className="text-xs font-black text-on-surface">{allocation.room_number || t("dashboardAdditions.na")}</span>
+                <div className="w-px h-6 bg-[#800020]/30"></div>
+                <div className="flex flex-col text-gray-800">
+                  <span className="text-[8px] font-bold uppercase text-[#800020] tracking-wider">رقم الغرفة / Room No.</span>
+                  <span className="text-xs font-black">{allocation.room_number || t("dashboardAdditions.na")}</span>
                 </div>
              </div>
-             <div className="flex flex-col items-end">
-                <span className="text-[8px] font-bold uppercase text-primary tracking-wider">Year</span>
-                <span className="text-xs font-black text-on-surface">{new Date().getFullYear()}/{new Date().getFullYear()+1}</span>
+             <div className="flex flex-col items-end text-gray-800">
+                <span className="text-[8px] font-bold uppercase text-[#800020] tracking-wider">Year</span>
+                <span className="text-xs font-black">{new Date().getFullYear()}/{new Date().getFullYear()+1}</span>
              </div>
           </div>
 

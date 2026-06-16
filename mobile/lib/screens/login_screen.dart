@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../l10n/strings.dart';
 import '../saknny_mobile_app.dart';
@@ -25,8 +26,13 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
   bool _isArabic = false;
   bool _biometricEnrolled = false;
+  BiometricType? _preferredBioType;
 
   S get s => S(_isArabic);
+
+  bool get _isFace => _preferredBioType == BiometricType.face;
+  IconData get _biometricIcon =>
+      _isFace ? Icons.face_rounded : Icons.fingerprint_rounded;
 
   @override
   void initState() {
@@ -47,9 +53,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _checkBiometricStatus() async {
     final enrolled = await widget.services.biometricService.isEnrolled();
+    final preferredType =
+        await widget.services.biometricService.getPreferredBiometricType();
     if (mounted) {
       setState(() {
         _biometricEnrolled = enrolled;
+        _preferredBioType = preferredType;
       });
     }
   }
@@ -138,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showBiometricEnrollmentPrompt(String email, String password) {
+    final isFace = _isFace;
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -151,14 +161,14 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.fingerprint_rounded,
+            Icon(
+              _biometricIcon,
               size: 64,
               color: AppColors.primary,
             ),
             const SizedBox(height: 16),
             Text(
-              s.enableBiometric,
+              s.enableBiometric(isFace),
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -167,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              s.biometricEnrollDesc,
+              s.biometricEnrollDesc(isFace),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 14,
@@ -451,8 +461,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 16),
                         IconButton(
                           iconSize: 64,
-                          icon: const Icon(
-                            Icons.fingerprint_rounded,
+                          icon: Icon(
+                            _biometricIcon,
                             size: 48,
                             color: AppColors.primary,
                           ),
