@@ -263,14 +263,21 @@ def get_session(session_id: int, db: Session = Depends(get_db), admin=Depends(ge
     if not session:
         return error_response("Session not found")
     
-    results = db.query(ClusteringResult).filter(ClusteringResult.session_id == session_id).all()
+    results = (
+        db.query(ClusteringResult, Student.name, Student.profile_picture_url)
+        .join(Student, Student.student_id == ClusteringResult.student_id)
+        .filter(ClusteringResult.session_id == session_id)
+        .all()
+    )
     clusters = {}
-    for r in results:
+    for r, s_name, s_pic in results:
         if r.cluster_label not in clusters:
             clusters[r.cluster_label] = {"size": 0, "students": []}
         clusters[r.cluster_label]["size"] += 1
         clusters[r.cluster_label]["students"].append({
             "student_id": r.student_id,
+            "name": s_name,
+            "profile_picture_url": f"http://127.0.0.1:8000/api/v1/{s_pic}" if s_pic else None,
             "distance_to_centroid": r.distance_to_centroid,
             "assigned_room_id": r.assigned_room_id
         })
@@ -282,6 +289,27 @@ def get_session(session_id: int, db: Session = Depends(get_db), admin=Depends(ge
         "status": session.status,
         "clusters": [{"cluster_label": k, **v} for k, v in clusters.items()]
     })
+
+
+@router.delete("/admin/compatibility/sessions/{session_id}/students/{student_id}", response_model=APIResponse[dict])
+def remove_student_from_cluster(session_id: int, student_id: int, db: Session = Depends(get_db), admin=Depends(get_current_admin)):
+    session = db.query(ClusteringSession).filter(ClusteringSession.session_id == session_id).first()
+    if not session:
+        return error_response("Session not found")
+        
+    c_res = db.query(ClusteringResult).filter(
+        ClusteringResult.session_id == session_id,
+        ClusteringResult.student_id == student_id
+    ).first()
+    
+    if not c_res:
+        return error_response("Student not found in this session")
+        
+    db.delete(c_res)
+    session.total_students -= 1
+    db.commit()
+    
+    return success_response({"status": "removed"})
 
 
 @router.get("/admin/compatibility/sessions/{session_id}/preview", response_model=APIResponse[dict])

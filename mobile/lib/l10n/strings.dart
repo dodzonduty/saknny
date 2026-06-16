@@ -91,7 +91,7 @@ class S {
       ? 'خطأ في الشبكة، تحقق من اتصالك'
       : 'Network error, check your connection';
   String get biometricFailed =>
-      isArabic ? 'فشل التحقق بالبصمة' : 'Biometric verification failed';
+      isArabic ? 'فشل التحقق البيومتري' : 'Biometric verification failed';
   String get attendBiometric =>
       isArabic ? 'تحقق لتسجيل الحضور' : 'Verify to check in';
 

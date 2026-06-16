@@ -8,6 +8,9 @@ from backend.app.api.deps import get_current_admin, get_current_student
 from backend.app.core.database import get_db
 from backend.app.models.allocation import Allocation
 from backend.app.models.lease import Lease
+from backend.app.models.student import Student
+from backend.app.models.room import Room
+from backend.app.models.building import Building
 from backend.app.schemas.response import APIResponse, error_response, success_response
 from backend.app.services.audit import write_audit_log
 
@@ -57,6 +60,41 @@ def issue_lease(
     db.commit()
     db.refresh(lease)
     return success_response({"lease_id": lease.lease_id, "status": lease.status})
+
+
+@router.get("/admin/contracts/leases", response_model=APIResponse[dict])
+def admin_leases(db: Session = Depends(get_db), _=Depends(get_current_admin)):
+    items = (
+        db.query(Lease, Allocation, Student, Room, Building)
+        .outerjoin(Allocation, Lease.allocation_id == Allocation.allocation_id)
+        .outerjoin(Student, Lease.student_id == Student.student_id)
+        .outerjoin(Room, Allocation.room_id == Room.room_id)
+        .outerjoin(Building, Room.dorm_id == Building.dorm_id)
+        .order_by(Lease.issued_at.desc())
+        .all()
+    )
+    return success_response(
+        {
+            "items": [
+                {
+                    "lease_id": row.Lease.lease_id,
+                    "allocation_id": row.Lease.allocation_id,
+                    "student_id": row.Lease.student_id,
+                    "student_name": row.Student.name if row.Student else None,
+                    "room_id": row.Allocation.room_id if row.Allocation else None,
+                    "room_number": row.Room.room_number if row.Room else None,
+                    "building_name": row.Building.building_name if row.Building else None,
+                    "status": row.Lease.status,
+                    "document_url": row.Lease.document_url,
+                    "issued_at": row.Lease.issued_at,
+                    "expires_at": row.Lease.expires_at,
+                    "signed_at": row.Lease.signed_at,
+                }
+                for row in items
+            ],
+            "count": len(items),
+        }
+    )
 
 
 @router.get("/contracts/leases/me", response_model=APIResponse[dict])
